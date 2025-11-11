@@ -15,8 +15,9 @@
 | 模型 | 优点 | 缺点 | 使用场景 | 选择 |
 |------|------|------|----------|------|
 | **CLIP** | 轻量、CPU友好、零样本 | 精度有限 | 基础分类 | ✅ MVP |
-| **GroundingDINO** | 开放词汇、准确 | 需要GPU、较慢 | 精确检测 | ✅ Phase 2 |
-| **YOLO v8** | 快速、成熟 | 封闭类别 | 实时检测 | ❌ |
+| **RTMDet-L** | Apache许可、高精度(52.8% mAP)、社区支持好 | 需要GPU加速 | 精确物体检测 | ✅ Phase 2 |
+| **GroundingDINO** | 开放词汇、灵活 | 资源消耗较大 | 开放词汇检测 | ⚠️ Phase 3 |
+| **YOLO v8** | 快速、成熟 | AGPL许可限制、精度一般 | 实时检测 | ❌ |
 | **DINOv2** | 强特征提取 | 需要微调 | Few-shot | ✅ Phase 3 |
 | **SAM** | 精确分割 | 资源消耗大 | 物体分割 | ⚠️ 可选 |
 
@@ -41,7 +42,7 @@ models_mvp = {
 # Phase 2 - 增强 (GPU可选)
 models_enhanced = {
     'classifier': 'openai/clip-vit-large-patch14',  # 900MB
-    'detector': 'groundingdino-tiny',  # 700MB
+    'detector': 'rtmdet-l',  # MMDetection, Apache-2.0, 高精度
     'ocr': 'paddleocr-v4',  # 300MB
     'device': 'cuda:0 if available else cpu'
 }
@@ -49,7 +50,7 @@ models_enhanced = {
 # Phase 3 - 专业 (GPU推荐)
 models_pro = {
     'classifier': 'clip-vit-large',
-    'detector': 'groundingdino-swin-base',
+    'detector': 'rtmdet-x',  # 或 groundingdino用于开放词汇
     'ocr': 'paddleocr-v4',
     'few_shot': 'dinov2-base',
     'device': 'cuda:0'
@@ -284,6 +285,7 @@ monitoring:
 ### 关键技术决策
 
 - ✅ **使用CLIP作为基础模型** - 平衡效果和资源
+- ✅ **RTMDet-L用于物体检测** - Apache许可、高精度、无法律风险
 - ✅ **SQLite起步，PostgreSQL生产** - 渐进式升级
 - ✅ **FastAPI贯穿始终** - 现代、高效、一致
 - ✅ **Gradio快速原型，React长期** - 快速迭代

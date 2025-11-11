@@ -137,3 +137,30 @@
 
 *审查完成时间：2024年11月*
 *审查结果：通过，可以开始实施*
+
+## 📝 更新记录
+
+### 2024年11月 - 基于专家反馈的增强
+
+根据@gpt_deep_research.md专家反馈，对方案进行了以下重要更新：
+
+#### 1. 物体检测模型升级
+- **问题识别**：YOLOv5/v8的AGPL-3.0许可对商业使用有限制
+- **解决方案**：采用RTMDet-L替代YOLO
+  - Apache-2.0许可，商用无忧
+  - 精度从50.2%提升至52.8% mAP
+  - OpenMMLab社区支持良好
+
+#### 2. 文档更新
+- ✅ 更新`03_technical_choices.md`：将RTMDet-L作为Phase 2首选
+- ✅ 创建`rtmdet_detector.py`：完整的RTMDet POC实现  
+- ✅ 更新`04_implementation_guide.md`：添加RTMDet部署指南
+- ✅ 新增`05_rtmdet_integration.md`：详细的集成方案文档
+- ✅ 更新`system_architecture.md`：架构图中加入RTMDet
+
+#### 3. 技术栈优化
+- Phase 1: CLIP（不变）
+- Phase 2: RTMDet-L（替代原GroundingDINO）
+- Phase 3: RTMDet-L + GroundingDINO（组合使用）
+
+这次更新确保了方案的**法律合规性**和**更高的检测精度**，为商业化部署扫清了障碍。

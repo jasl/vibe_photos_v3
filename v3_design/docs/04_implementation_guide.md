@@ -20,7 +20,7 @@ uv run python -c "import torch; print(torch.__version__)"
 
 #### Day 1-2: 核心检测器
 ```python
-# src/detector.py
+# src/detector.py - 基础CLIP检测器（MVP阶段）
 from transformers import CLIPModel, CLIPProcessor
 
 class SimpleDetector:
@@ -31,6 +31,21 @@ class SimpleDetector:
     def classify(self, image_path, categories):
         # 实现基础分类
         pass
+
+# src/rtmdet_detector.py - 高精度物体检测（Phase 2）
+# 安装: pip install mmdet mmcv
+from mmdet.apis import init_detector, inference_detector
+
+class RTMDetector:
+    def __init__(self):
+        # 使用RTMDet-L，Apache-2.0许可，52.8% mAP精度
+        config = 'configs/rtmdet/rtmdet_l_8xb32-300e_coco.py'
+        checkpoint = 'checkpoints/rtmdet_l.pth'
+        self.model = init_detector(config, checkpoint)
+    
+    def detect(self, image_path):
+        # 高精度物体检测，支持80类COCO物体
+        return inference_detector(self.model, image_path)
 ```
 
 #### Day 3: 数据层
@@ -263,6 +278,49 @@ jobs:
     - name: Lint
       run: |
         uv run ruff check src/
+```
+
+## 🚀 RTMDet-L部署指南
+
+### 安装MMDetection和RTMDet
+```bash
+# 1. 安装依赖
+uv add torch torchvision
+uv add mmcv-full mmdet
+
+# 2. 下载RTMDet配置文件
+mkdir -p configs/rtmdet
+wget https://github.com/open-mmlab/mmdetection/raw/main/configs/rtmdet/rtmdet_l_8xb32-300e_coco.py \
+     -O configs/rtmdet/rtmdet_l_8xb32-300e_coco.py
+
+# 3. 下载预训练权重（Apache-2.0许可）
+mkdir -p checkpoints
+wget https://download.openmmlab.com/mmdetection/v3.0/rtmdet/rtmdet_l_8xb32-300e_coco/rtmdet_l_8xb32-300e_coco_20220719_112030-5a0be7c4.pth \
+     -O checkpoints/rtmdet_l.pth
+```
+
+### RTMDet vs YOLO对比
+| 特性 | RTMDet-L | YOLOv8 |
+|------|----------|---------|
+| **许可证** | Apache-2.0 ✅ | AGPL-3.0 ⚠️ |
+| **商用** | 免费 | 需付费 |
+| **mAP精度** | 52.8% | 50.2% |
+| **推理速度** | 快速 | 更快 |
+| **社区支持** | OpenMMLab | Ultralytics |
+
+### 使用示例
+```python
+# 高精度物体检测
+from src.rtmdet_detector import RTMDetector
+
+detector = RTMDetector()
+results = detector.detect("product_photo.jpg")
+
+# 自媒体内容分析
+for obj in results:
+    if obj['score'] > 0.7:  # 高置信度物体
+        print(f"检测到: {obj['label']} - {obj['score']:.1%}")
+        # 自动生成标签: #电子产品 #iPhone等
 ```
 
 ## 📊 监控和日志

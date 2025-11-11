@@ -33,7 +33,7 @@
 ┌──────────────────────────────────────────────────────┐
 │                    AI模型层                           │
 │  ┌──────────┬──────────┬──────────┬──────────┐     │
-│  │   CLIP   │   DINO   │ PaddleOCR│  DINOv2  │     │
+│  │   CLIP   │ RTMDet-L │ PaddleOCR│  DINOv2  │     │
 │  └──────────┴──────────┴──────────┴──────────┘     │
 └──────────────────────────────────────────────────────┘
                            │
@@ -288,9 +288,10 @@ business:
   learner: pytorch + few-shot
   
 models:
-  vision: clip, groundingdino
+  vision: clip, rtmdet-l  # RTMDet替代YOLO，Apache许可
   ocr: paddleocr
   embeddings: sentence-transformers
+  optional: groundingdino  # 开放词汇检测（可选）
   
 data:
   database: sqlite → postgresql
