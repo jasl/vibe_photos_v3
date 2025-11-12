@@ -3,8 +3,8 @@
 # Python版本要求：>=3.9 (推荐3.11+)
 
 # ==================== 核心依赖 ====================
-torch==2.9.0               # PyTorch深度学习框架
-torchvision==0.24.0        # PyTorch计算机视觉库
+torch==2.9.1               # PyTorch深度学习框架
+torchvision==0.24.1        # PyTorch计算机视觉库
 transformers==4.57.1       # Hugging Face Transformers
 pillow==11.3.0             # 图像处理库
 numpy==2.3.4               # 数值计算库
@@ -27,7 +27,7 @@ requests==2.32.3           # HTTP客户端（下载模型）
 sentence-transformers==5.1.2  # 句子嵌入（用于语义搜索）
 
 # OCR引擎
-paddlepaddle==3.2.0        # 百度飞桨框架
+paddlepaddle==3.2.1        # 百度飞桨框架
 paddleocr==3.3.1           # PaddleOCR文字识别
 
 # ==================== 向量搜索（需要时启用） ====================

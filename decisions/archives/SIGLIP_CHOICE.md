@@ -36,7 +36,7 @@
 ### 安装
 ```bash
 # 主要方案：SigLIP + BLIP
-pip install transformers==4.57.1 torch pillow
+uv pip install transformers==4.57.1 torch pillow
 
 # 自动下载模型（首次运行）
 # google/siglip-base-patch16-224-i18n (~400MB)
@@ -73,10 +73,10 @@ probs = torch.sigmoid(outputs.logits_per_image[0])
 如果你之前使用RTMDet或CLIP，建议立即迁移到SigLIP：
 ```bash
 # 移除旧依赖
-pip uninstall mmdet mmengine mmcv clip-interrogator
+uv pip uninstall mmdet mmengine mmcv clip-interrogator
 
 # 安装新依赖
-pip install transformers==4.57.1
+uv pip install transformers==4.57.1
 ```
 
 ## 📈 性能数据

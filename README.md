@@ -105,7 +105,7 @@ cat ../../decisions/TECHNICAL_DECISIONS.md
 - **图像理解**：SigLIP (google/siglip-base-patch16-224-i18n) + BLIP (Salesforce/blip-image-captioning-base)
 - **物体检测**：GroundingDINO (Phase 2可选增强)
 - **OCR**：PaddleOCR 3.3.1
-- **深度学习**：PyTorch 2.9.0 + Transformers 4.57.1
+- **深度学习**：PyTorch 2.9.1 + Transformers 4.57.1
 - **向量存储**：PostgreSQL + pgvector（主方案）
 - **任务队列**：Celery + Redis
 - **Web框架**：FastAPI 0.121.1

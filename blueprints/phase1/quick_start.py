@@ -46,7 +46,7 @@ def create_project_structure():
 
 def create_requirements_file():
     """创建requirements.txt文件"""
-    requirements = """# 核心依赖 - 2024年11月最新稳定版本
+    requirements = """# 核心依赖 - 2025年11月最新稳定版本
 fastapi==0.121.1
 uvicorn==0.38.0
 streamlit==1.51.0
@@ -58,8 +58,8 @@ pydantic==2.11.10
 
 # 识别引擎（推荐SigLIP+BLIP）
 # Option A: 使用SigLIP+BLIP（推荐，多语言支持，~85%准确率）
-torch==2.9.0
-torchvision==0.24.0
+torch==2.9.1
+torchvision==0.24.1
 transformers==4.57.1
 sentence-transformers==5.1.2
 
@@ -68,7 +68,7 @@ sentence-transformers==5.1.2
 # 模型: google/siglip-base-patch16-224-i18n
 
 # OCR引擎
-paddlepaddle==3.2.0
+paddlepaddle==3.2.1
 paddleocr==3.3.1
 
 # 开发工具
@@ -182,17 +182,12 @@ with st.sidebar:
     st.header("功能选择")
     page = st.radio(
         "选择功能",
-        ["批量导入", "搜索浏览", "处理状态"]
+        ["搜索浏览", "处理状态"]
     )
 
 # 主页面
-if page == "批量导入":
-    st.header("批量导入图片")
-    folder_path = st.text_input("图片文件夹路径")
-    if st.button("开始导入"):
-        st.success("导入功能开发中...")
         
-elif page == "搜索浏览":
+if page == "搜索浏览":
     st.header("搜索和浏览")
     search_query = st.text_input("搜索关键词")
     if search_query:
@@ -226,10 +221,10 @@ def create_readme():
 
 ## 快速开始
 
-### 1. 安装依赖
+## 1. 使用 uv 创建虚拟环境并安装依赖
 ```bash
 cd phase1
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 ```
 
 ### 2. 初始化数据库
@@ -237,7 +232,12 @@ pip install -r requirements.txt
 python scripts/init_db.py
 ```
 
-### 3. 启动服务
+### 3. 处理数据集
+```bash
+python scripts/process_dataset.py
+```
+
+### 4. 启动服务
 
 #### 启动API服务
 ```bash
@@ -249,7 +249,7 @@ uvicorn app.main:app --reload --port 8000
 streamlit run ui/app.py --server.port 8501
 ```
 
-### 4. 访问服务
+### 5. 访问服务
 - API文档: http://localhost:8000/docs
 - Web界面: http://localhost:8501
 
@@ -322,9 +322,13 @@ def main():
     print("=" * 50)
     print("\n下一步操作：")
     print("1. cd phase1")
-    print("2. pip install -r requirements.txt")
-    print("3. uvicorn app.main:app --reload")
-    print("4. 访问 http://localhost:8000/docs")
+    print("2. uv venv && source .venv/bin/activate  # Windows: .venv\\Scripts\\activate")
+    print("3. uv sync")
+    print("4. python scripts/init_db.py")
+    print("5. python scripts/process_dataset.py")
+    print("6. uv run uvicorn app.main:app --reload")
+    print("7. 在新终端运行：streamlit run ui/app.py --server.port 8501")
+    print("8. 访问 http://localhost:8000/docs 和 http://localhost:8501")
     print("\n祝开发顺利！🚀")
     
     return 0

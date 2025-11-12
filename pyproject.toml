@@ -5,17 +5,6 @@ description = "AI-powered photo management system for content creators"
 requires-python = "==3.12.*"
 readme = "README.md"
 
-[tool.uv]
-python-version = "3.12"
-python-preference = "only-managed"
-
-[tool.uv.sources]
-torch = { index = "pytorch" }
-
-[[tool.uv.index]]
-name = "pytorch"
-url = "https://download.pytorch.org/whl/cu124"
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -51,9 +40,3 @@ minversion = "9.0"
 addopts = "-ra -q --strict-markers"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-
-# 项目结构说明
-# blueprints/
-#   ├── phase1/         # 第一阶段：基础验证
-#   ├── phase2/         # 第二阶段：功能增强（待实施）
-#   └── phase_final/    # 最终阶段：完整系统

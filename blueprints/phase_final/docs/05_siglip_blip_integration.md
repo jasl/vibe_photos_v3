@@ -50,7 +50,7 @@ SigLIP+BLIP在Phase Final架构中的定位：
 uv add transformers torch torchvision pillow
 
 # 或使用pip
-pip install transformers torch torchvision pillow
+uv pip install transformers torch torchvision pillow
 ```
 
 ### 基础使用示例

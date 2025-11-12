@@ -44,7 +44,7 @@
 - ✅ SigLIP-base-i18n (多语言支持，~85%准确率)
 - ✅ BLIP-base (图像理解和描述生成)
 - ✅ PaddleOCR 3.3.1
-- ✅ PyTorch 2.9.0
+- ✅ PyTorch 2.9.1
 - ✅ FastAPI 0.121.1
 - ✅ SQLite + FTS5
 

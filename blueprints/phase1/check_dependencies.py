@@ -202,18 +202,17 @@ def print_recommendations():
     
     print(f"""
 1. 如有缺失的依赖，请运行：
-   {YELLOW}pip install -r requirements.txt{RESET}
+   {YELLOW}uv sync{RESET}
 
 2. 对于GPU加速（可选）：
-   - NVIDIA GPU (CUDA 12.4): {YELLOW}pip install torch==2.9.0 torchvision==0.24.0 --index-url https://download.pytorch.org/whl/cu124{RESET}
-   - NVIDIA GPU (CUDA 12.1): {YELLOW}pip install torch==2.9.0 torchvision==0.24.0 --index-url https://download.pytorch.org/whl/cu121{RESET}
+   - NVIDIA GPU (CUDA 13.0): {YELLOW}uv pip install torch==2.9.1 torchvision==0.24.1 --index-url https://download.pytorch.org/whl/cu130{RESET}
    - Apple Silicon: PyTorch会自动使用MPS加速
 
 3. 如遇到PaddlePaddle安装问题：
-   {YELLOW}pip install paddlepaddle==3.2.0 -i https://pypi.tuna.tsinghua.edu.cn/simple{RESET}
+   {YELLOW}uv pip install paddlepaddle==3.2.1 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/{RESET}
 
 4. 开发工具（可选）：
-   {YELLOW}pip install -r requirements-dev.txt{RESET}
+   {YELLOW}uv pip install -r requirements-dev.txt{RESET}
 """)
 
 def main():

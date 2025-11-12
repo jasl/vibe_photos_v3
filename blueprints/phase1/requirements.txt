@@ -16,8 +16,8 @@ pyyaml==6.0.2              # YAML配置文件支持
 
 # ==================== 识别引擎 ====================
 # 主要方案：SigLIP+BLIP（多语言支持，~85%准确率）
-torch==2.9.0               # PyTorch深度学习框架 (最新稳定版)
-torchvision==0.24.0        # PyTorch计算机视觉库 (最新稳定版)
+torch==2.9.1               # PyTorch深度学习框架 (最新稳定版)
+torchvision==0.24.1        # PyTorch计算机视觉库 (最新稳定版)
 transformers==4.57.1       # Hugging Face Transformers（用于SigLIP和BLIP）
 sentence-transformers==5.1.2  # 句子嵌入（用于语义搜索准备）
 # 模型会自动下载:
@@ -25,7 +25,7 @@ sentence-transformers==5.1.2  # 句子嵌入（用于语义搜索准备）
 # - Salesforce/blip-image-captioning-base (~990MB)
 
 # ==================== OCR引擎 ====================
-paddlepaddle==3.2.0        # 百度飞桨深度学习框架
+paddlepaddle==3.2.1        # 百度飞桨深度学习框架
 paddleocr==3.3.1           # PaddleOCR文字识别
 
 # ==================== 数据库和缓存 ====================

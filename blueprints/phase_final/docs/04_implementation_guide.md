@@ -10,7 +10,7 @@ cd vibe-photos-phase_final
 
 # 2. 初始化环境
 uv init
-uv add torch==2.9.0 transformers==4.57.1 pillow==11.3.0 fastapi==0.121.1 typer rich==14.2.0
+uv add torch==2.9.1 torchvision==0.24.1 transformers==4.57.1 pillow==11.3.0 fastapi==0.121.1 typer rich==14.2.0
 
 # 3. 验证环境
 uv run python -c "import torch; print(torch.__version__)"
@@ -33,7 +33,7 @@ class SimpleDetector:
         pass
 
 # src/siglip_blip_detector.py - 多语言图像理解（Phase 1/2）
-# 安装: pip install transformers torch pillow
+# 安装: uv pip install transformers torch pillow
 from transformers import AutoProcessor, AutoModel, BlipProcessor, BlipForConditionalGeneration
 from PIL import Image
 import torch

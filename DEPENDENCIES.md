@@ -21,10 +21,10 @@ uv python pin 3.12
 | **Web框架** | FastAPI | 0.121.1 | API服务 |
 | | Uvicorn | 0.38.0 | ASGI服务器 |
 | | Streamlit | 1.51.0 | UI界面 |
-| **AI模型** | PyTorch | 2.9.0 | 深度学习框架 |
+| **AI模型** | PyTorch | 2.9.1 | 深度学习框架 |
 | | Transformers | 4.57.1 | SigLIP/BLIP模型 |
 | | Sentence-Transformers | 5.1.2 | 语义搜索 |
-| **OCR** | PaddlePaddle | 3.2.0 | OCR框架 |
+| **OCR** | PaddlePaddle | 3.2.1 | OCR框架 |
 | | PaddleOCR | 3.3.1 | 文字识别 |
 | **数据处理** | SQLAlchemy | 2.0.44 | 数据库ORM |
 | | Pydantic | 2.11.10 | 数据验证 |
@@ -57,10 +57,10 @@ uv pip sync requirements.txt
 
 ```bash
 # NVIDIA GPU (CUDA 12.4)
-uv pip install torch==2.9.0 torchvision==0.24.0 --index-url https://download.pytorch.org/whl/cu124
+uv pip install torch==2.9.1 torchvision==0.24.1 --index-url https://download.pytorch.org/whl/cu124
 
 # Apple Silicon (自动使用MPS)
-uv pip install torch==2.9.0 torchvision==0.24.0
+uv pip install torch==2.9.1 torchvision==0.24.1
 ```
 
 ### 开发环境

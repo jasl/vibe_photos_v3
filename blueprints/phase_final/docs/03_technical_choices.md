@@ -150,32 +150,51 @@ requires-python = ">=3.11"
 
 dependencies = [
     # 核心 (2024年11月最新版本)
-    "torch==2.9.0",              # 最新稳定版
-    "transformers==4.57.1",      # 最新稳定版
-    "pillow==11.3.0",            # 最新稳定版
+    "torch==2.9.1",
+    "torchvision==0.24.1",
+    "transformers==4.57.1",
+    "pillow==11.3.0",
     
     # Web
-    "fastapi==0.121.1",          # 最新稳定版
-    "uvicorn[standard]==0.38.0", # 最新稳定版
+    "fastapi==0.121.1",
+    "uvicorn[standard]==0.38.0",
     
     # 数据
-    "sqlalchemy==2.0.44",        # 最新稳定版  
-    "pydantic==2.11.10",         # 最新稳定版
+    "sqlalchemy==2.0.44",
+    "pydantic==2.11.10",
     
     # AI模型
-    "transformers==4.57.1",      # SigLIP + BLIP
-    "sentence-transformers==5.1.2",  # 语义搜索
-    "paddlepaddle==3.2.0",       # 最新稳定版
-    "paddleocr==3.3.1",          # 最新稳定版
+    "transformers==4.57.1", # SigLIP + BLIP
+    "sentence-transformers==5.1.2",
+    "paddlepaddle==3.2.1",
+    "paddleocr==3.3.1",
     
     # 工具
-    "typer==0.20.0",             # 最新稳定版
-    "rich==14.2.0",              # 最新稳定版
+    "typer==0.20.0",
+    "rich==14.2.0",
 ]
 
-[project.optional-dependencies]
-gpu = ["torch==2.9.0+cu124"]    # CUDA 12.4支持
-dev = ["pytest==9.0.0", "black==25.11.0", "ruff==0.14.4"]  # 最新版本
+[tool.uv.sources]
+# Install PyTorch with CUDA support on Linux/Windows (CUDA doesn't exist for Mac).
+# NOTE: We must explicitly request them as `dependencies` above. These improved
+# versions will not be selected if they're only third-party dependencies.
+torch = [
+  { index = "pytorch-cuda", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+torchaudio = [
+  { index = "pytorch-cuda", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+torchvision = [
+  { index = "pytorch-cuda", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cuda"
+# Use PyTorch built for NVIDIA Toolkit version 13.0.
+# Available versions: https://pytorch.org/get-started/locally/
+url = "https://download.pytorch.org/whl/cu130"
+# Only use this index when explicitly requested by `tool.uv.sources`.
+explicit = true
 ```
 
 ## 🏗 系统架构

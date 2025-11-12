@@ -15,11 +15,11 @@
 | **数据处理** | sqlalchemy | 2.0.44 | 数据库ORM |
 | | pydantic | 2.11.10 | 数据验证 |
 | | pyyaml | 6.0.2 | 配置文件 |
-| **AI模型** | torch | 2.9.0 | 深度学习框架 |
-| | torchvision | 0.24.0 | 计算机视觉 |
+| **AI模型** | torch | 2.9.1 | 深度学习框架 |
+| | torchvision | 0.24.1 | 计算机视觉 |
 | | transformers | 4.57.1 | SigLIP/BLIP模型 |
 | | sentence-transformers | 5.1.2 | 语义搜索 |
-| **OCR** | paddlepaddle | 3.2.0 | OCR框架 |
+| **OCR** | paddlepaddle | 3.2.1 | OCR框架 |
 | | paddleocr | 3.3.1 | 文字识别 |
 | **工具库** | pillow | 11.3.0 | 图像处理 |
 | | numpy | 2.3.4 | 数值计算 |
@@ -62,13 +62,13 @@
 ```bash
 # Phase 1 - 包含所有核心功能
 cd blueprints/phase1
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 ```
 
 ### 开发环境
 ```bash
 # 添加开发工具
-pip install -r requirements-dev.txt
+uv pip install -r requirements-dev.txt
 ```
 
 ## 📝 版本说明

@@ -134,8 +134,8 @@ uv pip compile requirements.in -o requirements.txt
 ```txt
 fastapi==0.121.1
 streamlit==1.51.0
-torch==2.9.0
-paddlepaddle==2.5.1
+torch==2.9.1
+paddlepaddle==3.2.1
 ```
 
 然后生成完整的 requirements.txt：

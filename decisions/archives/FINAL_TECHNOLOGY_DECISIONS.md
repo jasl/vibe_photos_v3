@@ -13,7 +13,7 @@
 | **数据库** | SQLite | 内置 |
 | **图像识别** | SigLIP + BLIP | 4.57.1 |
 | **OCR** | PaddleOCR | 3.3.1 |
-| **深度学习** | PyTorch | 2.9.0 |
+| **深度学习** | PyTorch | 2.9.1 |
 
 ### Phase Final - 规划中
 
