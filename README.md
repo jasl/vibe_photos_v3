@@ -43,12 +43,12 @@ vibe_photos_v3/
 
 ### Phase 1 - 基础功能验证（当前阶段）
 - **目标**：2周内验证核心识别功能
-- **技术**：RTMDet (52.8% mAP) + PaddleOCR + SQLite
+- **技术**：SigLIP (多语言) + BLIP (图像理解) + PaddleOCR + SQLite
 - **文档**：[blueprints/phase1/README.md](blueprints/phase1/README.md)
 
 ### Phase 2 - 语义搜索增强（下一阶段）
 - **目标**：1个月实现智能语义搜索  
-- **技术**：RTMDet + SigLIP + 混合搜索
+- **技术**：SigLIP + BLIP + GroundingDINO (可选) + 混合搜索
 - **状态**：待Phase 1验证后启动
 
 ### Phase Final - 生产级系统（最终目标）
@@ -94,9 +94,10 @@ cat FINAL_TECHNOLOGY_DECISIONS.md
 
 ## 📊 技术选型
 
-- **物体检测**：RTMDet-L (Apache-2.0许可)
+- **图像理解**：SigLIP (google/siglip-base-patch16-224-i18n) + BLIP (Salesforce/blip-image-captioning-base)
+- **物体检测**：GroundingDINO (Phase 2可选增强)
 - **OCR**：PaddleOCR 3.3.1
-- **深度学习**：PyTorch 2.9.0
+- **深度学习**：PyTorch 2.9.0 + Transformers 4.57.1
 - **向量存储**：PostgreSQL + pgvector（主方案）
 - **任务队列**：Celery + Redis
 - **Web框架**：FastAPI 0.121.1

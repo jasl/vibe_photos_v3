@@ -94,7 +94,7 @@ Layer 3: 具体型号（iPhone 15 Pro）- 需要人工或学习
 ## 🛠 技术栈
 
 ### 核心技术
-- **检测**: GroundingDINO / CLIP
+- **检测**: SigLIP + BLIP / GroundingDINO
 - **OCR**: PaddleOCR
 - **学习**: Few-Shot Learning with DINOv2
 - **搜索**: PostgreSQL + pgvector（统一存储）
@@ -136,7 +136,7 @@ Layer 3: 具体型号（iPhone 15 Pro）- 需要人工或学习
 5. **迭代优化** - 根据反馈持续改进
 
 ### 📅 开发阶段
-- **Phase 1** (2周): 基础功能验证 - RTMDet + SQLite
+- **Phase 1** (2周): 基础功能验证 - SigLIP+BLIP + SQLite
 - **Phase 2** (1月): 语义搜索增强 - 添加SigLIP
 - **Phase 3** (3月): 生产级系统 - 完整功能集
 

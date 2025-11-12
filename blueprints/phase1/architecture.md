@@ -39,7 +39,7 @@
 │                                                        │
 │  ┌──────────────┐  ┌──────────────┐  ┌────────────┐  │
 │  │ 图像识别引擎 │  │  OCR引擎     │  │ 批处理器   │  │
-│  │ (RTMDet/CLIP)│  │ (PaddleOCR)  │  │            │  │
+│  │(RTMDet/SigLIP)│  │ (PaddleOCR)  │  │            │  │
 │  └──────────────┘  └──────────────┘  └────────────┘  │
 │                                                        │
 └────────────────────────────────────────────────────────┘
@@ -87,9 +87,9 @@ mmdet==3.3.0              # MMDetection框架
 mmengine==0.10.7          # MMEngine基础库
 mmcv==2.2.0               # MMCV基础库
 
-# 备选方案：CLIP (更轻量，可选安装)
+# 备选方案：SigLIP (更强大，可选安装)
 # transformers==4.57.1    # Hugging Face
-# clip-interrogator==0.6.0  # CLIP工具
+# 模型: google/siglip-base-patch16-224-i18n
 ```
 
 ### OCR引擎
@@ -311,7 +311,7 @@ class Settings:
     
     # 检测引擎
     DETECTION_MODEL = "rtmdet-l"  # RTMDet-L (52.8% mAP, Apache-2.0许可)
-    # DETECTION_MODEL = "clip-base"  # 备选方案
+    # DETECTION_MODEL = "siglip-base"  # 备选方案（多语言支持）
     CONFIDENCE_THRESHOLD = 0.3
     
     # OCR

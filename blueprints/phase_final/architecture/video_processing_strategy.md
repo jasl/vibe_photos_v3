@@ -283,7 +283,7 @@ class VideoContentAnalyzer:
     """视频内容分析器"""
     
     def __init__(self):
-        self.frame_detector = RTMDetector()  # 复用图片检测器
+        self.frame_detector = SigLIPBLIPDetector()  # 复用图片检测器
         self.action_recognizer = self.load_action_model()
         self.scene_classifier = self.load_scene_model()
     

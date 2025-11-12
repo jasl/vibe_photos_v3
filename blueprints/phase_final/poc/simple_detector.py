@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import List, Dict, Optional
 import torch
 from PIL import Image
-from transformers import CLIPProcessor, CLIPModel
+from transformers import AutoProcessor, AutoModel
 from dataclasses import dataclass
 import json
 
@@ -25,14 +25,14 @@ class DetectionResult:
 class SimpleDetector:
     """
     极简的图像检测器
-    使用CLIP模型进行零样本分类
+    使用SigLIP模型进行多语言零样本分类
     """
     
-    def __init__(self, model_name: str = "openai/clip-vit-base-patch32"):
+    def __init__(self, model_name: str = "google/siglip-base-patch16-224-i18n"):
         """初始化检测器"""
         print(f"Loading model: {model_name}")
-        self.model = CLIPModel.from_pretrained(model_name)
-        self.processor = CLIPProcessor.from_pretrained(model_name)
+        self.model = AutoModel.from_pretrained(model_name)
+        self.processor = AutoProcessor.from_pretrained(model_name)
         
         # 预定义的类别体系
         self.categories = {
@@ -108,7 +108,7 @@ class SimpleDetector:
             'image_size': image.size,
             'threshold_met': main_confidence >= threshold,
             'needs_review': main_confidence < 0.5,
-            'model': 'clip-vit-base-patch32'
+            'model': 'siglip-base-patch16-224-i18n'
         }
         
         return DetectionResult(

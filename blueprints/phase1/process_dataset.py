@@ -24,7 +24,7 @@ def setup_logging(config: dict) -> logging.Logger:
     log_config = config.get('logging', {})
     
     # 创建日志目录
-    log_dir = Path(log_config.get('directory', 'logs'))
+    log_dir = Path(log_config.get('directory', 'log'))
     log_dir.mkdir(exist_ok=True)
     
     # 日志文件路径
@@ -92,7 +92,7 @@ async def main():
     # 3. 初始化组件
     from processors.preprocessor import ImagePreprocessor
     from processors.batch import BatchProcessor
-    from processors.detector import RTMDetDetector
+    from processors.detector import SigLIPBLIPDetector
     from processors.ocr import PaddleOCREngine
     from app.database import get_db_session
     
@@ -107,7 +107,7 @@ async def main():
     
     # 初始化处理器
     preprocessor = ImagePreprocessor(config['preprocessing'])
-    detector = RTMDetDetector(
+    detector = SigLIPBLIPDetector(
         model=config['detection']['model'],
         device=config['detection']['device']
     )

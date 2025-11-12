@@ -56,17 +56,18 @@ python-multipart==0.0.20
 aiofiles==25.1.0
 pydantic==2.12.4
 
-# 识别引擎（推荐RTMDet）
-# Option A: 使用RTMDet（推荐，更准确，52.8% mAP）
+# 识别引擎（推荐SigLIP+BLIP）
+# Option A: 使用SigLIP+BLIP（推荐，多语言支持，~85%准确率）
+transformers==4.57.1
 torch==2.9.0
 torchvision==0.24.0
 mmdet==3.3.0
 mmengine==0.10.7
 mmcv==2.2.0
 
-# Option B: 使用CLIP（备选，更轻量）
+# Option B: 使用SigLIP（备选，更强大）
 # transformers==4.57.1
-# clip-interrogator==0.6.0
+# 模型: google/siglip-base-patch16-224-i18n
 
 # OCR引擎
 paddlepaddle==3.2.0
@@ -99,7 +100,7 @@ def create_config_file():
             "supported_formats": [".jpg", ".jpeg", ".png", ".webp"]
         },
         "detection": {
-            "model": "clip-base",  # 或 "rtmdet-l"
+            "model": "siglip-base",  # 或 "rtmdet-l"
             "confidence_threshold": 0.3,
             "device": "cpu"  # 或 "cuda"
         },

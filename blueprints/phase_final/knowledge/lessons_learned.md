@@ -27,7 +27,7 @@
 #### Phase Final的改进
 ```python
 # 渐进式架构
-Phase 1: 单一模型(CLIP) + SQLite
+Phase 1: 单一模型(SigLIP) + SQLite
 Phase 2: 增加专门模型(OCR, 品牌识别)
 Phase 3: 完整功能(Few-shot学习)
 ```

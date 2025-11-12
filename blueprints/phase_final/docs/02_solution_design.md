@@ -186,7 +186,8 @@ confidence_actions = {
 ```python
 # 最简实现，快速验证
 components = {
-    'detector': 'CLIP-base',      # 轻量、快速
+    'detector': 'SigLIP (google/siglip-base-patch16-224-i18n)',  # 多语言支持，更准确
+    'captioning': 'BLIP (Salesforce/blip-image-captioning-base)',  # 图像理解
     'storage': 'SQLite',          # 零配置
     'ui': 'CLI + Gradio',         # 快速原型
     'search': 'SQL LIKE'          # 简单够用
@@ -197,7 +198,7 @@ components = {
 ```python
 # 核心功能完善
 components = {
-    'detector': 'CLIP + GroundingDINO',
+    'detector': 'SigLIP + BLIP + GroundingDINO',  # 多层次识别
     'ocr': 'PaddleOCR',
     'storage': 'PostgreSQL + pgvector',  # 统一存储方案
     'ui': 'FastAPI + React',

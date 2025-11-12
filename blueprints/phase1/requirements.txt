@@ -23,9 +23,9 @@ mmdet==3.3.0               # MMDetection物体检测框架
 mmengine==0.10.7           # MMEngine基础库
 mmcv==2.2.0                # OpenMMLab计算机视觉基础库
 
-# 方案B：CLIP（备选，更轻量）- 可选
+# 方案B：SigLIP（备选，更强大）- 可选
 # transformers==4.57.1     # Hugging Face Transformers
-# clip-interrogator==0.6.0 # CLIP图像分析工具
+# 模型: google/siglip-base-patch16-224-i18n
 
 # ==================== OCR引擎 ====================
 paddlepaddle==3.2.0        # 百度飞桨深度学习框架

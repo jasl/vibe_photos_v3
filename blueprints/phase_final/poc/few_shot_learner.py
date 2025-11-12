@@ -54,7 +54,7 @@ class FewShotLearner:
         self.min_samples = 3  # 最少样本数
         self.max_samples = 20  # 最多样本数
         
-        # 模拟的特征提取器（实际使用DINOv2或CLIP）
+        # 模拟的特征提取器（实际使用DINOv2或SigLIP）
         self.feature_extractor = self._mock_feature_extractor
         
         print(f"Few-Shot学习器初始化完成 (特征维度: {feature_dim})")
@@ -242,7 +242,7 @@ class FewShotLearner:
     def _mock_feature_extractor(self, image_path: str) -> np.ndarray:
         """
         模拟的特征提取器
-        实际应使用 DINOv2, CLIP 等预训练模型
+        实际应使用 DINOv2, SigLIP 等预训练模型
         """
         # 模拟：基于文件名生成特征
         np.random.seed(hash(image_path) % 2**32)

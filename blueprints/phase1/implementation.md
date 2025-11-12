@@ -15,7 +15,7 @@
 - [ ] 创建缩略图生成模块
 
 ### Phase 2: 识别引擎集成（Day 5-8）
-- [ ] 集成RTMDet或CLIP模型
+- [ ] 集成RTMDet或SigLIP模型
 - [ ] 实现批量检测功能
 - [ ] 集成PaddleOCR
 - [ ] 保存处理结果到数据库
@@ -780,7 +780,7 @@ elif page == "处理状态":
 ### 必须实现（MVP）
 - [x] 批量图片导入
 - [x] 缩略图生成
-- [x] 基础物体检测（RTMDet/CLIP）
+- [x] 基础物体检测（RTMDet/SigLIP）
 - [x] 简单OCR提取
 - [x] SQLite存储
 - [x] 关键词搜索

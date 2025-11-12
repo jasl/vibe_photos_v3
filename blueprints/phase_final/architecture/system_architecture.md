@@ -33,7 +33,7 @@
 ┌──────────────────────────────────────────────────────┐
 │                    AI模型层                           │
 │  ┌──────────┬──────────┬──────────┬──────────┐     │
-│  │   CLIP   │ RTMDet-L │ PaddleOCR│  DINOv2  │     │
+│  │  SigLIP  │   BLIP   │ PaddleOCR│  DINOv2  │     │
 │  └──────────┴──────────┴──────────┴──────────┘     │
 └──────────────────────────────────────────────────────┘
                            │
@@ -137,8 +137,9 @@ class DetectorModule:
     负责图像内容识别
     """
     components = {
-        'general': CLIPDetector,       # 通用分类
-        'object': GroundingDINO,       # 物体检测
+        'general': SigLIPDetector,     # 通用分类（多语言）
+        'captioning': BLIPCaptioner,   # 图像描述生成
+        'object': GroundingDINO,       # 物体检测（可选）
         'text': PaddleOCR,             # 文字提取
         'brand': BrandRecognizer,      # 品牌识别
     }
@@ -303,7 +304,7 @@ business:
   queue: celery + redis  # ✅ 已补充任务队列方案
   
 models:
-  vision: clip, rtmdet-l  # RTMDet替代YOLO，Apache许可
+  vision: siglip, blip  # SigLIP多语言支持，BLIP图像理解
   ocr: paddleocr
   embeddings: sentence-transformers
   optional: groundingdino  # 开放词汇检测（可选）

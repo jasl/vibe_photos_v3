@@ -18,7 +18,7 @@
 - ✅ **testing.md** - 测试方案
 - ✅ **DATASET_USAGE.md** - 数据集使用指南
 - ✅ **DATASET_ANALYSIS.md** - 数据集分析
-- ✅ **RTMDET_CHOICE.md** - RTMDet选型说明
+- ✅ **SIGLIP_CHOICE.md** - SigLIP选型说明
 - ✅ **config.yaml** - 配置文件
 - ✅ **requirements.txt** - Python依赖
 
@@ -42,7 +42,8 @@
 - ✅ 缓存可选可清理
 
 ### 3. 技术选型（统一版本）
-- ✅ RTMDet-L (52.8% mAP, Apache-2.0)
+- ✅ SigLIP-base-i18n (多语言支持，~85%准确率)
+- ✅ BLIP-base (图像理解和描述生成)
 - ✅ PaddleOCR 3.3.1
 - ✅ PyTorch 2.9.0
 - ✅ FastAPI 0.121.1

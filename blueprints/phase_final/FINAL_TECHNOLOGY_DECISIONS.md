@@ -15,8 +15,8 @@
 ### 🤖 AI模型
 | 功能 | 模型 | 理由 |
 |------|------|------|
-| **通用分类** | CLIP-ViT-B/32 | 平衡性能和速度 |
-| **物体检测** | RTMDet-L | Apache许可、高精度 |
+| **通用分类** | SigLIP-base-i18n | 多语言支持、更准确 |
+| **图像理解** | SigLIP+BLIP | 多语言支持、无依赖问题 |
 | **OCR** | PaddleOCR v4 | 中文支持最佳 |
 | **Few-shot** | DINOv2-base | 自监督学习效果好 |
 
@@ -66,14 +66,16 @@
 
 当前规模（3万）使用Faiss是过度设计。
 
-### 3. 为什么选择 RTMDet 而非 YOLO？
+### 3. 为什么选择 SigLIP+BLIP 而非 RTMDet/YOLO？
 
-**决策**：使用RTMDet-L替代YOLO系列
+**决策**：使用SigLIP+BLIP组合替代传统物体检测模型
 
 **理由**：
-- ✅ **许可证**：Apache 2.0（商用友好）vs AGPL（限制多）
-- ✅ **性能**：52.8% mAP，满足需求
-- ✅ **生态**：OpenMMLab支持完善
+- ✅ **无依赖问题**：RTMDet的mmcv已无法在Python 3.11+安装
+- ✅ **多语言支持**：SigLIP支持中文、英文、日文等多语言
+- ✅ **零样本学习**：无需预定义类别，灵活性更高
+- ✅ **图像理解**：BLIP可生成自然语言描述
+- ✅ **维护性**：Hugging Face生态，更新活跃
 
 ### 4. 视频处理策略
 
@@ -130,11 +132,11 @@ rich==14.2.0
 ### 立即实施
 1. 安装PostgreSQL 14+ 和 pgvector
 2. 配置Celery + Redis
-3. 实现基础CLIP分类
+3. 实现基础SigLIP分类
 4. 构建FastAPI接口
 
 ### 短期计划（2周）
-1. 集成RTMDet物体检测
+1. 集成SigLIP+BLIP图像理解
 2. 添加PaddleOCR
 3. 实现批量处理
 4. 优化查询性能

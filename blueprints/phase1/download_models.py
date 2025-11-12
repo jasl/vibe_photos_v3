@@ -27,8 +27,8 @@ MODELS_DIR.mkdir(exist_ok=True)
 # 模型配置
 MODELS_CONFIG = {
     "rtmdet": {
-        "name": "RTMDet-L",
-        "description": "物体检测模型",
+        "name": "SigLIP+BLIP",
+        "description": "多语言图像理解模型",
         "files": {
             "config": {
                 "url": "https://download.openmmlab.com/mmdetection/v3.0/rtmdet/rtmdet_l_8xb32-300e_coco/rtmdet_l_8xb32-300e_coco.py",

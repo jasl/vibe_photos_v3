@@ -26,8 +26,8 @@
 
 #### ✅ 技术方案一致性
 - **模型选择**：
-  - Phase 1: CLIP (所有文档一致)
-  - Phase 2: CLIP + GroundingDINO + PaddleOCR (一致)
+  - Phase 1: SigLIP+BLIP (所有文档一致)
+  - Phase 2: SigLIP+BLIP + GroundingDINO + PaddleOCR (一致)
   - Phase 3: + DINOv2 for Few-shot (一致)
   
 - **数据库选择**：
@@ -159,7 +159,7 @@
 - ✅ 更新`system_architecture.md`：架构图中加入RTMDet
 
 #### 3. 技术栈优化
-- Phase 1: CLIP（不变）
+- Phase 1: SigLIP+BLIP（更强大）
 - Phase 2: RTMDet-L（替代原GroundingDINO）
 - Phase 3: RTMDet-L + GroundingDINO（组合使用）
 

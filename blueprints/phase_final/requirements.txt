@@ -2,6 +2,8 @@
 # 更新日期：2024年11月
 # Python版本要求：>=3.9 (推荐3.11+)
 
+Setuptools<81.0.0
+
 # ==================== 核心依赖 ====================
 torch==2.9.0               # PyTorch深度学习框架
 torchvision==0.24.0        # PyTorch计算机视觉库
@@ -23,13 +25,11 @@ pydantic==2.12.4           # 数据验证和序列化
 redis==7.0.1               # Redis缓存支持（可选）
 
 # ==================== AI模型 ====================
-# 物体检测
-mmdet==3.3.0               # MMDetection框架（用于RTMDet）
-mmengine==0.10.7           # MMEngine基础库
-mmcv==2.2.0                # OpenMMLab CV基础库
+# 图像理解模型
+transformers==4.57.1       # Hugging Face Transformers（用于SigLIP和BLIP）
+sentence-transformers==5.1.2  # 句子嵌入（用于语义搜索）
 
-# CLIP相关
-clip-interrogator==0.6.0   # CLIP图像分析
+# 注意：已移除 CLIP 相关依赖，功能已被 SigLIP+BLIP 完全替代
 
 # OCR引擎
 paddlepaddle==3.2.0        # 百度飞桨框架

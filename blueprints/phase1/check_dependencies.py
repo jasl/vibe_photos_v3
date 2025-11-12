@@ -114,20 +114,13 @@ def check_ai_dependencies():
     if pytorch_available:
         check_package("torchvision", "torchvision", "0.24.0")
     
-    # 检查MMDetection（RTMDet方案，推荐）
-    print(f"  \n  RTMDet依赖（推荐方案）:")
-    mmdet_available = check_package("mmdet", "mmdet", "3.3.0")
-    if mmdet_available:
-        check_package("mmengine", "mmengine", "0.10.7")
-        check_package("mmcv", "mmcv", "2.2.0")
-    else:
-        print(f"     └─ {YELLOW}请安装MMDetection以使用RTMDet{RESET}")
-    
-    # 检查CLIP（备选方案）
-    print(f"  \n  CLIP依赖（备选方案）:")
+    # 检查主要方案：SigLIP+BLIP
+    print(f"  \n  SigLIP+BLIP依赖（主要方案）:")
     transformers_available = check_package("transformers", "transformers", "4.57.1")
-    if not transformers_available:
-        print(f"     └─ {YELLOW}CLIP方案需要安装transformers{RESET}")
+    if transformers_available:
+        print(f"     └─ {GREEN}SigLIP+BLIP方案可用{RESET}")
+    else:
+        print(f"     └─ {YELLOW}请安装transformers以使用SigLIP+BLIP{RESET}")
 
 def check_ocr_dependencies():
     """检查OCR依赖"""

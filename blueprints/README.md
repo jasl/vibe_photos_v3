@@ -84,7 +84,7 @@ graph LR
 | **向量搜索** | - | NumPy | pgvector (HNSW索引) |
 | **任务队列** | - | Python Queue | Celery + Redis |
 | **API** | CLI | FastAPI (基础) | FastAPI (完整) |
-| **模型** | CLIP基础 | + RTMDet | + PaddleOCR + DINOv2 |
+| **模型** | SigLIP+BLIP基础 | + GroundingDINO | + PaddleOCR + DINOv2 |
 
 ## 📝 文档维护
 

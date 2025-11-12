@@ -35,7 +35,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 #### 技术栈
 ```yaml
 核心技术:
-  检测器: RTMDet-L (Apache-2.0, 52.8% mAP)
+  图像分类: SigLIP (google/siglip-base-patch16-224-i18n, ~85%准确率)
+  图像理解: BLIP (Salesforce/blip-image-captioning-base)
   OCR: PaddleOCR v4
   数据库: SQLite + FTS5
   API: FastAPI
@@ -94,7 +95,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
   - 中英文混合搜索
 
 架构升级:
-  - 双模型并行：RTMDet + SigLIP
+  - 双模型并行：SigLIP + BLIP + GroundingDINO(可选)
   - 简单向量索引（JSON存储）
   - 搜索结果融合算法
 ```
@@ -144,7 +145,8 @@ class ImagePipeline:
 ```python
 class EnhancedProcessor:
     def __init__(self):
-        self.detector = RTMDetDetector()      # 物体检测
+        self.classifier = SigLIPClassifier()  # 多语言分类
+        self.captioner = BLIPCaptioner()      # 图像描述
         self.embedder = SigLIPEmbedder()      # 语义嵌入
         self.ocr = PaddleOCR()                # 文本提取
     
@@ -199,8 +201,9 @@ class HybridSearch:
 #### 完整技术栈
 ```yaml
 高级模型:
-  检测器: RTMDet-X (更高精度)
-  嵌入: SigLIP-large-i18n (多语言)
+  分类器: SigLIP-large-i18n (更高精度多语言)
+  描述: BLIP-large (更好的理解)
+  检测: GroundingDINO (开放词汇)
   描述: BLIP-large 或 LMM
   学习: DINOv2 (Few-shot)
   
@@ -299,7 +302,9 @@ CREATE INDEX ON images USING gin(to_tsvector('simple',
 
 | 组件 | Phase 1 | Phase 2 | Phase 3 |
 |------|------|------|---------|
-| **物体检测** | RTMDet-L | RTMDet-L | RTMDet-X |
+| **图像分类** | SigLIP-base-i18n | SigLIP-base-i18n | SigLIP-large-i18n |
+| **图像理解** | BLIP-base | BLIP-base | BLIP-large |
+| **物体检测** | - | GroundingDINO(可选) | GroundingDINO |
 | **语义理解** | - | SigLIP-base | SigLIP-large-i18n |
 | **图像描述** | - | BLIP-base (可选) | BLIP-large/LMM |
 | **OCR** | PaddleOCR | PaddleOCR | PaddleOCR |
@@ -391,7 +396,7 @@ CREATE INDEX ON images USING gin(to_tsvector('simple',
 
 ### 立即行动（本周）
 1. [ ] 完成Phase 1环境搭建
-2. [ ] 实现RTMDet集成
+2. [ ] 实现SigLIP+BLIP集成
 3. [ ] 建立基础数据库
 4. [ ] 创建简单UI
 
