@@ -1,8 +1,12 @@
 /samples
 /tmp
+!/tmp/.gitkeep
 /data
+!/data/.gitkeep
 /cache
-/logs
+!/cache/.gitkeep
+/log
+!/log/.gitkeep
 
 .DS_Store
 **/.DS_Store

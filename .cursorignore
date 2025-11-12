@@ -2,5 +2,5 @@
 /tmp
 /data
 /cache
-/logs
+/log
 /.venv
