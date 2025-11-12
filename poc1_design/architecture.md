@@ -270,12 +270,16 @@ class Settings:
     DATABASE_URL = "sqlite:///./poc1.db"
     
     # 批处理
-    BATCH_SIZE = 10
-    MAX_WORKERS = 4
+    BATCH_SIZE = 100  # 适配大文件，每批100张
+    MAX_WORKERS = 8   # 充分利用多核CPU
+    CHECKPOINT_INTERVAL = 500  # 每500张保存进度
     
     # 图像处理
-    THUMBNAIL_SIZE = (256, 256)
-    SUPPORTED_FORMATS = ['.jpg', '.jpeg', '.png', '.webp']
+    THUMBNAIL_SIZE = (512, 512)  # 增加缩略图质量
+    THUMBNAIL_QUALITY = 85  # 压缩质量
+    MAX_IMAGE_SIZE = 60 * 1024 * 1024  # 60MB上限
+    SUPPORTED_FORMATS = ['.jpg', '.jpeg', '.png', '.webp', '.heic']
+    USE_WEBP = True  # 缩略图使用WebP格式节省空间
     
     # 检测引擎
     DETECTION_MODEL = "rtmdet-l"  # RTMDet-L (52.8% mAP, Apache-2.0许可)

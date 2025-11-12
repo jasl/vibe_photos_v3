@@ -53,7 +53,7 @@
 | 指标 | 目标值 | 实际值 | 状态 |
 |------|--------|--------|------|
 | 导入成功率 | >95% |  |  |
-| 处理时间 | <10分钟 |  |  |
+| 处理时间(100张) | <3分钟 |  |  |
 | 缩略图生成 | 100% |  |  |
 | 错误处理 | 有日志 |  |  |
 ```
@@ -147,7 +147,7 @@ import time
 import psutil
 import statistics
 
-def test_batch_processing(image_folder, batch_size=10):
+def test_batch_processing(image_folder, batch_size=100):
     """测试批处理性能"""
     start_time = time.time()
     start_memory = psutil.Process().memory_info().rss / 1024 / 1024  # MB
@@ -160,7 +160,7 @@ def test_batch_processing(image_folder, batch_size=10):
     
     return {
         "total_time": end_time - start_time,
-        "images_per_second": 100 / (end_time - start_time),
+        "images_per_second": batch_size / (end_time - start_time),
         "memory_used": end_memory - start_memory,
         "peak_memory": psutil.Process().memory_info().rss / 1024 / 1024
     }
@@ -186,11 +186,11 @@ def test_search_performance(queries, num_images=1000):
 
 | 指标 | 目标值 | 实际值 | 状态 |
 |------|--------|--------|------|
-| 批处理速度 | 10-20张/分钟 |  |  |
+| 批处理速度 | 50张/分钟 |  |  |
 | 搜索响应(平均) | <500ms |  |  |
 | 搜索响应(P95) | <1s |  |  |
-| 内存占用(空闲) | <500MB |  |  |
-| 内存占用(处理中) | <2GB |  |  |
+| 内存占用(空闲) | <1GB |  |  |
+| 内存占用(处理中) | <8GB |  |  |
 | CPU使用率 | <80% |  |  |
 
 ## 🔍 质量验证
