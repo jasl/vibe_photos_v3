@@ -36,6 +36,11 @@ log/        # 调试信息，可随时删除
 tmp/        # 临时文件，随时可清理
 ```
 
+### 重要但可复用目录
+```
+models/     # 预训练模型，首次下载后保留（约430MB）
+```
+
 ### 受保护目录
 ```
 samples/    # 原始测试数据，只读不改
@@ -88,10 +93,13 @@ uv venv --python 3.12
 source .venv/bin/activate
 uv pip sync requirements.txt
 
-# 2. 处理数据（30分钟）
+# 2. 预下载模型（首次运行，10分钟）
+uv run python download_models.py
+
+# 3. 处理数据（30分钟）
 uv run python process_dataset.py
 
-# 3. 查看结果（立即）
+# 4. 查看结果（立即）
 uv run python quick_start.py
 ```
 

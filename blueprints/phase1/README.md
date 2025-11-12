@@ -80,9 +80,10 @@
 4. [设计决策](design_decisions.md) - 关键决策和权衡
 
 ### 使用指南
-5. **[数据集使用](DATASET_USAGE.md)** - 测试数据集处理指南 ⭐ NEW
-6. **[配置文件](config.yaml)** - 系统配置示例 ⭐ NEW
-7. **[处理脚本](process_dataset.py)** - 数据集批处理脚本 ⭐ NEW
+5. **[数据集使用](DATASET_USAGE.md)** - 测试数据集处理指南 ⭐
+6. **[配置文件](config.yaml)** - 系统配置示例 ⭐
+7. **[处理脚本](process_dataset.py)** - 数据集批处理脚本 ⭐
+8. **[模型下载](download_models.py)** - 预训练模型下载工具 ⭐ NEW
 
 ## 🚀 快速开始
 
@@ -110,10 +111,15 @@ uv pip sync requirements.txt
 # 或者使用 uv add 安装新包
 # uv add fastapi streamlit
 
-# 4. 处理数据集（支持增量处理）
+# 4. 预下载模型文件（首次运行，约430MB）
+uv run python download_models.py
+# 检查模型: uv run python download_models.py --check
+# 清理模型: uv run python download_models.py --clean
+
+# 5. 处理数据集（支持增量处理）
 uv run python process_dataset.py
 
-# 5. 启动服务
+# 6. 启动服务
 uv run uvicorn app.main:app --reload
 uv run streamlit run ui/app.py
 ```

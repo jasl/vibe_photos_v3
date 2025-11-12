@@ -18,6 +18,7 @@ vibe_photos_v3/
 ├── samples/              # 原始测试数据集（只读）
 ├── data/                 # 处理结果存储（读写）
 ├── cache/                # 可复用缓存（跨版本共享）
+├── models/               # 预训练模型（首次下载后复用）
 ├── log/                  # 运行日志（自动轮转）
 ├── tmp/                  # 临时文件（运行期间）
 ├── DEPENDENCIES.md       # 所有依赖版本清单
@@ -78,7 +79,8 @@ cd blueprints/phase1
 uv venv --python 3.12
 source .venv/bin/activate
 uv pip sync requirements.txt
-uv run python quick_start.py
+uv run python download_models.py  # 首次运行，预下载模型
+uv run python process_dataset.py
 ```
 
 ### 选项2：查看 Phase Final 设计
