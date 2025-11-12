@@ -308,7 +308,6 @@ models:
   ocr: paddleocr
   embeddings: sentence-transformers
   optional: groundingdino  # 开放词汇检测（可选）
-  video: ffmpeg + opencv  # Phase 2视频处理
   
 data:
   database: sqlite → postgresql + pgvector  # ✅ 统一存储方案
@@ -327,7 +326,6 @@ infrastructure:
 ### 详细技术方案文档
 - 📬 [消息队列与任务编排](./queue_and_task_management.md)
 - 🗂 [向量数据库与模型版本管理](./vector_db_and_model_versioning.md)
-- 📹 [视频处理策略](./video_processing_strategy.md)
 
 ## 🚀 部署架构
 

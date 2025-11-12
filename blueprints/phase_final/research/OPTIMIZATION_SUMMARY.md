@@ -20,12 +20,10 @@
 - **备份恢复**：PostgreSQL原生备份 + 增量备份
 - **详细文档**：[vector_db_and_model_versioning.md](./architecture/vector_db_and_model_versioning.md)
 
-#### 3. 视频处理策略明确 ✓
-- **MVP范围**：明确排除视频处理（762个MOV文件）
-- **Phase 2规划**：关键帧提取 + 内容识别
-- **技术储备**：FFmpeg + OpenCV方案已设计
-- **资源评估**：存储和计算需求已量化
-- **详细文档**：[video_processing_strategy.md](./architecture/video_processing_strategy.md)
+#### 3. 处理范围明确 ✓
+- **项目范围**：专注于图片处理和搜索
+- **技术专注**：图像识别、OCR、语义理解
+- **资源优化**：所有资源用于提升图片处理性能
 
 ## 🎯 关键决策点
 
@@ -68,16 +66,16 @@ architecture_design:
     note: 当前规模（3万张）不需要
 ```
 
-### 3. 视频处理分期
+### 3. 项目专注度
 ```mermaid
 graph LR
-    A[MVP] -->|2.5%内容| B[排除视频]
-    B --> C[专注图片优化]
-    C --> D[收集用户反馈]
-    D --> E{需求评估}
-    E -->|高需求| F[Phase 2: 基础视频]
-    E -->|低需求| G[保持现状]
-    F --> H[Phase 3: 高级功能]
+    A[核心定位] --> B[图片管理]
+    B --> C[智能搜索]
+    B --> D[内容理解]
+    B --> E[批量处理]
+    C --> F[语义检索]
+    D --> G[OCR文字提取]
+    D --> H[场景识别]
 ```
 
 ## 💡 实施优化建议
@@ -204,13 +202,13 @@ celery -A app.celery flower
 - [ ] 用户测试反馈
 
 ### Q2 2025
-- [ ] 视频支持评估
 - [ ] GPU加速优化
 - [ ] 分布式部署
 - [ ] 云服务集成
+- [ ] 高级搜索功能
 
 ### Q3 2025
-- [ ] 高级视频功能
+- [ ] 高级图像分析
 - [ ] 多语言支持
 - [ ] 移动端SDK
 - [ ] 企业版特性
@@ -220,7 +218,7 @@ celery -A app.celery flower
 通过这次优化，我们：
 
 1. **完善了技术架构**：补充了缺失的队列、向量存储、版本管理方案
-2. **明确了实施范围**：清晰界定MVP不包含视频，降低初期复杂度
+2. **明确了实施范围**：专注于图片处理，降低系统复杂度
 3. **提供了详细方案**：每个模块都有完整的设计、实现和部署指南
 4. **预留了扩展空间**：为Phase 2/3的功能扩展做好技术准备
 
@@ -231,5 +229,4 @@ celery -A app.celery flower
 - [系统架构总览](./architecture/system_architecture.md)
 - [消息队列方案](./architecture/queue_and_task_management.md)
 - [向量数据库方案](./architecture/vector_db_and_model_versioning.md)
-- [视频处理策略](./architecture/video_processing_strategy.md)
 - [实施指南](./docs/04_implementation_guide.md)

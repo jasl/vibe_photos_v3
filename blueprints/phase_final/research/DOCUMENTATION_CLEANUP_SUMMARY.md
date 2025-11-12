@@ -34,8 +34,7 @@
 ├── architecture/
 │   ├── system_architecture.md       # 系统架构
 │   ├── queue_and_task_management.md # 任务队列方案
-│   ├── vector_db_and_model_versioning.md # 向量存储方案
-│   └── video_processing_strategy.md # 视频处理策略
+│   └── vector_db_and_model_versioning.md # 向量存储方案
 └── docs/
     └── 04_implementation_guide.md   # 实施指南
 
