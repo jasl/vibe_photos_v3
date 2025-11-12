@@ -271,7 +271,7 @@ SELECT * FROM images WHERE process_status = 'duplicate';
 
 ### 跨版本复用
 - Phase 1 → Phase 2：节省90%的预处理时间
-- Phase 2 → PoC3：所有缓存可直接使用
+- Phase 2 → Phase 3：所有缓存可直接使用
 
 ## 🎯 下一步
 
