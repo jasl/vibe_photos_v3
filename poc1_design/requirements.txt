@@ -1,0 +1,41 @@
+# Vibe Photos PoC1 - 依赖清单
+# 更新日期：2024年11月
+# Python版本要求：>=3.8
+
+# ==================== 核心依赖 ====================
+fastapi==0.121.1           # Web API框架 (最新稳定版)
+uvicorn==0.38.0            # ASGI服务器 (最新稳定版)
+streamlit==1.51.0          # 快速原型UI框架 (最新稳定版)
+sqlalchemy==2.0.44         # 数据库ORM (最新稳定版)
+pillow==12.0.0             # 图像处理库 (最新稳定版)
+python-multipart==0.0.20   # 文件上传支持 (最新稳定版)
+aiofiles==25.1.0           # 异步文件操作 (最新稳定版)
+pydantic==2.12.4           # 数据验证和序列化 (最新稳定版)
+httpx==0.28.1              # HTTP客户端 (最新稳定版)
+
+# ==================== 识别引擎 ====================
+# 方案A：RTMDet（推荐，更准确，52.8% mAP）
+torch==2.9.0               # PyTorch深度学习框架 (最新稳定版)
+torchvision==0.24.0        # PyTorch计算机视觉库 (最新稳定版)
+mmdet==3.3.0               # MMDetection物体检测框架
+mmengine==0.10.7           # MMEngine基础库
+mmcv==2.2.0                # OpenMMLab计算机视觉基础库
+
+# 方案B：CLIP（备选，更轻量）- 可选
+# transformers==4.57.1     # Hugging Face Transformers
+# clip-interrogator==0.6.0 # CLIP图像分析工具
+
+# ==================== OCR引擎 ====================
+paddlepaddle==3.2.0        # 百度飞桨深度学习框架
+paddleocr==3.3.1           # PaddleOCR文字识别
+
+# ==================== 数据库和缓存 ====================
+# SQLite3已内置于Python，无需额外安装
+
+# ==================== 可选依赖 ====================
+redis==7.0.1              # Redis缓存（可选）
+numpy==2.3.4              # 数值计算（建议显式安装）
+opencv-python==4.12.0.88  # OpenCV图像处理（推荐安装）
+
+# ==================== 开发工具 ====================
+# 见 requirements-dev.txt

@@ -75,7 +75,7 @@ class RTMDetDetector:
             self.inference_detector = inference_detector
             self._init_model()
         except ImportError:
-            print("请先安装MMDetection: pip install mmdet mmcv")
+            print("请先安装MMDetection: pip install mmdet==3.3.0 mmengine==0.10.7 mmcv==2.2.0")
             self.model = None
     
     def _init_model(self):

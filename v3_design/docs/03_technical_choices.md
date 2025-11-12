@@ -119,32 +119,32 @@ version = "3.0.0"
 requires-python = ">=3.11"
 
 dependencies = [
-    # 核心
-    "torch>=2.0",
-    "transformers>=4.41",
-    "pillow>=10.0",
+    # 核心 (2024年11月最新版本)
+    "torch==2.9.0",              # 最新稳定版
+    "transformers==4.57.1",      # 最新稳定版
+    "pillow==12.0.0",            # 最新稳定版
     
     # Web
-    "fastapi>=0.111",
-    "uvicorn[standard]",
+    "fastapi==0.121.1",          # 最新稳定版
+    "uvicorn[standard]==0.38.0", # 最新稳定版
     
     # 数据
-    "sqlalchemy>=2.0",
-    "pydantic>=2.0",
+    "sqlalchemy==2.0.44",        # 最新稳定版  
+    "pydantic==2.12.4",          # 最新稳定版
     
     # AI模型
-    "clip-interrogator",
-    "paddlepaddle",
-    "paddleocr>=2.7",
+    "clip-interrogator==0.6.0",
+    "paddlepaddle==3.2.0",       # 最新稳定版
+    "paddleocr==3.3.1",          # 最新稳定版
     
     # 工具
-    "typer>=0.9",
-    "rich>=13.0",
+    "typer==0.20.0",             # 最新稳定版
+    "rich==14.2.0",              # 最新稳定版
 ]
 
 [project.optional-dependencies]
-gpu = ["torch[cuda11.8]"]
-dev = ["pytest", "black", "ruff"]
+gpu = ["torch==2.9.0+cu124"]    # CUDA 12.4支持
+dev = ["pytest==9.0.0", "black==25.11.0", "ruff==0.14.4"]  # 最新版本
 ```
 
 ## 🏗 系统架构

@@ -10,7 +10,7 @@ cd vibe-photos-v3
 
 # 2. 初始化环境
 uv init
-uv add torch transformers pillow fastapi typer rich
+uv add torch==2.9.0 transformers==4.57.1 pillow==12.0.0 fastapi==0.121.1 typer rich==14.2.0
 
 # 3. 验证环境
 uv run python -c "import torch; print(torch.__version__)"
@@ -33,7 +33,7 @@ class SimpleDetector:
         pass
 
 # src/rtmdet_detector.py - 高精度物体检测（Phase 2）
-# 安装: pip install mmdet mmcv
+# 安装: pip install mmdet==3.3.0 mmengine==0.10.7 mmcv==2.2.0
 from mmdet.apis import init_detector, inference_detector
 
 class RTMDetector:

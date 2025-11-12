@@ -41,7 +41,7 @@ Phase 3 (高级): +GroundingDINO → 开放词汇检测
 
 ```bash
 # 安装MMDetection框架
-pip install mmdet mmcv-full
+pip install mmdet==3.3.0 mmengine==0.10.7 mmcv==2.2.0
 
 # 下载RTMDet-L模型（Apache-2.0许可）
 wget https://download.openmmlab.com/mmdetection/v3.0/rtmdet/rtmdet_l_8xb32-300e_coco/rtmdet_l_8xb32-300e_coco_20220719_112030-5a0be7c4.pth
