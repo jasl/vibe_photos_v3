@@ -39,10 +39,10 @@ Phase 1 的核心目标是"验证识别质量"，RTMDet 能提供：
 ### 安装步骤
 ```bash
 # 1. 安装PyTorch（基础依赖）
-pip install torch==2.9.0 torchvision==0.24.0
+uv pip install torch==2.9.0 torchvision==0.24.0
 
 # 2. 安装MMDetection套件
-pip install mmdet==3.3.0 mmengine==0.10.7 mmcv==2.2.0
+uv pip install mmdet==3.3.0 mmengine==0.10.7 mmcv==2.2.0
 
 # 3. 下载RTMDet-L预训练权重
 wget https://download.openmmlab.com/mmdetection/phase_final.0/rtmdet/rtmdet_l_8xb32-300e_coco/rtmdet_l_8xb32-300e_coco_20220719_112030-5a0be7c4.pth
@@ -70,7 +70,7 @@ result = inference_detector(model, 'test.jpg')
 
 ```bash
 # 切换到CLIP方案
-pip install transformers==4.57.1 clip-interrogator==0.6.0
+uv pip install transformers==4.57.1 clip-interrogator==0.6.0
 
 # 注释掉requirements.txt中的mmdet相关依赖
 # 取消注释transformers相关依赖

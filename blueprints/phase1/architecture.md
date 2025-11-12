@@ -247,17 +247,21 @@ def search_images(query: str, filters: dict = None):
 
 ### 开发环境
 ```bash
-# 1. 安装依赖
-pip install -r requirements.txt
+# 1. 创建并激活虚拟环境（使用 uv）
+uv venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
-# 2. 初始化数据库
-python scripts/init_db.py
+# 2. 同步依赖（使用 uv）
+uv pip sync requirements.txt
 
-# 3. 启动API服务
-uvicorn app.main:app --reload
+# 3. 初始化数据库
+uv run python scripts/init_db.py
 
-# 4. 启动Web UI
-streamlit run ui/app.py
+# 4. 启动API服务
+uv run uvicorn app.main:app --reload
+
+# 5. 启动Web UI（新终端）
+uv run streamlit run ui/app.py
 ```
 
 ### 目录结构
@@ -280,8 +284,8 @@ phase1/
 │   ├── app.py              # Streamlit应用
 │   └── components/         # UI组件
 ├── scripts/
-│   ├── init_db.py          # 数据库初始化
-│   └── process_dataset.py  # CLI批处理脚本
+│   └── init_db.py          # 数据库初始化
+├── process_dataset.py      # CLI批处理脚本
 ├── tests/
 │   └── test_*.py           # 测试文件
 ├── data/

@@ -222,27 +222,30 @@ def create_readme():
 
 ## 快速开始
 
-### 1. 安装依赖
+### 1. 使用 uv 创建虚拟环境并安装依赖
 ```bash
 cd phase1
-pip install -r requirements.txt
+uv venv
+source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
+uv pip sync requirements.txt
 ```
 
-### 2. 初始化数据库
+### 2. 初始化数据库与处理数据集
 ```bash
-python scripts/init_db.py
+uv run python scripts/init_db.py
+uv run python process_dataset.py
 ```
 
 ### 3. 启动服务
 
 #### 启动API服务
 ```bash
-uvicorn app.main:app --reload --port 8000
+uv run uvicorn app.main:app --reload --port 8000
 ```
 
 #### 启动Web UI（新终端）
 ```bash
-streamlit run ui/app.py --server.port 8501
+uv run streamlit run ui/app.py --server.port 8501
 ```
 
 ### 4. 访问服务
@@ -318,9 +321,12 @@ def main():
     print("=" * 50)
     print("\n下一步操作：")
     print("1. cd phase1")
-    print("2. pip install -r requirements.txt")
-    print("3. uvicorn app.main:app --reload")
-    print("4. 访问 http://localhost:8000/docs")
+    print("2. uv venv && source .venv/bin/activate  # Windows: .venv\\Scripts\\activate")
+    print("3. uv pip sync requirements.txt")
+    print("4. uv run python scripts/init_db.py && uv run python process_dataset.py")
+    print("5. uv run uvicorn app.main:app --reload")
+    print("6. 在新终端运行：uv run streamlit run ui/app.py --server.port 8501")
+    print("7. 访问 http://localhost:8000/docs 和 http://localhost:8501")
     print("\n祝开发顺利！🚀")
     
     return 0

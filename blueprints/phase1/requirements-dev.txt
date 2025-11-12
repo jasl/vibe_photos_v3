@@ -1,5 +1,5 @@
 # 开发依赖
-# 安装方式：pip install -r requirements.txt -r requirements-dev.txt
+# 安装方式：uv pip sync requirements.txt requirements-dev.txt
 
 # ==================== 测试工具 ====================
 pytest==9.0.0              # 测试框架

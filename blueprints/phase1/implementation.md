@@ -792,19 +792,26 @@ elif page == "处理状态":
 git clone <repo-url>
 cd phase1
 
-# 2. 安装依赖
-pip install -r requirements.txt
+# 2. 创建并激活虚拟环境（使用 uv）
+uv venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
-# 3. 初始化数据库
-python scripts/init_db.py
+# 3. 同步依赖（使用 uv）
+uv pip sync requirements.txt
 
-# 4. 启动后端服务
-uvicorn app.main:app --reload --port 8000
+# 4. 初始化数据库
+uv run python scripts/init_db.py
 
-# 5. 启动前端UI（新终端）
-streamlit run ui/app.py --server.port 8501
+# 5. 运行批处理脚本（首次运行处理 samples/）
+uv run python process_dataset.py
 
-# 6. 访问界面
+# 6. 启动后端服务
+uv run uvicorn app.main:app --reload --port 8000
+
+# 7. 启动前端UI（新终端）
+uv run streamlit run ui/app.py --server.port 8501
+
+# 8. 访问界面
 # API: http://localhost:8000/docs
 # UI: http://localhost:8501
 ```
