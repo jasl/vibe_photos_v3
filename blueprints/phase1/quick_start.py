@@ -183,17 +183,12 @@ with st.sidebar:
     st.header("功能选择")
     page = st.radio(
         "选择功能",
-        ["批量导入", "搜索浏览", "处理状态"]
+        ["搜索浏览", "处理状态"]
     )
+    st.info("批量处理请使用 CLI：uv run python process_dataset.py")
 
 # 主页面
-if page == "批量导入":
-    st.header("批量导入图片")
-    folder_path = st.text_input("图片文件夹路径")
-    if st.button("开始导入"):
-        st.success("导入功能开发中...")
-        
-elif page == "搜索浏览":
+if page == "搜索浏览":
     st.header("搜索和浏览")
     search_query = st.text_input("搜索关键词")
     if search_query:

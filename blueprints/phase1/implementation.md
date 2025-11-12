@@ -28,7 +28,6 @@
 
 ### Phase 4: UI和测试（Day 12-14）
 - [ ] 开发Streamlit UI
-- [ ] 实现批量导入界面
 - [ ] 创建搜索和浏览界面
 - [ ] 测试和bug修复
 
@@ -670,42 +669,15 @@ st.set_page_config(
 # 侧边栏
 with st.sidebar:
     st.title("📸 Vibe Photos Phase 1")
-    
+
     page = st.radio(
         "功能选择",
-        ["批量导入", "搜索浏览", "处理状态"]
+        ["搜索浏览", "处理状态"]
     )
+    st.info("批量处理请使用 CLI：uv run python process_dataset.py")
 
 # 主页面
-if page == "批量导入":
-    st.header("批量导入图片")
-    
-    folder_path = st.text_input("图片文件夹路径")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        batch_size = st.number_input("批处理大小", min_value=1, max_value=50, value=10)
-    with col2:
-        enable_ocr = st.checkbox("启用OCR", value=True)
-    
-    if st.button("开始导入", type="primary"):
-        with st.spinner("处理中..."):
-            response = requests.post(
-                "http://localhost:8000/batch/import",
-                json={
-                    "folder_path": folder_path,
-                    "batch_size": batch_size,
-                    "enable_ocr": enable_ocr
-                }
-            )
-            
-            if response.ok:
-                st.success("导入任务已启动！")
-                st.json(response.json())
-            else:
-                st.error("导入失败")
-
-elif page == "搜索浏览":
+if page == "搜索浏览":
     st.header("搜索和浏览")
     
     # 搜索栏
