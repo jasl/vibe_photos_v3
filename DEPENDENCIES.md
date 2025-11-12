@@ -26,8 +26,9 @@
 ### 🔍 向量搜索
 | 依赖包 | 版本 | 说明 |
 |--------|------|------|
-| **Faiss-CPU** | 1.12.0 ⭐ | Facebook向量搜索 |
-| **Faiss-GPU** | ⚠️ | PyPI已归档，需源码编译 |
+| **pgvector** | 0.2.5 | PostgreSQL向量扩展（主要方案）✅ |
+| **psycopg2-binary** | 2.9.9 | PostgreSQL连接库 |
+| ~~**Faiss-CPU**~~ | ~~1.12.0~~ | ~~仅当向量超过100万时考虑~~ |
 
 ### 📷 图像处理
 | 依赖包 | 版本 | 说明 |
@@ -108,92 +109,102 @@
 
 ## ⚠️ 重要说明
 
-### 1. Faiss GPU版本
-`faiss-gpu` 在PyPI已经**归档**（最后版本1.7.2，2022年1月），[参考链接](https://pypi.org/project/faiss-gpu/)。
+### 1. 向量存储方案说明
 
-**推荐解决方案**：
-```bash
-# 方案1：使用Conda（推荐）
-conda install -c pytorch faiss-gpu
+**主要方案：PostgreSQL + pgvector** ✅
+- 适用于：百万级以下向量（我们的规模：3万张照片）
+- 查询性能：< 20ms
+- 优势：单一数据源，事务安全，运维简单
 
-# 方案2：从源码编译
-git clone https://github.com/facebookresearch/faiss.git
-cd faiss
-cmake -B build . -DFAISS_ENABLE_GPU=ON -DFAISS_ENABLE_PYTHON=ON
-make -C build -j faiss
-
-# 方案3：使用CPU版本（开发环境）
-pip install faiss-cpu==1.12.0
-```
+**备选方案：Faiss**（不需要安装）
+- 仅当向量超过100万时考虑
+- 当前项目规模不需要
 
 ### 2. 主要升级亮点
 
 #### 🌟 重大版本升级
 - **Gradio**: 4.44.0 → **5.49.1** (UI大幅改进)
 - **Sentence-Transformers**: 2.2.2 → **5.1.2** (性能提升2x)
-- **Faiss-CPU**: 1.7.4 → **1.12.0** (新算法支持)
+- **pgvector**: 新增 → **0.2.5** (PostgreSQL向量扩展) ✅
 - **TIMM**: 0.9.12 → **1.0.22** (稳定版发布)
 - **Typer**: 0.9.0 → **0.20.0** (API改进)
 
 #### 🚀 性能提升
 - **Gradio 5.49**: 渲染速度提升50%，新组件系统
 - **Sentence-Transformers 5.1**: 推理速度2x，内存减少40%
-- **Faiss 1.12**: 新的IVF算法，检索速度提升30%
+- **pgvector + HNSW索引**: 3万向量查询<20ms，满足需求 ✅
 - **TIMM 1.0**: 更多预训练模型，推理优化
 
 ## 📦 完整依赖文件
 
-### PoC1（轻量验证）
-- `poc1_design/requirements.txt` - 核心功能验证
-- `poc1_design/requirements-dev.txt` - 开发工具
+### Phase 1（轻量验证）
+- `blueprints/phase1/requirements.txt` - 核心功能验证
+- `blueprints/phase1/requirements-dev.txt` - 开发工具
 
-### V3设计（完整功能）
-- `v3_design/requirements.txt` - 生产环境依赖
-- `v3_design/requirements-dev.txt` - 开发和测试工具
+### Phase Final（完整功能）
+- `blueprints/phase_final/requirements.txt` - 生产环境依赖
+- `blueprints/phase_final/requirements-dev.txt` - 开发和测试工具
 
 ## 🔧 快速安装指南
 
-### 标准安装
+### 使用 uv 管理（推荐）
 ```bash
-# PoC1（快速验证）
-cd poc1_design
-pip install -r requirements.txt
+# 安装 uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# V3（完整功能）
-cd v3_design
-pip install -r requirements.txt
+# 设置 Python 3.12
+uv python pin 3.12
+
+# Phase 1（快速验证）
+cd blueprints/phase1
+uv venv --python 3.12
+source .venv/bin/activate  # Linux/Mac
+uv pip sync requirements.txt
+
+# Phase Final（完整功能）
+cd blueprints/phase_final
+uv venv --python 3.12
+source .venv/bin/activate  # Linux/Mac
+uv pip sync requirements.txt
 ```
 
-### GPU环境
+### GPU环境（使用 uv）
 ```bash
 # NVIDIA GPU (CUDA 12.4)
-pip install torch==2.9.0 torchvision==0.24.0 --index-url https://download.pytorch.org/whl/cu124
+uv pip install torch==2.9.0 torchvision==0.24.0 --index-url https://download.pytorch.org/whl/cu124
 
 # Apple Silicon
-pip install torch==2.9.0 torchvision==0.24.0  # 自动检测MPS
+uv pip install torch==2.9.0 torchvision==0.24.0  # 自动检测MPS
 
-# Faiss GPU (使用Conda)
-conda install -c pytorch faiss-gpu
+# PostgreSQL + pgvector（主要方案，不需要GPU）
+uv pip install psycopg2-binary==2.9.9 pgvector==0.2.5
 ```
 
 ## 📊 版本兼容性矩阵
 
-| Python版本 | 支持状态 | 推荐级别 |
-|-----------|---------|----------|
-| 3.8 | ⚠️ 基础支持 | 不推荐 |
-| 3.9 | ✅ 完全支持 | 可用 |
-| 3.10 | ✅ 完全支持 | 推荐 |
-| 3.11 | ✅ 完全支持 | **强烈推荐** |
-| 3.12 | ✅ 完全支持 | 推荐 |
-| 3.13 | ⚠️ 部分支持 | 测试中 |
+| Python版本 | 支持状态 | 说明 |
+|-----------|---------|------|
+| **3.12** | ✅ **指定版本** | **Ubuntu 24.04 LTS 默认版本** |
+| | | **通过 uv 管理，确保一致性** |
+
+使用 `uv` 管理 Python 版本：
+```bash
+# 安装 uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 使用 Python 3.12
+uv python pin 3.12
+uv venv --python 3.12
+```
 
 ## 🎯 项目对比
 
-| 特性 | PoC1 | V3完整版 |
-|-----|------|----------|
+| 特性 | Phase 1 | Phase Final |
+|-----|---------|-------------|
 | **目标** | 快速验证 | 生产部署 |
 | **复杂度** | 低 | 中-高 |
 | **依赖数量** | ~30个 | ~60个 |
+| **向量存储** | SQLite | PostgreSQL + pgvector |
 | **GPU支持** | 可选 | 推荐 |
 | **内存需求** | 8GB | 16GB+ |
 | **开发周期** | 2周 | 2-3月 |

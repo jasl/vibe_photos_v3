@@ -31,7 +31,7 @@ samples/
 ### `cache/` (读写，可复用)
 - **用途**: 存放可跨版本复用的处理结果
 - **权限**: 读写
-- **优势**: PoC2、PoC3可以直接复用这些缓存，避免重复计算
+- **优势**: Phase 2、Phase 3可以直接复用这些缓存，避免重复计算
 - **内容**:
 ```
 cache/
@@ -49,7 +49,7 @@ cache/
 - **用途**: 存放程序运行日志
 - **权限**: 读写
 - **内容**:
-  - `poc1.log` - PoC1主程序日志
+  - `phase1.log` - Phase 1主程序日志
   - `process_dataset.log` - 数据处理日志
   - `*.log.*` - 轮转的历史日志文件
 - **特性**:
@@ -75,11 +75,11 @@ cache/
 ```
 
 ### 跨版本复用
-- **PoC1 → PoC2**: 
+- **Phase 1 → Phase 2**: 
   - 复用：processed图片、thumbnails、detections、ocr
   - 新增：embeddings（语义向量）
   
-- **PoC2 → PoC3**:
+- **Phase 2 → Phase 3**:
   - 复用：所有缓存
   - 可能迁移到PostgreSQL，但缓存仍可用
 
@@ -91,8 +91,9 @@ cache/
 | `data/` | 读写 | 忽略 | 版本特定数据 |
 | `cache/` | 读写 | 忽略 | 可复用缓存 |
 | `logs/` | 读写 | 忽略 | 运行日志 |
-| `poc1_design/` | 只读 | 跟踪 | 设计文档 |
-| `v3_design/` | 只读 | 跟踪 | 设计文档 |
+| `blueprints/` | 只读 | 跟踪 | 所有设计文档 |
+| `blueprints/phase1/` | 只读 | 跟踪 | Phase 1设计 |
+| `blueprints/phase_final/` | 只读 | 跟踪 | Phase Final设计 |
 
 ## 清理策略
 

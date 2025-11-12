@@ -105,10 +105,10 @@ uv venv
 source .venv/bin/activate
 
 # 5. 安装项目依赖
-uv pip sync poc1_design/requirements.txt
+uv pip sync blueprints/phase1/requirements.txt
 
 # 6. 运行数据处理脚本
-uv run python poc1_design/process_dataset.py
+uv run python blueprints/phase1/process_dataset.py
 
 # 7. 启动服务
 uv run uvicorn app.main:app --reload

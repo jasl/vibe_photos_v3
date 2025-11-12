@@ -1,0 +1,70 @@
+# Vibe Photos Phase Final - 完整依赖清单
+# 更新日期：2024年11月
+# Python版本要求：>=3.9 (推荐3.11+)
+
+# ==================== 核心依赖 ====================
+torch==2.9.0               # PyTorch深度学习框架
+torchvision==0.24.0        # PyTorch计算机视觉库
+transformers==4.57.1       # Hugging Face Transformers
+pillow==12.0.0             # 图像处理库
+numpy==2.3.4               # 数值计算库
+opencv-python==4.12.0.88   # OpenCV图像处理
+
+# ==================== Web框架 ====================
+fastapi==0.121.1           # 高性能Web API框架
+uvicorn[standard]==0.38.0  # ASGI服务器
+httpx==0.28.1              # HTTP客户端
+python-multipart==0.0.20   # 文件上传支持
+aiofiles==25.1.0           # 异步文件操作
+
+# ==================== 数据处理 ====================
+sqlalchemy==2.0.44         # 数据库ORM
+pydantic==2.12.4           # 数据验证和序列化
+redis==7.0.1               # Redis缓存支持（可选）
+
+# ==================== AI模型 ====================
+# 物体检测
+mmdet==3.3.0               # MMDetection框架（用于RTMDet）
+mmengine==0.10.7           # MMEngine基础库
+mmcv==2.2.0                # OpenMMLab CV基础库
+
+# CLIP相关
+clip-interrogator==0.6.0   # CLIP图像分析
+
+# OCR引擎
+paddlepaddle==3.2.0        # 百度飞桨框架
+paddleocr==3.3.1           # PaddleOCR文字识别
+
+# Few-shot学习（可选）
+timm==1.0.22              # PyTorch Image Models
+
+# ==================== 向量搜索 ====================
+# 主要方案：PostgreSQL + pgvector（在requirements-dev.txt中）
+# psycopg2-binary==2.9.9    # PostgreSQL连接
+# pgvector==0.2.5           # PostgreSQL向量扩展
+
+# 可选方案：Faiss（仅当向量超过100万时考虑）
+# faiss-cpu==1.12.0         # Facebook向量搜索（备选）
+# 注：当前规模（3万张）使用pgvector足够
+
+sentence-transformers==5.1.2  # 文本嵌入模型
+
+# ==================== 开发工具 ====================
+typer[all]==0.20.0         # CLI工具
+rich==14.2.0               # 美化终端输出
+python-dotenv==1.2.1       # 环境变量管理
+tqdm==4.67.1               # 进度条显示
+
+# ==================== UI选项 ====================
+# Option A: Gradio（推荐用于快速原型）
+gradio==5.49.1             # 最新稳定版             
+
+# Option B: Streamlit（备选）
+# streamlit==1.51.0        
+
+# ==================== 监控和日志 ====================
+loguru==0.7.3              # 日志管理
+prometheus-client==0.23.1  # 性能监控（可选）
+
+# ==================== 测试和质量保证 ====================
+# 见 requirements-dev.txt

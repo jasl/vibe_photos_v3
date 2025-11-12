@@ -1,12 +1,12 @@
-# 🚀 Vibe Photos V3 产品路线图
+# 🚀 Vibe Photos 产品路线图
 
 ## 📋 执行摘要
 
 基于Gemini Deep Think的反馈和现有设计评估，我们制定了一个**渐进式三阶段路线图**，在保持实用性的同时逐步引入先进技术。
 
 ### 核心策略
-- **PoC1**: 验证核心功能，建立基础架构
-- **PoC2**: 增强语义理解，引入智能搜索
+- **Phase 1**: 验证核心功能，建立基础架构
+- **Phase 2**: 增强语义理解，引入智能搜索
 - **PoC3/Phase 3**: 生产级优化，完整功能集
 
 ### ⚠️ POC阶段特别说明
@@ -29,7 +29,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ## 🎯 阶段规划
 
-### PoC1: 基础功能验证（2周）
+### Phase 1: 基础功能验证（2周）
 **目标**: 验证物体检测和搜索的可行性
 
 #### 技术栈
@@ -58,7 +58,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 #### 缓存复用优势
 - **10倍性能提升**: 从10张/分钟提升到100+张/分钟
-- **跨版本共享**: PoC2、PoC3可直接复用
+- **跨版本共享**: Phase 2、PoC3可直接复用
 - **增量处理**: 只处理新增图片
 - **存储优化**: 相同内容共享缓存（基于感知哈希）
 
@@ -77,7 +77,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ---
 
-### PoC2: 语义搜索增强（1个月）
+### Phase 2: 语义搜索增强（1个月）
 **目标**: 实现智能语义搜索，提升用户体验
 
 #### 新增技术
@@ -99,7 +99,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
   - 搜索结果融合算法
 ```
 
-#### PoC1 图像处理流水线（带缓存）
+#### Phase 1 图像处理流水线（带缓存）
 ```python
 # 完整的处理流水线
 class ImagePipeline:
@@ -297,7 +297,7 @@ CREATE INDEX ON images USING gin(to_tsvector('simple',
 
 ## 📊 技术演进矩阵
 
-| 组件 | PoC1 | PoC2 | Phase 3 |
+| 组件 | Phase 1 | Phase 2 | Phase 3 |
 |------|------|------|---------|
 | **物体检测** | RTMDet-L | RTMDet-L | RTMDet-X |
 | **语义理解** | - | SigLIP-base | SigLIP-large-i18n |
@@ -312,8 +312,8 @@ CREATE INDEX ON images USING gin(to_tsvector('simple',
 
 ## 🎯 关键决策点
 
-### PoC1 → PoC2 决策门
-**评估时间**: PoC1完成后第1周
+### Phase 1 → Phase 2 决策门
+**评估时间**: Phase 1完成后第1周
 
 评估项目:
 - [ ] 物体检测质量是否满足需求？
@@ -325,8 +325,8 @@ CREATE INDEX ON images USING gin(to_tsvector('simple',
 - Go: 检测准确率>70%，用户需要更智能的搜索
 - No-Go: 基础功能已满足需求，或资源不足
 
-### PoC2 → Phase 3 决策门
-**评估时间**: PoC2完成后第2周
+### Phase 2 → Phase 3 决策门
+**评估时间**: Phase 2完成后第2周
 
 评估项目:
 - [ ] 语义搜索提升是否明显？
@@ -343,7 +343,7 @@ CREATE INDEX ON images USING gin(to_tsvector('simple',
 ### 技术风险
 | 风险 | 影响 | 缓解措施 |
 |------|------|----------|
-| SigLIP性能不佳 | PoC2失败 | 备选CLIP-large，降级到纯文本 |
+| SigLIP性能不佳 | Phase 2失败 | 备选CLIP-large，降级到纯文本 |
 | 向量搜索太慢 | 用户体验差 | 使用缓存，限制搜索范围 |
 | 模型内存过大 | 部署困难 | 模型量化，使用轻量版本 |
 | 混合搜索复杂 | 开发延期 | 简化融合算法，渐进实现 |
@@ -359,18 +359,18 @@ CREATE INDEX ON images USING gin(to_tsvector('simple',
 
 ```
 2024年11月 - 12月
-├── Week 1-2: PoC1 开发
+├── Week 1-2: Phase 1 开发
 │   ├── Week 1: 核心功能实现
 │   └── Week 2: 测试和优化
 │
-├── Week 3: PoC1 评估和决策
+├── Week 3: Phase 1 评估和决策
 │
-├── Week 4-7: PoC2 开发
+├── Week 4-7: Phase 2 开发
 │   ├── Week 4-5: SigLIP集成
 │   ├── Week 6: 混合搜索实现
 │   └── Week 7: 测试和优化
 │
-└── Week 8: PoC2 评估和规划
+└── Week 8: Phase 2 评估和规划
 
 2025年1月 - 3月
 ├── Month 1: 基础设施升级
@@ -390,7 +390,7 @@ CREATE INDEX ON images USING gin(to_tsvector('simple',
 ## ✅ 行动计划
 
 ### 立即行动（本周）
-1. [ ] 完成PoC1环境搭建
+1. [ ] 完成Phase 1环境搭建
 2. [ ] 实现RTMDet集成
 3. [ ] 建立基础数据库
 4. [ ] 创建简单UI
@@ -425,7 +425,7 @@ CREATE INDEX ON images USING gin(to_tsvector('simple',
 - **中期（3个月）**: 智能的语义搜索
 - **长期（6个月）**: 生产级AI平台
 
-让我们从PoC1开始，一步一个脚印地实现这个愿景！
+让我们从Phase 1开始，一步一个脚印地实现这个愿景！
 
 ---
 

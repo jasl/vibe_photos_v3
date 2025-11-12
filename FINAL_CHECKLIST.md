@@ -4,13 +4,13 @@
 
 ### 根目录
 - ✅ **README.md** - 项目入口，包含快速导航
-- ✅ **ROADMAP.md** - 完整路线图（PoC1→PoC2→Production）
+- ✅ **ROADMAP.md** - 完整路线图（Phase 1→Phase 2→Phase Final）
 - ✅ **UV_USAGE.md** - Python环境管理规范（强制要求）
 - ✅ **DIRECTORY_STRUCTURE.md** - 目录使用说明
 - ✅ **DEPENDENCIES.md** - 依赖版本清单
 - ✅ **FINAL_CHECKLIST.md** - 本文档（最终检查清单）
 
-### poc1_design/（POC1设计）
+### blueprints/phase1/（Phase 1设计）
 - ✅ **README.md** - PoC1概述和快速开始
 - ✅ **architecture.md** - 技术架构
 - ✅ **design_decisions.md** - 设计决策
@@ -22,7 +22,7 @@
 - ✅ **config.yaml** - 配置文件
 - ✅ **requirements.txt** - Python依赖
 
-### v3_design/（长期愿景）
+### blueprints/phase_final/（最终愿景）
 - ✅ 保持原样，作为未来参考
 
 ## 🔍 关键概念一致性检查
@@ -54,8 +54,8 @@
 - ✅ 增量处理支持
 
 ## 🗑 已清理的中间文档
-- ❌ poc1_design/OVERVIEW.md（与README重复）
-- ❌ poc1_design/CONSISTENCY_CHECK.md（中间检查）
+- ❌ blueprints/phase1/OVERVIEW.md（与README重复）
+- ❌ blueprints/phase1/CONSISTENCY_CHECK.md（中间检查）
 
 ## 🛠 保留的工具脚本
 - ✅ **process_dataset.py** - 核心批处理脚本
@@ -82,18 +82,18 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ls -la samples/ data/ cache/
 
 # 2. 验证配置文件
-cat poc1_design/config.yaml | head -20
+cat blueprints/phase1/config.yaml | head -20
 
 # 3. 创建虚拟环境并安装依赖（使用uv）
 uv venv
 source .venv/bin/activate
-uv pip sync poc1_design/requirements.txt
+uv pip sync blueprints/phase1/requirements.txt
 
 # 4. 检查依赖（使用uv）
-uv run python poc1_design/check_dependencies.py
+uv run python blueprints/phase1/check_dependencies.py
 
 # 5. 运行测试数据集处理（使用uv）
-uv run python poc1_design/process_dataset.py
+uv run python blueprints/phase1/process_dataset.py
 ```
 
 ## 🎯 核心价值确认

@@ -1,0 +1,59 @@
+[project]
+name = "vibe-photos"
+version = "1.0.0"
+description = "AI-powered photo management system for content creators"
+requires-python = "==3.12.*"
+readme = "README.md"
+
+[tool.uv]
+python-version = "3.12"
+python-preference = "only-managed"
+
+[tool.uv.sources]
+torch = { index = "pytorch" }
+
+[[tool.uv.index]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cu124"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings  
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501", # line too long (handled by black)
+    "B008", # do not perform function calls in argument defaults
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+minversion = "9.0"
+addopts = "-ra -q --strict-markers"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+# 项目结构说明
+# blueprints/
+#   ├── phase1/         # 第一阶段：基础验证
+#   ├── phase2/         # 第二阶段：功能增强（待实施）
+#   └── phase_final/    # 最终阶段：完整系统

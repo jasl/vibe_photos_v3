@@ -1,16 +1,19 @@
-# Vibe Photos V3 - 项目根目录
+# Vibe Photos - 项目根目录
 
 ## 📁 项目结构
 
 ```
 vibe_photos_v3/
+├── blueprints/           # 📁 所有设计文档（统一管理）
+│   ├── phase1/          # Phase 1：基础验证
+│   ├── phase2/          # Phase 2：功能增强
+│   └── phase_final/     # Phase Final：完整系统
+├── pyproject.toml        # Python 3.12 项目配置
+├── .python-version       # Python 版本固定
 ├── ROADMAP.md            # 🚀 完整产品路线图
 ├── FINAL_CHECKLIST.md    # ✅ 最终文档检查清单
 ├── UV_USAGE.md           # 📦 Python环境管理规范（必读）
 ├── DIRECTORY_STRUCTURE.md # 📂 目录使用说明
-├── poc1_design/          # PoC1设计文档（离线批处理验证）
-├── v3_design/            # V3完整设计文档
-├── v3_design_feedback/   # 设计审查反馈（含Gemini建议）
 ├── samples/              # 原始测试数据集（只读）
 ├── data/                 # 处理结果存储（读写）
 ├── cache/                # 可复用缓存（跨版本共享）
@@ -23,29 +26,32 @@ vibe_photos_v3/
 ## 🎯 快速导航
 
 ### ⚠️ Python环境管理（必读）
+- **Python版本**：3.12（Ubuntu 24.04 LTS 默认）
 - **强制要求**：统一使用 `uv` 管理Python环境
 - **禁止使用**：pip/poetry/conda等其他工具
 - **使用指南**：[UV_USAGE.md](UV_USAGE.md)
 
-### 📋 产品路线图（NEW）
-- **完整规划**：PoC1 → PoC2 → Production
+### 📄 产品路线图
+- **完整规划**：Phase 1 → Phase 2 → Phase Final
 - **时间线**：3-6个月渐进式升级
 - **文档**：[ROADMAP.md](ROADMAP.md)
+- **设计蓝图**：[blueprints/README.md](blueprints/README.md)
 
-### PoC1 - 基础功能验证（当前阶段）
+### Phase 1 - 基础功能验证（当前阶段）
 - **目标**：2周内验证核心识别功能
 - **技术**：RTMDet (52.8% mAP) + PaddleOCR + SQLite
-- **文档**：[poc1_design/README.md](poc1_design/README.md)
+- **文档**：[blueprints/phase1/README.md](blueprints/phase1/README.md)
 
-### PoC2 - 语义搜索增强（下一阶段）
-- **目标**：1个月实现智能语义搜索
+### Phase 2 - 语义搜索增强（下一阶段）
+- **目标**：1个月实现智能语义搜索  
 - **技术**：RTMDet + SigLIP + 混合搜索
-- **状态**：待PoC1验证后启动
+- **状态**：待Phase 1验证后启动
 
-### V3设计 - 生产级系统（最终目标）
+### Phase Final - 生产级系统（最终目标）
 - **目标**：完整的AI图片管理平台
-- **技术**：多模型集成 + Few-shot学习 + 向量搜索
-- **文档**：[v3_design/README.md](v3_design/README.md)
+- **技术**：PostgreSQL + pgvector + Celery + Redis
+- **文档**：[blueprints/phase_final/README.md](blueprints/phase_final/README.md)
+- **决策**：[blueprints/phase_final/FINAL_TECHNOLOGY_DECISIONS.md](blueprints/phase_final/FINAL_TECHNOLOGY_DECISIONS.md)
 
 ## 📦 依赖版本
 
@@ -53,27 +59,32 @@ vibe_photos_v3/
 
 ## 🚀 快速开始
 
-### 环境准备（必须先安装 uv）
+### 环境准备（Python 3.12 + uv）
 ```bash
 # 安装 uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
 # 或 brew install uv (macOS)
+
+# 验证 Python 版本
+python --version  # 应该是 3.12.x
 ```
 
-### 选项1：运行PoC1（推荐先验证）
+### 选项1：运行 Phase 1（推荐先验证）
 ```bash
-cd poc1_design
-uv venv
+cd blueprints/phase1
+uv venv --python 3.12
 source .venv/bin/activate
 uv pip sync requirements.txt
 uv run python quick_start.py
 ```
 
-### 选项2：查看V3设计
+### 选项2：查看 Phase Final 设计
 ```bash
-cd v3_design
+cd blueprints/phase_final
 # 查看设计文档
 cat README.md
+# 查看技术决策
+cat FINAL_TECHNOLOGY_DECISIONS.md
 ```
 
 ## 📊 技术选型
@@ -81,18 +92,21 @@ cat README.md
 - **物体检测**：RTMDet-L (Apache-2.0许可)
 - **OCR**：PaddleOCR 3.3.1
 - **深度学习**：PyTorch 2.9.0
+- **向量存储**：PostgreSQL + pgvector（主方案）
+- **任务队列**：Celery + Redis
 - **Web框架**：FastAPI 0.121.1
-- **UI**：Streamlit 1.51.0 (PoC1) / Gradio 5.49.1 (V3)
+- **UI**：Streamlit 1.51.0 (Phase 1) / Gradio 5.49.1 (Phase Final)
 
 ## 📝 开发状态
 
-- ✅ 产品路线图制定完成（基于Gemini反馈优化）
-- ✅ PoC1设计完成（支持未来扩展）
-- ✅ V3设计愿景完成
-- ✅ 依赖版本更新至最新
-- 🚧 PoC1实施准备就绪
-- ⏳ PoC2待PoC1验证后启动
-- ⏳ Production视需求而定
+- ✅ 产品路线图制定完成
+- ✅ 术语统一：Phase 1/2/Final
+- ✅ 文档重组完成：blueprints/目录
+- ✅ 技术决策明确：PostgreSQL + pgvector
+- ✅ Python 3.12 固定
+- 🚧 Phase 1 实施准备就绪
+- ⏳ Phase 2 待 Phase 1 验证后启动
+- ⏳ Phase Final 架构设计完成
 
 ## 📄 许可证
 
