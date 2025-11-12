@@ -97,8 +97,13 @@ async def main():
     from app.database import get_db_session
     
     # 创建必要的目录
-    for path_key in ['processed', 'thumbnails', 'cache']:
+    # 只创建实际需要的缓存目录
+    for path_key in ['processed', 'thumbnails', 'embeddings', 'detections', 'ocr_results']:
         Path(config['preprocessing']['paths'][path_key]).mkdir(parents=True, exist_ok=True)
+    
+    # 确保数据库和状态文件的父目录存在
+    Path(config['preprocessing']['paths']['database']).parent.mkdir(parents=True, exist_ok=True)
+    Path(config['preprocessing']['paths']['state']).parent.mkdir(parents=True, exist_ok=True)
     
     # 初始化处理器
     preprocessor = ImagePreprocessor(config['preprocessing'])
