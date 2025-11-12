@@ -24,7 +24,6 @@ requests==2.32.3           # HTTP客户端（下载模型）
 
 # ==================== AI模型 ====================
 # 图像理解模型
-transformers==4.57.1       # Hugging Face Transformers（用于SigLIP和BLIP）
 sentence-transformers==5.1.2  # 句子嵌入（用于语义搜索）
 
 # OCR引擎
