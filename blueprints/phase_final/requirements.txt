@@ -10,7 +10,6 @@ torchvision==0.24.0        # PyTorch计算机视觉库
 transformers==4.57.1       # Hugging Face Transformers
 pillow==12.0.0             # 图像处理库
 numpy==2.3.4               # 数值计算库
-opencv-python==4.12.0.88   # OpenCV图像处理
 
 # ==================== Web框架 ====================
 fastapi==0.121.1           # 高性能Web API框架

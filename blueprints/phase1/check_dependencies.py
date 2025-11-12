@@ -162,7 +162,6 @@ def check_optional_dependencies():
     optional_packages = [
         ("redis", "redis"),
         ("numpy", "numpy"),
-        ("opencv-python", "cv2"),
         ("httpx", "httpx"),
     ]
     
