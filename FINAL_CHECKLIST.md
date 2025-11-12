@@ -18,7 +18,6 @@
 - ✅ **testing.md** - 测试方案
 - ✅ **DATASET_USAGE.md** - 数据集使用指南
 - ✅ **DATASET_ANALYSIS.md** - 数据集分析
-- ✅ **SIGLIP_CHOICE.md** - SigLIP选型说明
 - ✅ **config.yaml** - 配置文件
 - ✅ **requirements.txt** - Python依赖
 

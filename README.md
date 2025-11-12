@@ -8,6 +8,9 @@ vibe_photos_v3/
 │   ├── phase1/          # Phase 1：基础验证
 │   ├── phase2/          # Phase 2：功能增强
 │   └── phase_final/     # Phase Final：完整系统
+├── decisions/            # 🎯 技术决策中心（独立管理）
+│   ├── TECHNICAL_DECISIONS.md  # 综合技术决策
+│   └── archives/        # 历史决策归档
 ├── pyproject.toml        # Python 3.12 项目配置
 ├── .python-version       # Python 版本固定
 ├── POC_PHASE_NOTICE.md   # ⚠️ POC阶段重要说明
@@ -35,6 +38,11 @@ vibe_photos_v3/
 - **禁止使用**：pip/poetry/conda等其他工具
 - **使用指南**：[UV_USAGE.md](UV_USAGE.md)
 
+### 🎯 技术决策中心
+- **综合决策文档**：[decisions/TECHNICAL_DECISIONS.md](decisions/TECHNICAL_DECISIONS.md)
+- **决策索引**：[decisions/README.md](decisions/README.md)
+- **历史归档**：[decisions/archives/](decisions/archives/)
+
 ### 📄 产品路线图
 - **完整规划**：Phase 1 → Phase 2 → Phase Final
 - **时间线**：3-6个月渐进式升级
@@ -55,7 +63,7 @@ vibe_photos_v3/
 - **目标**：完整的AI图片管理平台
 - **技术**：PostgreSQL + pgvector + Celery + Redis
 - **文档**：[blueprints/phase_final/README.md](blueprints/phase_final/README.md)
-- **决策**：[blueprints/phase_final/FINAL_TECHNOLOGY_DECISIONS.md](blueprints/phase_final/FINAL_TECHNOLOGY_DECISIONS.md)
+- **决策**：[decisions/TECHNICAL_DECISIONS.md](decisions/TECHNICAL_DECISIONS.md)
 
 ## 📦 依赖版本
 
@@ -89,7 +97,7 @@ cd blueprints/phase_final
 # 查看设计文档
 cat README.md
 # 查看技术决策
-cat FINAL_TECHNOLOGY_DECISIONS.md
+cat ../../decisions/TECHNICAL_DECISIONS.md
 ```
 
 ## 📊 技术选型

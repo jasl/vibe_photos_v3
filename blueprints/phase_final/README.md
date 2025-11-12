@@ -51,7 +51,7 @@ phase_final/
 ## 🚀 快速导航
 
 ### ⭐ 开发必读
-1. **[最终技术决策](./FINAL_TECHNOLOGY_DECISIONS.md)** - 所有技术选型的最终决定
+1. **[最终技术决策](../../decisions/TECHNICAL_DECISIONS.md)** - 所有技术选型的最终决定
 2. **[系统架构](architecture/system_architecture.md)** - 整体系统设计
 3. **[实施指南](docs/04_implementation_guide.md)** - 具体开发步骤
 

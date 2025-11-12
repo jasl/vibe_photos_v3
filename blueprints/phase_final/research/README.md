@@ -28,7 +28,7 @@
 
 1. **这些是历史文档**，可能包含已过时的信息
 2. **最新决策**请参考：
-   - [../FINAL_TECHNOLOGY_DECISIONS.md](../FINAL_TECHNOLOGY_DECISIONS.md)
+   - [../../../decisions/TECHNICAL_DECISIONS.md](../../../decisions/TECHNICAL_DECISIONS.md)
    - [../docs/03_technical_choices.md](../docs/03_technical_choices.md)
 3. **当前技术栈**：
    - 图像理解：SigLIP + BLIP（替代了RTMDet）

@@ -68,7 +68,7 @@ graph LR
 ## ⭐ 快速开始
 
 ### 1. 了解技术决策
-查看 [phase_final/FINAL_TECHNOLOGY_DECISIONS.md](./phase_final/FINAL_TECHNOLOGY_DECISIONS.md)
+查看 [decisions/TECHNICAL_DECISIONS.md](../decisions/TECHNICAL_DECISIONS.md)
 
 ### 2. 查看系统架构
 阅读 [phase_final/architecture/system_architecture.md](./phase_final/architecture/system_architecture.md)
@@ -88,7 +88,7 @@ graph LR
 
 ## 📝 文档维护
 
-- **决策记录**：重要技术决策记录在 phase_final/FINAL_TECHNOLOGY_DECISIONS.md
+- **决策记录**：重要技术决策记录在 ../decisions/TECHNICAL_DECISIONS.md
 - **调研归档**：技术调研内容归档在 phase_final/research/
 - **术语统一**：使用 Phase 1/2/Final 替代 Phase 1/Phase 2/Phase Final
 
