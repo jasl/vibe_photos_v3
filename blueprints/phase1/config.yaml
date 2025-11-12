@@ -60,7 +60,7 @@ batch_processing:
 
 # 检测引擎配置
 detection:
-  model: "rtmdet-l"     # 使用RTMDet-L模型
+  model: "siglip-base"  # 使用SigLIP多语言模型
   confidence_threshold: 0.3  # 最低置信度阈值
   device: "auto"        # auto/cpu/cuda:0
   

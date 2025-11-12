@@ -22,7 +22,7 @@
 ### 2. 文档结构重组
 
 #### 新增文档：
-- 📄 **`FINAL_TECHNOLOGY_DECISIONS.md`** - 最终技术决策（开发必读）
+- 📄 **`../../../decisions/TECHNICAL_DECISIONS.md`** - 最终技术决策（开发必读）
 - 📄 **`research/TECHNOLOGY_RESEARCH_ARCHIVE.md`** - 技术调研归档（仅供参考）
 - 📄 **`architecture/VECTOR_DB_CLARIFICATION.md`** - 向量数据库决策澄清
 - 📄 **`DOCUMENTATION_CLEANUP_SUMMARY.md`** - 本清理总结
@@ -30,12 +30,11 @@
 #### 文档分类：
 ```
 决策文档（开发依据）：
-├── FINAL_TECHNOLOGY_DECISIONS.md    # 最终决策 ⭐
+├── (已迁移至 /decisions/)
 ├── architecture/
 │   ├── system_architecture.md       # 系统架构
 │   ├── queue_and_task_management.md # 任务队列方案
-│   ├── vector_db_and_model_versioning.md # 向量存储方案
-│   └── video_processing_strategy.md # 视频处理策略
+│   └── vector_db_and_model_versioning.md # 向量存储方案
 └── docs/
     └── 04_implementation_guide.md   # 实施指南
 
@@ -68,7 +67,7 @@
 ## ⚠️ 开发注意事项
 
 ### 必读文档顺序
-1. `FINAL_TECHNOLOGY_DECISIONS.md` - 了解所有技术选型
+1. `/decisions/TECHNICAL_DECISIONS.md` - 了解所有技术选型
 2. `architecture/system_architecture.md` - 理解系统设计
 3. `docs/04_implementation_guide.md` - 开始实施
 
@@ -103,7 +102,7 @@
 ## 📝 后续维护建议
 
 1. **保持一致性**：任何技术变更都要同步更新所有相关文档
-2. **决策记录**：重要决策记录在`FINAL_TECHNOLOGY_DECISIONS.md`
+2. **决策记录**：重要决策记录在`/decisions/TECHNICAL_DECISIONS.md`
 3. **调研归档**：新的调研内容放入`research/`目录
 4. **定期审查**：每季度审查文档一致性
 

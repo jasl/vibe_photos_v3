@@ -375,7 +375,7 @@ INSERT INTO config (key, value, description) VALUES
 ('enable_few_shot', 'true', '启用Few-shot学习'),
 ('batch_size', '16', '批处理大小'),
 ('thumbnail_size', '512', '缩略图大小'),
-('model_name', 'clip-vit-base-patch32', '默认使用的模型');
+('model_name', 'siglip-base-patch16-224-i18n', '默认使用的模型');
 
 -- 默认集合
 INSERT INTO collections (name, description, type) VALUES

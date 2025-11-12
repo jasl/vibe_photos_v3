@@ -14,13 +14,12 @@
 
 | 模型 | 优点 | 缺点 | 使用场景 | 选择 |
 |------|------|------|----------|------|
-| **CLIP** | 轻量、CPU友好、零样本 | 精度有限 | 基础分类 | ✅ MVP |
-| **RTMDet-L** | Apache许可、高精度(52.8% mAP)、社区支持好 | 需要GPU加速 | 精确物体检测 | ✅ Phase 1/Phase 2 |
-| **SigLIP-base** | 多语言支持、语义理解强 | 需要额外内存 | 语义搜索 | ✅ Phase 2 |
-| **SigLIP-large** | 最强语义理解、i18n支持 | 资源消耗大(1.5GB) | 生产环境 | ⚠️ Phase 3 |
-| **BLIP-base** | 生成图像描述 | 仅英文 | 内容理解 | ⚠️ Phase 2可选 |
+| **SigLIP-base-i18n** | 多语言支持、语义理解强、CPU友好 | 需要额外内存 | 基础分类+语义搜索 | ✅ Phase 1/Phase 2 |
+| **BLIP-base** | 生成图像描述、物体识别 | 仅英文 | 内容理解+物体检测 | ✅ Phase 1/Phase 2 |
+| **SigLIP-large** | 最强语义理解、i18n支持 | 资源消耗大(1.5GB) | 生产环境增强 | ⚠️ Phase 3 |
 | **GroundingDINO** | 开放词汇、灵活 | 资源消耗较大 | 开放词汇检测 | ⚠️ Phase 3 |
 | **YOLO v8** | 快速、成熟 | AGPL许可限制、精度一般 | 实时检测 | ❌ |
+| **RTMDet** | Apache许可、高精度 | mmcv依赖问题、维护困难 | 物体检测 | ❌ 已废弃 |
 | **DINOv2** | 强特征提取 | 需要微调 | Few-shot | ✅ Phase 3 |
 | **SAM** | 精确分割 | 资源消耗大 | 物体分割 | ⚠️ 可选 |
 
@@ -37,7 +36,8 @@
 ```python
 # Phase 1 - 基础验证 (2周)
 models_phase1 = {
-    'detector': 'rtmdet-l',  # Apache-2.0, 52.8% mAP
+    'classifier': 'google/siglip-base-patch16-224-i18n',  # 多语言分类
+    'captioning': 'Salesforce/blip-image-captioning-base',  # 图像理解
     'ocr': 'paddleocr-v4',  # 中文支持好
     'database': 'sqlite',   # 零配置
     'search': 'fts5',      # SQLite全文搜索
@@ -46,7 +46,9 @@ models_phase1 = {
 
 # Phase 2 - 语义增强 (1个月)
 models_phase2 = {
-    'detector': 'rtmdet-l',  # 保持物体检测能力
+    'classifier': 'google/siglip-base-patch16-224-i18n',  # 保持分类能力
+    'captioning': 'Salesforce/blip-image-captioning-base',  # 图像理解
+    'detector': 'grounding-dino',  # 开放词汇检测（增强功能）
     'embedder': 'google/siglip-base-patch16-224',  # 语义嵌入(384MB)
     'caption': 'Salesforce/blip-image-captioning-base',  # 可选
     'ocr': 'paddleocr-v4',
@@ -57,9 +59,9 @@ models_phase2 = {
 
 # Phase 3 - 生产级 (3个月)
 models_production = {
-    'detector': 'rtmdet-x',  # 更高精度
-    'embedder': 'google/siglip-large-patch16-384-i18n',  # 完整多语言(1.5GB)
-    'caption': 'blip-large or LMM',  # 高质量描述
+    'classifier': 'google/siglip-large-patch16-384-i18n',  # 更强大的多语言支持(1.5GB)
+    'captioning': 'Salesforce/blip-image-captioning-large',  # 高质量描述
+    'detector': 'grounding-dino',  # 开放词汇检测
     'ocr': 'paddleocr-v4',
     'few_shot': 'dinov2-base',  # Few-shot学习
     'database': 'postgresql + pgvector',  # 统一数据库和向量搜索
@@ -150,7 +152,7 @@ dependencies = [
     # 核心 (2024年11月最新版本)
     "torch==2.9.0",              # 最新稳定版
     "transformers==4.57.1",      # 最新稳定版
-    "pillow==12.0.0",            # 最新稳定版
+    "pillow==11.3.0",            # 最新稳定版
     
     # Web
     "fastapi==0.121.1",          # 最新稳定版
@@ -158,10 +160,11 @@ dependencies = [
     
     # 数据
     "sqlalchemy==2.0.44",        # 最新稳定版  
-    "pydantic==2.12.4",          # 最新稳定版
+    "pydantic==2.11.10",         # 最新稳定版
     
     # AI模型
-    "clip-interrogator==0.6.0",
+    "transformers==4.57.1",      # SigLIP + BLIP
+    "sentence-transformers==5.1.2",  # 语义搜索
     "paddlepaddle==3.2.0",       # 最新稳定版
     "paddleocr==3.3.1",          # 最新稳定版
     
@@ -248,7 +251,8 @@ batch_config = {
 
 ```yaml
 ai:
-  model: CLIP-base
+  model: google/siglip-base-patch16-224-i18n
+  captioning: Salesforce/blip-image-captioning-base
   framework: transformers
   device: CPU
 
@@ -270,7 +274,7 @@ tools:
 
 ```yaml
 ai:
-  models: [CLIP, GroundingDINO, PaddleOCR, DINOv2]
+  models: [SigLIP, BLIP, GroundingDINO, PaddleOCR, DINOv2]
   framework: transformers + custom
   device: CUDA/CPU
 
@@ -295,7 +299,8 @@ monitoring:
 
 | 技术领域 | Phase 1选择 | Phase 2选择 | 生产选择 | 理由 |
 |----------|----------|----------|----------|------|
-| 物体检测 | RTMDet-L | RTMDet-L | RTMDet-X | 精度递进 |
+| 图像分类 | SigLIP-base-i18n | SigLIP-base-i18n | SigLIP-large-i18n | 精度递进 |
+| 物体检测 | BLIP-base | BLIP + GroundingDINO | GroundingDINO | 能力增强 |
 | 语义理解 | - | SigLIP-base | SigLIP-large | 能力增强 |
 | 数据库 | SQLite | SQLite+JSON | PostgreSQL | 从简单到强大 |
 | 向量存储 | - | Numpy/JSON | pgvector | 统一管理 |
@@ -313,8 +318,8 @@ monitoring:
 
 ### 关键技术决策
 
-- ✅ **RTMDet系列贯穿始终** - Apache许可、高精度、无法律风险
-- ✅ **SigLIP逐步引入** - Phase 2开始增加语义理解
+- ✅ **SigLIP+BLIP组合** - 多语言支持+图像理解，无依赖问题
+- ✅ **GroundingDINO增强** - Phase 2开始作为可选增强功能
 - ✅ **SQLite起步，PostgreSQL生产** - 渐进式升级
 - ✅ **PostgreSQL + pgvector统一存储** - Phase 3避免多系统复杂度
 - ✅ **FastAPI贯穿始终** - 现代、高效、一致

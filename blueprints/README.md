@@ -16,7 +16,7 @@ blueprints/
 ### Phase 1 - 基础验证 ✅
 **目标**：验证核心技术可行性
 
-- **重点**：RTMDet物体检测、基础分类
+- **重点**：SigLIP多语言分类、BLIP图像理解
 - **规模**：1,000张测试照片
 - **时间**：2周
 - **文档**：[phase1/README.md](./phase1/README.md)
@@ -54,7 +54,7 @@ graph LR
     A[Phase 1<br/>基础验证] -->|2周| B[Phase 2<br/>功能增强]
     B -->|3周| C[Phase Final<br/>完整系统]
     
-    A --> A1[RTMDet检测]
+    A --> A1[SigLIP分类]
     A --> A2[基础分类]
     
     B --> B1[向量搜索]
@@ -68,7 +68,7 @@ graph LR
 ## ⭐ 快速开始
 
 ### 1. 了解技术决策
-查看 [phase_final/FINAL_TECHNOLOGY_DECISIONS.md](./phase_final/FINAL_TECHNOLOGY_DECISIONS.md)
+查看 [decisions/TECHNICAL_DECISIONS.md](../decisions/TECHNICAL_DECISIONS.md)
 
 ### 2. 查看系统架构
 阅读 [phase_final/architecture/system_architecture.md](./phase_final/architecture/system_architecture.md)
@@ -84,11 +84,11 @@ graph LR
 | **向量搜索** | - | NumPy | pgvector (HNSW索引) |
 | **任务队列** | - | Python Queue | Celery + Redis |
 | **API** | CLI | FastAPI (基础) | FastAPI (完整) |
-| **模型** | CLIP基础 | + RTMDet | + PaddleOCR + DINOv2 |
+| **模型** | SigLIP+BLIP基础 | + GroundingDINO | + PaddleOCR + DINOv2 |
 
 ## 📝 文档维护
 
-- **决策记录**：重要技术决策记录在 phase_final/FINAL_TECHNOLOGY_DECISIONS.md
+- **决策记录**：重要技术决策记录在 ../decisions/TECHNICAL_DECISIONS.md
 - **调研归档**：技术调研内容归档在 phase_final/research/
 - **术语统一**：使用 Phase 1/2/Final 替代 Phase 1/Phase 2/Phase Final
 

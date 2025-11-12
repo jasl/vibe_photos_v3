@@ -75,10 +75,10 @@ def check_core_dependencies():
         ("uvicorn", "uvicorn", "0.38.0"),
         ("streamlit", "streamlit", "1.51.0"),
         ("sqlalchemy", "sqlalchemy", "2.0.44"),
-        ("pillow", "PIL", "12.0.0"),
+        ("pillow", "PIL", "11.3.0"),
         ("python-multipart", "multipart", "0.0.20"),
-        ("aiofiles", "aiofiles", "25.1.0"),
-        ("pydantic", "pydantic", "2.12.4"),
+        ("aiofiles", "aiofiles", "24.1.0"),
+        ("pydantic", "pydantic", "2.11.10"),
     ]
     
     success = True
@@ -114,20 +114,13 @@ def check_ai_dependencies():
     if pytorch_available:
         check_package("torchvision", "torchvision", "0.24.0")
     
-    # 检查MMDetection（RTMDet方案，推荐）
-    print(f"  \n  RTMDet依赖（推荐方案）:")
-    mmdet_available = check_package("mmdet", "mmdet", "3.3.0")
-    if mmdet_available:
-        check_package("mmengine", "mmengine", "0.10.7")
-        check_package("mmcv", "mmcv", "2.2.0")
-    else:
-        print(f"     └─ {YELLOW}请安装MMDetection以使用RTMDet{RESET}")
-    
-    # 检查CLIP（备选方案）
-    print(f"  \n  CLIP依赖（备选方案）:")
+    # 检查主要方案：SigLIP+BLIP
+    print(f"  \n  SigLIP+BLIP依赖（主要方案）:")
     transformers_available = check_package("transformers", "transformers", "4.57.1")
-    if not transformers_available:
-        print(f"     └─ {YELLOW}CLIP方案需要安装transformers{RESET}")
+    if transformers_available:
+        print(f"     └─ {GREEN}SigLIP+BLIP方案可用{RESET}")
+    else:
+        print(f"     └─ {YELLOW}请安装transformers以使用SigLIP+BLIP{RESET}")
 
 def check_ocr_dependencies():
     """检查OCR依赖"""
@@ -169,7 +162,6 @@ def check_optional_dependencies():
     optional_packages = [
         ("redis", "redis"),
         ("numpy", "numpy"),
-        ("opencv-python", "cv2"),
         ("httpx", "httpx"),
     ]
     

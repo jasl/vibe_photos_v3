@@ -59,11 +59,11 @@ class ImageDetectionTask(Task):
     
     def run(self, image_path: str, user_id: str):
         try:
-            # RTMDet检测
-            detections = rtmdet_detector.detect(image_path)
+            # SigLIP+BLIP检测
+            detections = siglip_blip_detector.detect(image_path)
             
-            # CLIP分类
-            category = clip_classifier.classify(image_path)
+            # SigLIP分类
+            category = siglip_classifier.classify(image_path)
             
             # 保存结果
             save_to_db(image_path, detections, category)

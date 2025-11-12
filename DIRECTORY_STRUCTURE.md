@@ -38,7 +38,8 @@ cache/
 ├── images/
 │   ├── processed/      # 归一化后的图片（JPEG格式）
 │   └── thumbnails/     # 缩略图（512x512）
-├── detections/         # RTMDet检测结果（JSON）
+├── detections/         # SigLIP分类结果（JSON）
+├── captions/          # BLIP描述结果（JSON）
 ├── ocr/               # OCR提取结果（JSON）
 ├── embeddings/        # 向量嵌入（PoC2准备）
 └── hashes/            # 感知哈希缓存
@@ -75,7 +76,8 @@ cache/
 - **用途**: 存放预训练模型文件
 - **权限**: 读写
 - **内容**:
-  - RTMDet模型权重（~330MB）
+  - SigLIP模型权重（~400MB）
+  - BLIP模型权重（~990MB）
   - PaddleOCR模型（~100MB）
   - 其他预训练模型
 - **特性**:

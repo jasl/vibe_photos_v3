@@ -12,7 +12,7 @@ pytest-benchmark==4.0.0    # 性能基准测试
 black==25.11.0             # 代码格式化
 ruff==0.14.4               # 快速Python linter
 mypy==1.18.2               # 静态类型检查
-isort==7.0.0               # import排序
+isort==5.13.2              # import排序
 pylint==3.0.3              # 代码分析
 
 # ==================== 开发工具 ====================

@@ -40,7 +40,7 @@
 │                                                        │
 │  ┌──────────────┐  ┌──────────────┐  ┌────────────┐  │
 │  │ 图像识别引擎 │  │  OCR引擎     │  │ 批处理器   │  │
-│  │ (RTMDet/CLIP)│  │ (PaddleOCR)  │  │ (CLI驱动)  │  │
+│  │(SigLIP+BLIP) │  │ (PaddleOCR)  │  │ (CLI驱动)  │  │
 │  └──────────────┘  └──────────────┘  └────────────┘  │
 │                                                        │
 └────────────────────────────────────────────────────────┘
@@ -76,31 +76,30 @@ uvicorn==0.38.0            # ASGI服务器 (最新版本)
 streamlit==1.51.0          # 快速Web UI
 sqlalchemy==2.0.44         # ORM
 sqlite3                    # 内置数据库
-pillow==12.0.0             # 图像处理
+pillow==11.3.0             # 图像处理
 python-multipart==0.0.20   # 文件上传支持
-aiofiles==25.1.0           # 异步文件操作
-pydantic==2.12.4           # 数据验证
+aiofiles==24.1.0           # 异步文件操作
+pydantic==2.11.10          # 数据验证
 ```
 
 ### 运行环境假设
 
 - **开发环境**：macOS，Apple M4 Max（充足CPU/GPU核与内存），本地执行批处理与功能开发。
-- **测试环境**：高端PC，NVIDIA GeForce 5090 GPU（用于验证RTMDet / PaddleOCR推理表现）。
+- **测试环境**：高端PC，NVIDIA GeForce 5090 GPU（用于验证SigLIP/BLIP与 PaddleOCR 的推理表现）。
 - **存储前提**：由维护者提供足够的本地磁盘容量，无需规划云端资源。
 - **部署目标**：单机离线部署，不涉及云端或分布式部署方案。
 
 ### 识别引擎
 ```python
-# 主方案：RTMDet (推荐使用)
+# 主方案：SigLIP+BLIP (多语言支持)
 torch==2.9.0              # PyTorch (最新版本)
 torchvision==0.24.0       # TorchVision (最新版本)
-mmdet==3.3.0              # MMDetection框架
-mmengine==0.10.7          # MMEngine基础库
-mmcv==2.2.0               # MMCV基础库
+transformers==4.57.1      # Hugging Face Transformers（用于SigLIP和BLIP）
+sentence-transformers==5.1.2  # 句子嵌入（用于语义搜索）
 
-# 备选方案：CLIP (更轻量，可选安装)
+# 备选方案：SigLIP (更强大，可选安装)
 # transformers==4.57.1    # Hugging Face
-# clip-interrogator==0.6.0  # CLIP工具
+# 模型: google/siglip-base-patch16-224-i18n
 ```
 
 ### OCR引擎
@@ -324,8 +323,8 @@ class Settings:
     USE_WEBP = True  # 缩略图使用WebP格式节省空间
     
     # 检测引擎
-    DETECTION_MODEL = "rtmdet-l"  # RTMDet-L (52.8% mAP, Apache-2.0许可)
-    # DETECTION_MODEL = "clip-base"  # 备选方案
+    DETECTION_MODEL = "siglip-base"  # SigLIP (~85%准确率, 多语言支持)
+    # DETECTION_MODEL = "siglip-base"  # 备选方案（多语言支持）
     CONFIDENCE_THRESHOLD = 0.3
     
     # OCR

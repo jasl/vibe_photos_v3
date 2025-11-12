@@ -91,7 +91,7 @@ CREATE TABLE photo_embeddings (
     photo_id BIGINT REFERENCES photos(id) ON DELETE CASCADE,
     
     -- 向量信息
-    embedding_model TEXT NOT NULL,  -- 'clip-vit-base', 'dinov2', etc
+    embedding_model TEXT NOT NULL,  -- 'siglip-base', 'dinov2', etc
     embedding_version TEXT NOT NULL,  -- 'v1.0.0', 'v1.1.0'
     embedding_dimension INT NOT NULL,  -- 512, 768, 1024
     
@@ -189,7 +189,7 @@ class PgVectorUpdater:
         self.db = db_pool
         
     async def add_vector(self, photo_id: int, embedding: np.ndarray, 
-                        model_name: str = "clip-vit-base") -> int:
+                        model_name: str = "siglip-base") -> int:
         """添加新向量"""
         async with self.db.acquire() as conn:
             # pgvector自动处理索引更新
@@ -222,7 +222,7 @@ class PgVectorUpdater:
                     (photo_id, embedding, embedding_model, embedding_version, embedding_dimension)
                     VALUES ($1, $2, $3, $4, $5)
                     RETURNING id
-                """, photo_id, new_embedding.tolist(), "clip-vit-base", "v1.0.0", len(new_embedding))
+                """, photo_id, new_embedding.tolist(), "siglip-base", "v1.0.0", len(new_embedding))
                 
                 # 记录更新
                 await self.log_update(conn, 'update', photo_id, new_id)
@@ -235,7 +235,7 @@ class PgVectorUpdater:
             # 使用COPY命令批量插入，性能最优
             result = await conn.copy_records_to_table(
                 'photo_embeddings',
-                records=[(pid, emb.tolist(), "clip-vit-base", "v1.0.0", len(emb)) 
+                records=[(pid, emb.tolist(), "siglip-base", "v1.0.0", len(emb)) 
                         for pid, emb in vectors],
                 columns=['photo_id', 'embedding', 'embedding_model', 
                         'embedding_version', 'embedding_dimension']
@@ -369,7 +369,7 @@ class VectorVersionMigrator:
 -- 模型版本注册表
 CREATE TABLE model_registry (
     id SERIAL PRIMARY KEY,
-    model_name TEXT NOT NULL,  -- 'clip-detector', 'rtmdet', 'few-shot-v1'
+    model_name TEXT NOT NULL,  -- 'siglip-detector', 'blip-captioner', 'few-shot-v1'
     model_type TEXT NOT NULL,  -- 'detection', 'embedding', 'classification'
     
     -- 版本信息

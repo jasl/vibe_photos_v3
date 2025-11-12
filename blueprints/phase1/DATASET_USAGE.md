@@ -97,7 +97,7 @@ uv run python process_dataset.py
 3. **EXIF处理** - 自动旋转到正确方向
 4. **尺寸限制** - 最大边长4096px
 5. **缩略图生成** - 512x512预览图
-6. **物体检测** - RTMDet-L识别
+6. **图像理解** - SigLIP+BLIP识别
 7. **文本提取** - PaddleOCR提取文字
 8. **索引更新** - 更新搜索索引
 
@@ -257,7 +257,7 @@ SELECT * FROM images WHERE process_status = 'duplicate';
 
 ### 首次处理（无缓存）
 - 预处理速度：~50张/分钟
-- RTMDet检测：~20张/分钟（CPU）
+- SigLIP+BLIP识别：~15张/分钟（CPU）
 - PaddleOCR：~30张/分钟
 - **整体处理：~10-15张/分钟**
 

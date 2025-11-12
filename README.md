@@ -8,6 +8,9 @@ vibe_photos_v3/
 │   ├── phase1/          # Phase 1：基础验证
 │   ├── phase2/          # Phase 2：功能增强
 │   └── phase_final/     # Phase Final：完整系统
+├── decisions/            # 🎯 技术决策中心（独立管理）
+│   ├── TECHNICAL_DECISIONS.md  # 综合技术决策
+│   └── archives/        # 历史决策归档
 ├── pyproject.toml        # Python 3.12 项目配置
 ├── .python-version       # Python 版本固定
 ├── POC_PHASE_NOTICE.md   # ⚠️ POC阶段重要说明
@@ -35,6 +38,11 @@ vibe_photos_v3/
 - **禁止使用**：pip/poetry/conda等其他工具
 - **使用指南**：[UV_USAGE.md](UV_USAGE.md)
 
+### 🎯 技术决策中心
+- **综合决策文档**：[decisions/TECHNICAL_DECISIONS.md](decisions/TECHNICAL_DECISIONS.md)
+- **决策索引**：[decisions/README.md](decisions/README.md)
+- **历史归档**：[decisions/archives/](decisions/archives/)
+
 ### 📄 产品路线图
 - **完整规划**：Phase 1 → Phase 2 → Phase Final
 - **时间线**：3-6个月渐进式升级
@@ -43,19 +51,19 @@ vibe_photos_v3/
 
 ### Phase 1 - 基础功能验证（当前阶段）
 - **目标**：2周内验证核心识别功能
-- **技术**：RTMDet (52.8% mAP) + PaddleOCR + SQLite
+- **技术**：SigLIP (多语言) + BLIP (图像理解) + PaddleOCR + SQLite
 - **文档**：[blueprints/phase1/README.md](blueprints/phase1/README.md)
 
 ### Phase 2 - 语义搜索增强（下一阶段）
 - **目标**：1个月实现智能语义搜索  
-- **技术**：RTMDet + SigLIP + 混合搜索
+- **技术**：SigLIP + BLIP + GroundingDINO (可选) + 混合搜索
 - **状态**：待Phase 1验证后启动
 
 ### Phase Final - 生产级系统（最终目标）
 - **目标**：完整的AI图片管理平台
 - **技术**：PostgreSQL + pgvector + Celery + Redis
 - **文档**：[blueprints/phase_final/README.md](blueprints/phase_final/README.md)
-- **决策**：[blueprints/phase_final/FINAL_TECHNOLOGY_DECISIONS.md](blueprints/phase_final/FINAL_TECHNOLOGY_DECISIONS.md)
+- **决策**：[decisions/TECHNICAL_DECISIONS.md](decisions/TECHNICAL_DECISIONS.md)
 
 ## 📦 依赖版本
 
@@ -89,14 +97,15 @@ cd blueprints/phase_final
 # 查看设计文档
 cat README.md
 # 查看技术决策
-cat FINAL_TECHNOLOGY_DECISIONS.md
+cat ../../decisions/TECHNICAL_DECISIONS.md
 ```
 
 ## 📊 技术选型
 
-- **物体检测**：RTMDet-L (Apache-2.0许可)
+- **图像理解**：SigLIP (google/siglip-base-patch16-224-i18n) + BLIP (Salesforce/blip-image-captioning-base)
+- **物体检测**：GroundingDINO (Phase 2可选增强)
 - **OCR**：PaddleOCR 3.3.1
-- **深度学习**：PyTorch 2.9.0
+- **深度学习**：PyTorch 2.9.0 + Transformers 4.57.1
 - **向量存储**：PostgreSQL + pgvector（主方案）
 - **任务队列**：Celery + Redis
 - **Web框架**：FastAPI 0.121.1

@@ -10,7 +10,7 @@ cd vibe-photos-phase_final
 
 # 2. 初始化环境
 uv init
-uv add torch==2.9.0 transformers==4.57.1 pillow==12.0.0 fastapi==0.121.1 typer rich==14.2.0
+uv add torch==2.9.0 transformers==4.57.1 pillow==11.3.0 fastapi==0.121.1 typer rich==14.2.0
 
 # 3. 验证环境
 uv run python -c "import torch; print(torch.__version__)"
@@ -20,32 +20,57 @@ uv run python -c "import torch; print(torch.__version__)"
 
 #### Day 1-2: 核心检测器
 ```python
-# src/detector.py - 基础CLIP检测器（MVP阶段）
-from transformers import CLIPModel, CLIPProcessor
+# src/detector.py - 基础SigLIP检测器（MVP阶段）
+from transformers import AutoModel, AutoProcessor
 
 class SimpleDetector:
     def __init__(self):
-        self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-        self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+        self.model = AutoModel.from_pretrained("google/siglip-base-patch16-224-i18n")
+        self.processor = AutoProcessor.from_pretrained("google/siglip-base-patch16-224-i18n")
     
     def classify(self, image_path, categories):
         # 实现基础分类
         pass
 
-# src/rtmdet_detector.py - 高精度物体检测（Phase 2）
-# 安装: pip install mmdet==3.3.0 mmengine==0.10.7 mmcv==2.2.0
-from mmdet.apis import init_detector, inference_detector
+# src/siglip_blip_detector.py - 多语言图像理解（Phase 1/2）
+# 安装: pip install transformers torch pillow
+from transformers import AutoProcessor, AutoModel, BlipProcessor, BlipForConditionalGeneration
+from PIL import Image
+import torch
 
-class RTMDetector:
+class SigLIPBLIPDetector:
     def __init__(self):
-        # 使用RTMDet-L，Apache-2.0许可，52.8% mAP精度
-        config = 'configs/rtmdet/rtmdet_l_8xb32-300e_coco.py'
-        checkpoint = 'checkpoints/rtmdet_l.pth'
-        self.model = init_detector(config, checkpoint)
+        # 使用SigLIP进行多语言分类
+        self.siglip_processor = AutoProcessor.from_pretrained("google/siglip-base-patch16-224-i18n")
+        self.siglip_model = AutoModel.from_pretrained("google/siglip-base-patch16-224-i18n")
+        
+        # 使用BLIP生成图像描述
+        self.blip_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
+        self.blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
     
-    def detect(self, image_path):
-        # 高精度物体检测，支持80类COCO物体
-        return inference_detector(self.model, image_path)
+    def detect(self, image_path, candidate_labels=None):
+        image = Image.open(image_path)
+        
+        # 零样本分类（支持中文标签）
+        if candidate_labels is None:
+            candidate_labels = ["手机", "iPhone", "电脑", "美食", "文档"]
+        
+        # SigLIP分类
+        inputs = self.siglip_processor(text=candidate_labels, images=image, 
+                                      padding=True, return_tensors="pt")
+        outputs = self.siglip_model(**inputs)
+        logits = outputs.logits_per_image
+        probs = torch.sigmoid(logits)  # SigLIP使用sigmoid
+        
+        # BLIP描述
+        caption_inputs = self.blip_processor(image, return_tensors="pt")
+        caption = self.blip_model.generate(**caption_inputs)
+        caption_text = self.blip_processor.decode(caption[0], skip_special_tokens=True)
+        
+        return {
+            'classifications': dict(zip(candidate_labels, probs[0].tolist())),
+            'caption': caption_text
+        }
 ```
 
 #### Day 3: 数据层
@@ -98,7 +123,7 @@ def test_basic_classification():
 
 #### 功能清单
 - [ ] OCR集成（PaddleOCR）
-- [ ] 品牌识别（扩展CLIP）
+- [ ] 品牌识别（扩展SigLIP）
 - [ ] Web UI（Gradio）
 - [ ] 批量处理优化
 - [ ] 标注助手
@@ -280,41 +305,40 @@ jobs:
         uv run ruff check src/
 ```
 
-## 🚀 RTMDet-L部署指南
+## 🚀 SigLIP+BLIP部署指南
 
-### 安装MMDetection和RTMDet
+### 安装依赖
 ```bash
-# 1. 安装依赖
+# 1. 安装核心依赖
 uv add torch torchvision
-uv add mmcv-full mmdet
+uv add transformers pillow
 
-# 2. 下载RTMDet配置文件
-mkdir -p configs/rtmdet
-wget https://github.com/open-mmlab/mmdetection/raw/main/configs/rtmdet/rtmdet_l_8xb32-300e_coco.py \
-     -O configs/rtmdet/rtmdet_l_8xb32-300e_coco.py
-
-# 3. 下载预训练权重（Apache-2.0许可）
-mkdir -p checkpoints
-wget https://download.openmmlab.com/mmdetection/phase_final.0/rtmdet/rtmdet_l_8xb32-300e_coco/rtmdet_l_8xb32-300e_coco_20220719_112030-5a0be7c4.pth \
-     -O checkpoints/rtmdet_l.pth
+# 2. 模型下载（首次运行时自动下载）
+# SigLIP: google/siglip-base-patch16-224-i18n (~400MB)
+# BLIP: Salesforce/blip-image-captioning-base (~990MB)
 ```
 
-### RTMDet vs YOLO对比
-| 特性 | RTMDet-L | YOLOv8 |
-|------|----------|---------|
-| **许可证** | Apache-2.0 ✅ | AGPL-3.0 ⚠️ |
-| **商用** | 免费 | 需付费 |
-| **mAP精度** | 52.8% | 50.2% |
-| **推理速度** | 快速 | 更快 |
-| **社区支持** | OpenMMLab | Ultralytics |
+### SigLIP+BLIP vs RTMDet对比
+| 特性 | SigLIP+BLIP | RTMDet | 优势 |
+|------|-------------|---------|------|
+| **依赖** | transformers✅ | mmcv❌ | 无安装问题 |
+| **多语言** | 支持✅ | 不支持❌ | 中英日等 |
+| **零样本** | 支持✅ | 不支持❌ | 无需预定义类别 |
+| **描述生成** | 支持✅ | 不支持❌ | 自然语言描述 |
+| **Python 3.11+** | 支持✅ | 不支持❌ | 现代Python版本 |
 
 ### 使用示例
 ```python
-# 高精度物体检测
-from src.rtmdet_detector import RTMDetector
+# 多语言图像理解
+from src.siglip_blip_detector import SigLIPBLIPDetector
 
-detector = RTMDetector()
-results = detector.detect("product_photo.jpg")
+detector = SigLIPBLIPDetector()
+
+# 支持中文标签
+results = detector.detect(
+    "product_photo.jpg",
+    candidate_labels=["手机", "iPhone", "电脑", "MacBook", "美食", "披萨"]
+)
 
 # 自媒体内容分析
 for obj in results:
