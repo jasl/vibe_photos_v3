@@ -1,170 +1,59 @@
-# 最终技术决策文档
-
-> ⚠️ **本文档为最终决策**，所有开发实施请以此为准。调研过程和备选方案请参见[技术调研归档](./research/TECHNOLOGY_RESEARCH_ARCHIVE.md)。
+# 技术决策文档
 
 ## 📌 核心技术栈
 
-### 🗄 数据存储
-| 组件 | 决策 | 理由 |
+### Phase 1 - 已确定
+
+| 组件 | 技术选型 | 版本 |
+|------|----------|------|
+| **语言** | Python | 3.12 |
+| **包管理** | uv | 最新 |
+| **API框架** | FastAPI | 0.121.1 |
+| **UI框架** | Streamlit | 1.51.0 |
+| **数据库** | SQLite | 内置 |
+| **图像识别** | SigLIP + BLIP | 4.57.1 |
+| **OCR** | PaddleOCR | 3.3.1 |
+| **深度学习** | PyTorch | 2.9.0 |
+
+### Phase Final - 规划中
+
+| 组件 | 技术选型 | 说明 |
+|------|----------|------|
+| **数据库** | PostgreSQL + pgvector | 大规模部署时 |
+| **缓存** | Redis | 高并发场景 |
+| **任务队列** | Celery | 异步处理 |
+| **监控** | Prometheus + Grafana | 生产环境 |
+
+## 🎯 关键决策
+
+### 1. SigLIP + BLIP 组合
+**原因**：
+- 多语言支持（中英日）
+- 零样本学习能力
+- 无依赖冲突
+- Hugging Face生态支持
+
+### 2. PaddleOCR
+**原因**：
+- 中文识别效果最佳
+- 支持多种语言
+- 模型轻量高效
+
+### 3. SQLite → PostgreSQL 渐进式升级
+**原因**：
+- 开发阶段简单高效
+- 生产环境平滑迁移
+- 向量搜索能力（pgvector）
+
+## 📦 模型选择
+
+| 功能 | 模型 | 大小 |
 |------|------|------|
-| **数据库** | PostgreSQL 14+ | 成熟、可靠、功能全面 |
-| **向量存储** | pgvector扩展 | 统一存储、事务安全、足够3万张照片 |
-| **缓存** | Redis | 高性能、支持多种数据结构 |
-| **文件存储** | 本地文件系统 → S3 | 渐进式升级 |
-
-### 🤖 AI模型
-| 功能 | 模型 | 理由 |
-|------|------|------|
-| **通用分类** | SigLIP-base-i18n | 多语言支持、更准确 |
-| **图像理解** | SigLIP+BLIP | 多语言支持、无依赖问题 |
-| **OCR** | PaddleOCR v4 | 中文支持最佳 |
-| **Few-shot** | DINOv2-base | 自监督学习效果好 |
-
-### 🔧 应用框架
-| 层次 | 技术 | 理由 |
-|------|------|------|
-| **API框架** | FastAPI | 异步、高性能、自动文档 |
-| **任务队列** | Celery + Redis | 成熟、功能完整 |
-| **CLI** | Typer + Rich | 现代、美观 |
-| **Web UI** | Gradio → React | 渐进式升级 |
-
-### 📊 监控运维
-| 功能 | 技术 | 理由 |
-|------|------|------|
-| **指标监控** | Prometheus + Grafana | 开源标准 |
-| **任务监控** | Flower | Celery原生支持 |
-| **日志** | Python logging + Rich | 简单够用 |
-| **部署** | Docker + Docker Compose | 标准化部署 |
-
-## 🎯 关键决策详解
-
-### 1. 为什么选择 PostgreSQL + pgvector？
-
-**决策**：使用PostgreSQL + pgvector作为统一的数据和向量存储方案
-
-**理由**：
-- ✅ **规模适配**：3万张照片，pgvector查询<20ms
-- ✅ **架构简单**：单一数据源，无同步问题
-- ✅ **事务安全**：ACID保证数据一致性
-- ✅ **运维简单**：使用PostgreSQL原生工具
-- ✅ **成本效益**：不需要额外的向量数据库
-
-**性能参考**：
-```yaml
-30K向量:
-  索引构建: < 1分钟
-  查询延迟: < 20ms
-  内存占用: < 500MB
-```
-
-### 2. 为什么不用 Faiss？
-
-**Faiss仅作为未来可选方案**，触发条件：
-- 向量超过100万
-- 查询延迟>200ms
-- 需要GPU加速
-
-当前规模（3万）使用Faiss是过度设计。
-
-### 3. 为什么选择 SigLIP+BLIP 而非 RTMDet/YOLO？
-
-**决策**：使用SigLIP+BLIP组合替代传统物体检测模型
-
-**理由**：
-- ✅ **无依赖问题**：RTMDet的mmcv已无法在Python 3.11+安装
-- ✅ **多语言支持**：SigLIP支持中文、英文、日文等多语言
-- ✅ **零样本学习**：无需预定义类别，灵活性更高
-- ✅ **图像理解**：BLIP可生成自然语言描述
-- ✅ **维护性**：Hugging Face生态，更新活跃
-
-### 4. 处理范围
-
-**决策**：项目专注于图片处理
-
-**理由**：
-- 核心价值在于照片管理和智能搜索
-- 降低系统复杂度
-- 集中资源优化用户体验
-
-## 📦 依赖清单
-
-### 核心依赖
-```txt
-# API框架
-fastapi==0.121.1
-uvicorn==0.35.0
-pydantic==2.11.10
-
-# 数据库
-psycopg2-binary==2.9.9
-pgvector==0.2.5
-sqlalchemy==2.1.0
-
-# AI模型
-torch==2.5.1
-transformers==4.47.1
-paddleocr==3.3.1
-
-# 任务队列
-celery[redis]==5.6.0
-redis==6.1.0
-flower==2.3.0
-
-# 工具
-typer[all]==0.20.0
-rich==14.2.0
-```
-
-### 可选依赖
-```txt
-# 仅当向量>100万时
-# faiss-cpu==1.12.0
-```
-
-## 🚀 实施路线
-
-### 立即实施
-1. 安装PostgreSQL 14+ 和 pgvector
-2. 配置Celery + Redis
-3. 实现基础SigLIP分类
-4. 构建FastAPI接口
-
-### 短期计划（2周）
-1. 集成SigLIP+BLIP图像理解
-2. 添加PaddleOCR
-3. 实现批量处理
-4. 优化查询性能
-
-### 中期计划（1月）
-1. Few-shot学习
-2. Web UI开发
-3. 性能优化
-4. 部署脚本
-
-## ⚠️ 重要提醒
-
-1. **不要过度设计**：当前规模不需要Faiss、Elasticsearch等
-2. **保持简单**：优先使用PostgreSQL生态内的方案
-3. **渐进升级**：从SQLite开始，需要时再迁移到PostgreSQL
-4. **专注核心**：专注于图片处理和搜索功能
-
-## 📋 检查清单
-
-开发前确认：
-- [ ] PostgreSQL 14+已安装
-- [ ] pgvector扩展已启用
-- [ ] Redis已运行
-- [ ] Python 3.11+环境
-- [ ] CUDA可用（可选）
-
-## 🔗 相关文档
-
-- [系统架构](./architecture/system_architecture.md)
-- [实施指南](./docs/04_implementation_guide.md)
-- [技术调研归档](./research/TECHNOLOGY_RESEARCH_ARCHIVE.md)
+| **图像理解** | google/siglip-base-patch16-224-i18n | ~400MB |
+| **图像描述** | Salesforce/blip-image-captioning-base | ~990MB |
+| **OCR检测** | PaddleOCR PP-OCRv4 | ~200MB |
 
 ---
 
-**最后更新**: 2024年11月
-**状态**: 最终决策 ✅
-**下次评审**: 当向量规模接近100万时
+**状态**: 正式版本  
+**更新**: 2025年11月
