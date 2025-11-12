@@ -31,7 +31,8 @@
 - ✅ `samples/` - 只读原始数据
 - ✅ `data/` - 数据库和处理状态
 - ✅ `cache/` - 可复用缓存（跨版本）
-- ✅ `logs/` - 运行日志（自动轮转）
+- ✅ `log/` - 运行日志（自动轮转）
+- ✅ `tmp/` - 临时文件（处理期间使用）
 
 ### 2. POC阶段原则（明确说明）
 - ✅ 可破坏性改动
@@ -102,7 +103,7 @@ uv run python blueprints/phase1/process_dataset.py
 2. **灵活迭代** - POC阶段无约束
 3. **性能优化** - 缓存机制10倍提升
 4. **跨版本复用** - cache目录可共享
-5. **快速重置** - rm -rf data/* cache/* logs/*
+5. **快速重置** - rm -rf data/* cache/* log/* tmp/*
 
 ## ✅ 最终状态
 

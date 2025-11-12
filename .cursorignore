@@ -3,4 +3,5 @@
 /data
 /cache
 /log
+/models
 /.venv

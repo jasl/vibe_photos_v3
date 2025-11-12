@@ -105,11 +105,16 @@ ui:
     browse: true        # 启用浏览
     stats: true         # 启用统计
 
+# 临时文件配置
+temporary:
+  directory: "tmp"      # 临时文件目录
+  cleanup: true         # 程序结束后自动清理
+  
 # 日志配置
 logging:
   level: "INFO"         # DEBUG/INFO/WARNING/ERROR
   format: "[%(asctime)s] %(levelname)s - %(message)s"
-  directory: "logs"     # 日志目录
+  directory: "log"      # 日志目录
   file: "phase1.log"      # 日志文件名
   # 日志文件轮转
   rotation:

@@ -7,6 +7,8 @@
 !/cache/.gitkeep
 /log
 !/log/.gitkeep
+/models
+!/models/.gitkeep
 
 .DS_Store
 **/.DS_Store

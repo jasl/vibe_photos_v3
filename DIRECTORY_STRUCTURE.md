@@ -45,7 +45,7 @@ cache/
     └── phash_cache.json
 ```
 
-### `logs/` (读写)
+### `log/` (读写)
 - **用途**: 存放程序运行日志
 - **权限**: 读写
 - **内容**:
@@ -56,6 +56,19 @@ cache/
   - 自动轮转（单文件最大10MB）
   - 保留最近5个备份
   - 支持多级别日志（DEBUG/INFO/WARNING/ERROR）
+- **注意**: 该目录被git忽略
+
+### `tmp/` (读写)
+- **用途**: 存放运行期间的临时文件
+- **权限**: 读写
+- **内容**:
+  - 处理中的临时图片
+  - 中间计算结果
+  - 临时脚本或帮助文件
+- **特性**:
+  - 随时可清理
+  - 不需要保留
+  - 程序结束后可删除
 - **注意**: 该目录被git忽略
 
 ## 缓存策略
@@ -90,7 +103,8 @@ cache/
 | `samples/` | 只读 | 忽略 | 原始数据，不修改 |
 | `data/` | 读写 | 忽略 | 版本特定数据 |
 | `cache/` | 读写 | 忽略 | 可复用缓存 |
-| `logs/` | 读写 | 忽略 | 运行日志 |
+| `log/` | 读写 | 忽略 | 运行日志 |
+| `tmp/` | 读写 | 忽略 | 临时文件 |
 | `blueprints/` | 只读 | 跟踪 | 所有设计文档 |
 | `blueprints/phase1/` | 只读 | 跟踪 | Phase 1设计 |
 | `blueprints/phase_final/` | 只读 | 跟踪 | Phase Final设计 |
@@ -101,13 +115,15 @@ cache/
 ```bash
 rm -rf data/*
 rm -rf cache/*
-rm -rf logs/*
+rm -rf log/*
+rm -rf tmp/*
 ```
 
 ### 保留缓存重置（保留可复用部分）
 ```bash
 rm -rf data/*
-rm -rf logs/*
+rm -rf log/*
+rm -rf tmp/*
 # cache目录保留，下次处理会复用
 ```
 
@@ -123,7 +139,10 @@ rm -rf cache/ocr/*
 rm -rf cache/images/processed/*
 
 # 清理日志文件
-rm -rf logs/*.log*
+rm -rf log/*.log*
+
+# 清理临时文件
+rm -rf tmp/*
 ```
 
 ## 存储空间估算

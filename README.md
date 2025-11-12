@@ -10,6 +10,7 @@ vibe_photos_v3/
 │   └── phase_final/     # Phase Final：完整系统
 ├── pyproject.toml        # Python 3.12 项目配置
 ├── .python-version       # Python 版本固定
+├── POC_PHASE_NOTICE.md   # ⚠️ POC阶段重要说明
 ├── ROADMAP.md            # 🚀 完整产品路线图
 ├── FINAL_CHECKLIST.md    # ✅ 最终文档检查清单
 ├── UV_USAGE.md           # 📦 Python环境管理规范（必读）
@@ -17,6 +18,8 @@ vibe_photos_v3/
 ├── samples/              # 原始测试数据集（只读）
 ├── data/                 # 处理结果存储（读写）
 ├── cache/                # 可复用缓存（跨版本共享）
+├── log/                  # 运行日志（自动轮转）
+├── tmp/                  # 临时文件（运行期间）
 ├── DEPENDENCIES.md       # 所有依赖版本清单
 └── LICENSE              # 项目许可证
 ```
