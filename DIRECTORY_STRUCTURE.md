@@ -45,6 +45,19 @@ cache/
     └── phash_cache.json
 ```
 
+### `logs/` (读写)
+- **用途**: 存放程序运行日志
+- **权限**: 读写
+- **内容**:
+  - `poc1.log` - PoC1主程序日志
+  - `process_dataset.log` - 数据处理日志
+  - `*.log.*` - 轮转的历史日志文件
+- **特性**:
+  - 自动轮转（单文件最大10MB）
+  - 保留最近5个备份
+  - 支持多级别日志（DEBUG/INFO/WARNING/ERROR）
+- **注意**: 该目录被git忽略
+
 ## 缓存策略
 
 ### 缓存键设计
@@ -77,20 +90,23 @@ cache/
 | `samples/` | 只读 | 忽略 | 原始数据，不修改 |
 | `data/` | 读写 | 忽略 | 版本特定数据 |
 | `cache/` | 读写 | 忽略 | 可复用缓存 |
+| `logs/` | 读写 | 忽略 | 运行日志 |
 | `poc1_design/` | 只读 | 跟踪 | 设计文档 |
 | `v3_design/` | 只读 | 跟踪 | 设计文档 |
 
 ## 清理策略
 
-### 完全重置（删除所有处理结果）
+### 完全重置（删除所有处理结果和日志）
 ```bash
 rm -rf data/*
 rm -rf cache/*
+rm -rf logs/*
 ```
 
 ### 保留缓存重置（保留可复用部分）
 ```bash
 rm -rf data/*
+rm -rf logs/*
 # cache目录保留，下次处理会复用
 ```
 
@@ -104,6 +120,9 @@ rm -rf cache/ocr/*
 
 # 清理处理后的图片
 rm -rf cache/images/processed/*
+
+# 清理日志文件
+rm -rf logs/*.log*
 ```
 
 ## 存储空间估算

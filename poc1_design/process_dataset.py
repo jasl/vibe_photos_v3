@@ -17,17 +17,41 @@ from pathlib import Path
 import yaml
 import sys
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
 
-# 配置日志
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s] %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('logs/process_dataset.log')
+def setup_logging(config: dict) -> logging.Logger:
+    """配置日志系统"""
+    log_config = config.get('logging', {})
+    
+    # 创建日志目录
+    log_dir = Path(log_config.get('directory', 'logs'))
+    log_dir.mkdir(exist_ok=True)
+    
+    # 日志文件路径
+    log_file = log_dir / 'process_dataset.log'
+    
+    # 配置日志格式
+    log_format = log_config.get('format', '[%(asctime)s] %(levelname)s - %(message)s')
+    log_level = log_config.get('level', 'INFO')
+    
+    # 创建日志处理器
+    handlers = [
+        logging.StreamHandler(),  # 控制台输出
+        RotatingFileHandler(
+            log_file,
+            maxBytes=log_config.get('rotation', {}).get('max_bytes', 10485760),
+            backupCount=log_config.get('rotation', {}).get('backup_count', 5)
+        )  # 文件输出（带轮转）
     ]
-)
-logger = logging.getLogger(__name__)
+    
+    # 配置日志
+    logging.basicConfig(
+        level=getattr(logging, log_level),
+        format=log_format,
+        handlers=handlers
+    )
+    
+    return logging.getLogger(__name__)
 
 
 def load_config(config_path: str = "config.yaml") -> dict:
@@ -40,9 +64,12 @@ async def main():
     """主处理函数"""
     # 1. 加载配置
     config = load_config()
+    
+    # 2. 设置日志
+    logger = setup_logging(config)
     logger.info("配置加载成功")
     
-    # 2. 检查数据集目录
+    # 3. 检查数据集目录
     dataset_dir = Path(config['dataset']['directory'])
     if not dataset_dir.exists():
         logger.error(f"数据集目录不存在: {dataset_dir}")

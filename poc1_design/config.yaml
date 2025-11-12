@@ -109,7 +109,12 @@ ui:
 logging:
   level: "INFO"         # DEBUG/INFO/WARNING/ERROR
   format: "[%(asctime)s] %(levelname)s - %(message)s"
-  file: "logs/poc1.log"
+  directory: "logs"     # 日志目录
+  file: "poc1.log"      # 日志文件名
+  # 日志文件轮转
+  rotation:
+    max_bytes: 10485760  # 10MB
+    backup_count: 5      # 保留5个备份
 
 # 开发配置
 development:

@@ -2,6 +2,7 @@
 /tmp
 /data
 /cache
+/logs
 
 .DS_Store
 **/.DS_Store
