@@ -100,19 +100,34 @@ paddleocr==3.3.1          # PaddleOCR最新稳定版
 
 ## 🗄 数据库设计
 
-### 简化的表结构
+### 简化的表结构（支持未来扩展）
 ```sql
 -- 图片主表
 CREATE TABLE images (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     filename TEXT NOT NULL,
-    filepath TEXT NOT NULL,
+    original_path TEXT NOT NULL,      -- 原始图片路径
+    processed_path TEXT,               -- 归一化后的图片路径
+    thumbnail_path TEXT,               -- 缩略图路径
+    phash TEXT UNIQUE,                 -- 感知哈希（用于去重）
     file_size INTEGER,
+    width INTEGER,
+    height INTEGER,
+    format TEXT,
     import_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    process_status TEXT DEFAULT 'pending',  -- pending/processing/completed/failed
+    process_status TEXT DEFAULT 'pending',  -- pending/processing/completed/failed/duplicate
     process_time FLOAT,
-    thumbnail_path TEXT
+    error_message TEXT,                -- 错误信息（如果失败）
+    
+    -- 🔄 预留字段（PoC2准备）
+    embedding_json TEXT,  -- 存储向量嵌入（JSON格式）
+    caption TEXT         -- 存储图像描述（未来扩展）
 );
+
+-- 创建索引
+CREATE INDEX idx_phash ON images(phash);  -- 快速去重查询
+CREATE INDEX idx_status ON images(process_status);  -- 状态查询
+CREATE INDEX idx_import_time ON images(import_time);  -- 时间排序
 
 -- 检测结果表
 CREATE TABLE detections (
@@ -137,46 +152,59 @@ CREATE TABLE ocr_results (
     FOREIGN KEY (image_id) REFERENCES images(id)
 );
 
--- 搜索索引表（简单全文搜索）
+-- 搜索索引表（支持全文搜索）
 CREATE VIRTUAL TABLE search_index USING fts5(
     image_id,
-    content  -- 合并的可搜索文本
+    content,  -- 合并的可搜索文本
+    tokenize = 'porter unicode61'  -- 更好的分词支持
 );
+
+-- 🔄 向量索引表（PoC2准备，暂不激活）
+-- CREATE TABLE vector_index (
+--     id INTEGER PRIMARY KEY,
+--     image_id INTEGER NOT NULL,
+--     embedding BLOB,  -- 二进制格式存储向量
+--     FOREIGN KEY (image_id) REFERENCES images(id)
+-- );
 ```
 
 ## 🔄 处理流程
 
-### 批处理流程
+### 批处理流程（带缓存优化）
 ```python
-async def batch_process_images(folder_path: str):
+async def batch_process_images(dataset_dir: str = 'samples'):
     """
-    离线批处理主流程
+    离线批处理主流程（只读源数据，缓存结果）
     """
-    # 1. 扫描和导入
-    images = scan_folder(folder_path)
+    # 1. 扫描只读数据集
+    images = scan_folder(dataset_dir, readonly=True)
     for image_path in images:
         db.add_image(image_path, status='pending')
     
-    # 2. 批量处理（可并行）
+    # 2. 批量处理（使用缓存）
     batch_size = 10
     for batch in chunks(images, batch_size):
-        # 2.1 生成缩略图
-        create_thumbnails(batch)
-        
-        # 2.2 物体检测
-        detections = detect_objects(batch)
-        db.save_detections(detections)
-        
-        # 2.3 OCR提取（如果需要）
-        if has_text_content(batch):
-            ocr_results = extract_text(batch)
-            db.save_ocr_results(ocr_results)
-        
-        # 2.4 更新搜索索引
-        update_search_index(batch)
-        
-        # 2.5 标记完成
-        db.update_status(batch, 'completed')
+        for image_path in batch:
+            # 计算感知哈希（缓存键）
+            phash = compute_phash(image_path)
+            
+            # 2.1 生成缩略图（cache/images/thumbnails/）
+            create_or_load_thumbnail(image_path, phash)
+            
+            # 2.2 物体检测（cache/detections/）
+            detections = get_or_compute_detections(image_path, phash)
+            db.save_detections(detections)
+            
+            # 2.3 OCR提取（cache/ocr/）
+            if has_text_content(image_path):
+                ocr_results = get_or_compute_ocr(image_path, phash)
+                db.save_ocr_results(ocr_results)
+            
+            # 2.4 更新搜索索引（data/vibe_photos.db）
+            update_search_index(image_path)
+            
+            # 2.5 标记完成
+            db.update_status(image_path, 'completed')
 ```
 
 ### 搜索流程
@@ -292,10 +320,13 @@ class Settings:
     # 搜索
     SEARCH_LIMIT = 50
     
-    # 存储路径
-    UPLOAD_PATH = "data/images"
-    THUMBNAIL_PATH = "data/thumbnails"
-    CACHE_PATH = "data/cache"
+    # 存储路径（分离源数据、缓存和数据库）
+    DATASET_PATH = "samples"  # 只读源数据
+    THUMBNAIL_PATH = "cache/images/thumbnails"  # 可复用缓存
+    PROCESSED_PATH = "cache/images/processed"  # 归一化图片
+    DETECTION_CACHE = "cache/detections"  # 检测结果缓存
+    OCR_CACHE = "cache/ocr"  # OCR结果缓存
+    DATABASE_PATH = "data/vibe_photos.db"  # 数据库
 ```
 
 ## 📝 注意事项

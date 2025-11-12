@@ -36,22 +36,37 @@
 
 ### Step 1: 项目初始化
 
+#### ⚠️ 重要：统一使用 `uv` 管理Python环境
+
+**本项目必须使用 `uv` 管理所有依赖**
+- ✅ 使用 `uv venv` 创建虚拟环境
+- ✅ 使用 `uv add/remove` 管理依赖
+- ✅ 使用 `uv run` 运行脚本
+- ❌ 禁止使用 `pip`, `pip-tools`, `poetry`
+
 ```bash
+# 安装 uv (首次使用)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# 或 brew install uv (macOS)
+
 # 创建项目结构
 mkdir -p poc1/{app,processors,ui,scripts,tests,data}
 mkdir -p poc1/app/api
 mkdir -p poc1/data/{images,thumbnails,cache}
 
-# 创建虚拟环境
+# 创建虚拟环境 (使用 uv)
 cd poc1
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+uv venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
-# 安装基础依赖（使用最新稳定版本）
-pip install fastapi==0.121.1 uvicorn==0.38.0 streamlit==1.51.0 sqlalchemy==2.0.44 pillow==12.0.0 pydantic==2.12.4
+# 安装基础依赖（使用 uv）
+uv add fastapi==0.121.1 uvicorn==0.38.0 streamlit==1.51.0 sqlalchemy==2.0.44 pillow==12.0.0 pydantic==2.12.4
 
 # 安装RTMDet依赖（推荐的识别引擎）
-pip install torch==2.9.0 torchvision==0.24.0 mmdet==3.3.0 mmengine==0.10.7 mmcv==2.2.0
+uv add torch==2.9.0 torchvision==0.24.0 mmdet==3.3.0 mmengine==0.10.7 mmcv==2.2.0
+
+# 或者使用 requirements.txt 批量安装
+uv pip sync requirements.txt
 ```
 
 ### Step 2: 数据库模型实现
@@ -98,41 +113,249 @@ class OCRResult(Base):
     language = Column(String)
 ```
 
-### Step 3: 批处理器实现
+### Step 3: 图像预处理和批处理实现
 
 ```python
+# processors/preprocessor.py
+import hashlib
+from pathlib import Path
+from typing import Optional, Tuple
+from PIL import Image
+import imagehash
+import numpy as np
+
+class ImagePreprocessor:
+    """图像预处理器：格式归一化、缩略图生成、去重（带缓存）"""
+    
+    def __init__(self, config):
+        self.target_format = config.get('target_format', 'JPEG')
+        self.thumbnail_size = config.get('thumbnail_size', (512, 512))
+        self.thumbnail_quality = config.get('thumbnail_quality', 85)
+        
+        # 缓存目录（可跨版本复用）
+        paths = config.get('paths', {})
+        self.processed_dir = Path(paths.get('processed', 'cache/images/processed'))
+        self.thumbnail_dir = Path(paths.get('thumbnails', 'cache/images/thumbnails'))
+        
+        # 哈希缓存（避免重复计算）
+        self.hash_cache_file = Path('cache/hashes/phash_cache.json')
+        self.processed_hashes = self.load_hash_cache()
+    
+    def load_hash_cache(self) -> set:
+        """加载哈希缓存"""
+        if self.hash_cache_file.exists():
+            import json
+            with open(self.hash_cache_file) as f:
+                data = json.load(f)
+                return set(data.get('hashes', []))
+        return set()
+    
+    def save_hash_cache(self):
+        """保存哈希缓存"""
+        import json
+        self.hash_cache_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(self.hash_cache_file, 'w') as f:
+            json.dump({'hashes': list(self.processed_hashes)}, f)
+        
+    def preprocess(self, image_path: Path) -> Optional[dict]:
+        """
+        预处理单张图片
+        
+        Returns:
+            处理结果字典，如果是重复图片返回None
+        """
+        # 1. 计算感知哈希（去重）
+        phash = self.compute_phash(image_path)
+        if self.is_duplicate(phash):
+            return None
+        
+        # 2. 加载和归一化图像
+        normalized = self.normalize_image(image_path)
+        
+        # 3. 生成缩略图
+        thumbnail_path = self.generate_thumbnail(normalized, image_path.stem)
+        
+        # 4. 保存归一化后的图像（如需要）
+        processed_path = self.save_normalized(normalized, image_path.stem)
+        
+        # 5. 记录哈希值
+        self.processed_hashes.add(phash)
+        
+        return {
+            'original_path': str(image_path),
+            'processed_path': str(processed_path),
+            'thumbnail_path': str(thumbnail_path),
+            'phash': str(phash),
+            'format': self.target_format,
+            'size': normalized.size
+        }
+    
+    def compute_phash(self, image_path: Path, hash_size: int = 8) -> str:
+        """计算感知哈希用于去重"""
+        img = Image.open(image_path)
+        phash = imagehash.phash(img, hash_size=hash_size)
+        return str(phash)
+    
+    def is_duplicate(self, phash: str, threshold: int = 5) -> bool:
+        """
+        检查是否为重复图片
+        
+        Args:
+            phash: 当前图片的感知哈希
+            threshold: 相似度阈值（汉明距离）
+        """
+        current_hash = imagehash.hex_to_hash(phash)
+        for existing_hash_str in self.processed_hashes:
+            existing_hash = imagehash.hex_to_hash(existing_hash_str)
+            if current_hash - existing_hash < threshold:
+                return True
+        return False
+    
+    def normalize_image(self, image_path: Path) -> Image.Image:
+        """
+        图像格式归一化
+        - 转换为RGB模式
+        - 自动旋转（基于EXIF）
+        - 限制最大尺寸
+        """
+        img = Image.open(image_path)
+        
+        # 处理EXIF方向
+        try:
+            from PIL import ImageOps
+            img = ImageOps.exif_transpose(img)
+        except:
+            pass
+        
+        # 转换为RGB（如果需要）
+        if img.mode not in ('RGB', 'L'):
+            img = img.convert('RGB')
+        
+        # 限制最大尺寸（保持比例）
+        max_size = 4096
+        if max(img.size) > max_size:
+            img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+        
+        return img
+    
+    def generate_thumbnail(self, img: Image.Image, name: str) -> Path:
+        """生成缩略图"""
+        self.thumbnail_dir.mkdir(parents=True, exist_ok=True)
+        
+        # 创建缩略图
+        thumbnail = img.copy()
+        thumbnail.thumbnail(self.thumbnail_size, Image.Resampling.LANCZOS)
+        
+        # 保存
+        thumbnail_path = self.thumbnail_dir / f"{name}_thumb.{self.target_format.lower()}"
+        save_kwargs = {'format': self.target_format}
+        if self.target_format == 'JPEG':
+            save_kwargs['quality'] = self.thumbnail_quality
+            save_kwargs['optimize'] = True
+        
+        thumbnail.save(thumbnail_path, **save_kwargs)
+        return thumbnail_path
+    
+    def save_normalized(self, img: Image.Image, name: str) -> Path:
+        """保存归一化后的图像"""
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        
+        processed_path = self.cache_dir / f"{name}.{self.target_format.lower()}"
+        save_kwargs = {'format': self.target_format}
+        if self.target_format == 'JPEG':
+            save_kwargs['quality'] = 95
+            save_kwargs['optimize'] = True
+        
+        img.save(processed_path, **save_kwargs)
+        return processed_path
+
 # processors/batch.py
 import asyncio
 from pathlib import Path
-from typing import List
+from typing import List, Set
 from PIL import Image
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
 class BatchProcessor:
-    def __init__(self, db_session, detector, ocr_engine):
+    def __init__(self, db_session, detector, ocr_engine, preprocessor, config=None):
         self.db = db_session
         self.detector = detector
         self.ocr = ocr_engine
+        self.preprocessor = preprocessor
         
-    async def process_folder(self, folder_path: str, batch_size: int = 10):
-        """批量处理文件夹中的图片"""
-        folder = Path(folder_path)
-        image_files = list(folder.glob("**/*.jpg")) + \
-                     list(folder.glob("**/*.jpeg")) + \
-                     list(folder.glob("**/*.png"))
+        # 增量处理支持
+        self.state_file = Path(config.get('state_file', 'data/processing_state.json'))
+        self.processed_files = self.load_state()
         
-        logger.info(f"Found {len(image_files)} images to process")
+        # 测试数据集配置
+        self.dataset_dir = Path(config.get('dataset_dir', 'samples'))
+        self.supported_formats = config.get('formats', ['.jpg', '.jpeg', '.png', '.heic', '.webp'])
+    
+    def load_state(self) -> Set[str]:
+        """加载处理状态（支持增量处理）"""
+        if self.state_file.exists():
+            with open(self.state_file) as f:
+                state = json.load(f)
+                return set(state.get('processed_files', []))
+        return set()
+    
+    def save_state(self):
+        """保存处理状态"""
+        self.state_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(self.state_file, 'w') as f:
+            json.dump({
+                'processed_files': list(self.processed_files),
+                'last_updated': str(datetime.now())
+            }, f, indent=2)
+    
+    async def process_dataset(self, incremental: bool = True):
+        """
+        处理测试数据集
         
-        # 分批处理
+        Args:
+            incremental: 是否增量处理（跳过已处理的文件）
+        """
+        if not self.dataset_dir.exists():
+            logger.error(f"数据集目录不存在: {self.dataset_dir}")
+            return
+        
+        # 收集所有图片文件
+        image_files = []
+        for fmt in self.supported_formats:
+            image_files.extend(self.dataset_dir.glob(f"**/*{fmt}"))
+            image_files.extend(self.dataset_dir.glob(f"**/*{fmt.upper()}"))
+        
+        # 过滤已处理的文件（增量处理）
+        if incremental:
+            new_files = [f for f in image_files if str(f) not in self.processed_files]
+            if not new_files:
+                logger.info("没有新文件需要处理")
+                return
+            logger.info(f"发现 {len(new_files)} 个新文件（共 {len(image_files)} 个文件）")
+            image_files = new_files
+        else:
+            logger.info(f"处理所有 {len(image_files)} 个文件（非增量模式）")
+        
+        # 批量处理
+        batch_size = 10
         for i in range(0, len(image_files), batch_size):
             batch = image_files[i:i+batch_size]
             await self._process_batch(batch)
             
             # 显示进度
             progress = min(i + batch_size, len(image_files))
-            logger.info(f"Progress: {progress}/{len(image_files)}")
+            logger.info(f"进度: {progress}/{len(image_files)}")
+            
+            # 定期保存状态
+            if progress % 50 == 0:
+                self.save_state()
+        
+        # 最终保存状态
+        self.save_state()
+        logger.info("数据集处理完成")
     
     async def _process_batch(self, image_paths: List[Path]):
         """处理一批图片"""
@@ -147,86 +370,237 @@ class BatchProcessor:
                 logger.error(f"Failed to process {path}: {result}")
     
     async def _process_single_image(self, image_path: Path):
-        """处理单张图片"""
-        # 1. 添加到数据库
-        image_record = self._add_image_to_db(image_path)
+        """处理单张图片（含预处理和缓存）"""
+        try:
+            # 1. 预处理（去重、归一化、缩略图）
+            preprocess_result = self.preprocessor.preprocess(image_path)
+            if preprocess_result is None:
+                logger.info(f"跳过重复图片: {image_path}")
+                return
+            
+            # 2. 添加到数据库
+            image_record = self._add_image_to_db(
+                original_path=image_path,
+                processed_path=preprocess_result['processed_path'],
+                thumbnail_path=preprocess_result['thumbnail_path'],
+                phash=preprocess_result['phash']
+            )
+            
+            # 3. 物体检测（带缓存）
+            cache_key = preprocess_result['phash']  # 使用感知哈希作为缓存键
+            detections = await self._get_or_compute_detections(
+                preprocess_result['processed_path'],
+                cache_key
+            )
+            self._save_detections(image_record.id, detections)
+            
+            # 4. OCR（带缓存）
+            if self._should_ocr(image_path):
+                ocr_result = await self._get_or_compute_ocr(
+                    preprocess_result['processed_path'],
+                    cache_key
+                )
+                self._save_ocr_result(image_record.id, ocr_result)
+            
+            # 5. 更新状态
+            self._update_status(image_record.id, 'completed')
+            
+            # 6. 记录已处理
+            self.processed_files.add(str(image_path))
+            
+        except Exception as e:
+            logger.error(f"处理图片失败 {image_path}: {e}")
+            self._update_status(image_record.id, 'failed', error=str(e))
+    
+    async def _get_or_compute_detections(self, image_path: str, cache_key: str):
+        """获取或计算检测结果（带缓存）"""
+        import json
         
-        # 2. 生成缩略图
-        thumbnail_path = self._create_thumbnail(image_path)
+        # 缓存文件路径
+        cache_dir = Path('cache/detections')
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        cache_file = cache_dir / f"{cache_key}.json"
         
-        # 3. 物体检测
+        # 尝试读取缓存
+        if cache_file.exists():
+            with open(cache_file) as f:
+                logger.debug(f"使用缓存的检测结果: {cache_key}")
+                return json.load(f)
+        
+        # 计算并缓存
         detections = await self.detector.detect(image_path)
-        self._save_detections(image_record.id, detections)
+        with open(cache_file, 'w') as f:
+            json.dump(detections, f)
         
-        # 4. OCR（如果需要）
-        if self._should_ocr(image_path):
-            ocr_result = await self.ocr.extract(image_path)
-            self._save_ocr_result(image_record.id, ocr_result)
+        return detections
+    
+    async def _get_or_compute_ocr(self, image_path: str, cache_key: str):
+        """获取或计算OCR结果（带缓存）"""
+        import json
         
-        # 5. 更新状态
-        self._update_status(image_record.id, 'completed')
+        # 缓存文件路径
+        cache_dir = Path('cache/ocr')
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        cache_file = cache_dir / f"{cache_key}.json"
+        
+        # 尝试读取缓存
+        if cache_file.exists():
+            with open(cache_file) as f:
+                logger.debug(f"使用缓存的OCR结果: {cache_key}")
+                return json.load(f)
+        
+        # 计算并缓存
+        ocr_result = await self.ocr.extract(image_path)
+        with open(cache_file, 'w') as f:
+            json.dump(ocr_result, f)
+        
+        return ocr_result
 ```
 
-### Step 4: 搜索功能实现
+### Step 4: 搜索功能实现（支持未来扩展）
 
 ```python
 # app/api/search.py
-from fastapi import APIRouter, Query
-from typing import List, Optional
+from fastapi import APIRouter, Query, HTTPException
+from typing import List, Optional, Dict, Any
 from sqlalchemy import text
+import json
+import numpy as np
 
 router = APIRouter()
 
-@router.get("/search")
-async def search_images(
-    q: str = Query(..., description="搜索关键词"),
-    category: Optional[str] = None,
-    min_confidence: float = 0.3,
-    limit: int = 50
-):
-    """搜索图片"""
+class SearchEngine:
+    """搜索引擎，支持渐进式升级"""
     
-    # 构建搜索查询
-    query = """
-        SELECT DISTINCT 
-            i.id, i.filename, i.filepath, i.thumbnail_path,
-            d.object_class, d.confidence,
-            o.text_content
-        FROM images i
-        LEFT JOIN detections d ON i.id = d.image_id
-        LEFT JOIN ocr_results o ON i.id = o.image_id
-        WHERE i.process_status = 'completed'
-    """
+    def __init__(self, db_session):
+        self.db = db_session
+        self.vector_enabled = False  # PoC2开关
     
-    conditions = []
-    params = {}
+    async def search(
+        self,
+        query: str,
+        mode: str = "text",
+        category: Optional[str] = None,
+        min_confidence: float = 0.3,
+        limit: int = 50
+    ) -> Dict[str, Any]:
+        """
+        统一搜索接口
+        
+        Args:
+            query: 搜索查询
+            mode: 搜索模式 ('text', 'vector', 'hybrid')
+            category: 类别过滤
+            min_confidence: 最低置信度
+            limit: 结果限制
+        """
+        if mode == "text":
+            return await self._text_search(query, category, min_confidence, limit)
+        elif mode == "vector" and self.vector_enabled:
+            return await self._vector_search(query, limit)
+        elif mode == "hybrid" and self.vector_enabled:
+            return await self._hybrid_search(query, category, min_confidence, limit)
+        else:
+            raise HTTPException(
+                status_code=501, 
+                detail=f"搜索模式 '{mode}' 暂未实现（将在PoC2支持）"
+            )
     
-    # 关键词搜索
-    if q:
-        conditions.append(
-            "(d.object_class LIKE :keyword OR o.text_content LIKE :keyword)"
-        )
-        params['keyword'] = f"%{q}%"
+    async def _text_search(
+        self, 
+        query: str, 
+        category: Optional[str],
+        min_confidence: float,
+        limit: int
+    ) -> Dict[str, Any]:
+        """PoC1: 文本搜索实现"""
+        sql_query = """
+            SELECT DISTINCT 
+                i.id, i.filename, i.filepath, i.thumbnail_path,
+                d.object_class, d.confidence,
+                o.text_content
+            FROM images i
+            LEFT JOIN detections d ON i.id = d.image_id
+            LEFT JOIN ocr_results o ON i.id = o.image_id
+            WHERE i.process_status = 'completed'
+        """
+        
+        conditions = []
+        params = {}
+        
+        if query:
+            conditions.append(
+                "(d.object_class LIKE :keyword OR o.text_content LIKE :keyword)"
+            )
+            params['keyword'] = f"%{query}%"
+        
+        if category:
+            conditions.append("d.object_class = :category")
+            params['category'] = category
+        
+        conditions.append("d.confidence >= :min_confidence")
+        params['min_confidence'] = min_confidence
+        
+        if conditions:
+            sql_query += " AND " + " AND ".join(conditions)
+        
+        sql_query += f" LIMIT {limit}"
+        
+        results = self.db.execute(text(sql_query), params).fetchall()
+        
+        return {
+            "results": self._format_results(results),
+            "total": len(results),
+            "mode": "text",
+            "query": query
+        }
     
-    # 类别过滤
-    if category:
-        conditions.append("d.object_class = :category")
-        params['category'] = category
+    async def _vector_search(self, query: str, limit: int) -> Dict[str, Any]:
+        """PoC2: 向量搜索（预留实现）"""
+        # 1. 编码查询
+        # query_embedding = self.encode_query(query)
+        
+        # 2. 从数据库加载向量
+        # sql = "SELECT id, embedding_json FROM images WHERE embedding_json IS NOT NULL"
+        # images = self.db.execute(text(sql)).fetchall()
+        
+        # 3. 计算相似度
+        # similarities = []
+        # for img in images:
+        #     embedding = json.loads(img.embedding_json)
+        #     sim = cosine_similarity(query_embedding, embedding)
+        #     similarities.append((img.id, sim))
+        
+        # 4. 排序返回
+        # similarities.sort(key=lambda x: x[1], reverse=True)
+        # top_ids = [s[0] for s in similarities[:limit]]
+        
+        raise NotImplementedError("向量搜索将在PoC2实现")
     
-    # 置信度过滤
-    conditions.append("d.confidence >= :min_confidence")
-    params['min_confidence'] = min_confidence
+    async def _hybrid_search(
+        self,
+        query: str,
+        category: Optional[str],
+        min_confidence: float,
+        limit: int
+    ) -> Dict[str, Any]:
+        """PoC2: 混合搜索（预留实现）"""
+        # 1. 并行执行两种搜索
+        # text_results = await self._text_search(query, category, min_confidence, limit)
+        # vector_results = await self._vector_search(query, limit)
+        
+        # 2. 融合结果
+        # merged = self._merge_results(
+        #     text_results['results'],
+        #     vector_results['results'],
+        #     alpha=0.5
+        # )
+        
+        raise NotImplementedError("混合搜索将在PoC2实现")
     
-    if conditions:
-        query += " AND " + " AND ".join(conditions)
-    
-    query += f" LIMIT {limit}"
-    
-    # 执行查询
-    results = db.execute(text(query), params).fetchall()
-    
-    return {
-        "results": [
+    def _format_results(self, raw_results) -> List[Dict]:
+        """格式化搜索结果"""
+        return [
             {
                 "id": r.id,
                 "filename": r.filename,
@@ -235,11 +609,48 @@ async def search_images(
                 "confidence": r.confidence,
                 "ocr_text": r.text_content[:100] if r.text_content else None
             }
-            for r in results
-        ],
-        "total": len(results),
-        "query": q
-    }
+            for r in raw_results
+        ]
+    
+    def _merge_results(
+        self,
+        text_results: List[Dict],
+        vector_results: List[Dict],
+        alpha: float = 0.5
+    ) -> List[Dict]:
+        """
+        简单的结果融合（PoC2实现）
+        使用加权平均而非复杂的RRF
+        """
+        # 实现将在PoC2完成
+        pass
+
+# API端点
+search_engine = SearchEngine(db_session)
+
+@router.get("/search")
+async def search_images(
+    q: str = Query(..., description="搜索关键词"),
+    mode: str = Query("text", description="搜索模式: text/vector/hybrid"),
+    category: Optional[str] = None,
+    min_confidence: float = 0.3,
+    limit: int = 50
+):
+    """
+    图片搜索API
+    
+    支持三种模式：
+    - text: 文本搜索（PoC1）
+    - vector: 向量搜索（PoC2）
+    - hybrid: 混合搜索（PoC2）
+    """
+    return await search_engine.search(
+        query=q,
+        mode=mode,
+        category=category,
+        min_confidence=min_confidence,
+        limit=limit
+    )
 ```
 
 ### Step 5: Streamlit UI实现

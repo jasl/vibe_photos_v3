@@ -8,6 +8,7 @@ uvicorn==0.38.0            # ASGI服务器 (最新稳定版)
 streamlit==1.51.0          # 快速原型UI框架 (最新稳定版)
 sqlalchemy==2.0.44         # 数据库ORM (最新稳定版)
 pillow==12.0.0             # 图像处理库 (最新稳定版)
+imagehash==4.3.1           # 感知哈希库（图像去重）
 python-multipart==0.0.20   # 文件上传支持 (最新稳定版)
 aiofiles==25.1.0           # 异步文件操作 (最新稳定版)
 pydantic==2.12.4           # 数据验证和序列化 (最新稳定版)

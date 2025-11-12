@@ -15,7 +15,10 @@
 | 模型 | 优点 | 缺点 | 使用场景 | 选择 |
 |------|------|------|----------|------|
 | **CLIP** | 轻量、CPU友好、零样本 | 精度有限 | 基础分类 | ✅ MVP |
-| **RTMDet-L** | Apache许可、高精度(52.8% mAP)、社区支持好 | 需要GPU加速 | 精确物体检测 | ✅ Phase 2 |
+| **RTMDet-L** | Apache许可、高精度(52.8% mAP)、社区支持好 | 需要GPU加速 | 精确物体检测 | ✅ PoC1/Phase 2 |
+| **SigLIP-base** | 多语言支持、语义理解强 | 需要额外内存 | 语义搜索 | ✅ PoC2 |
+| **SigLIP-large** | 最强语义理解、i18n支持 | 资源消耗大(1.5GB) | 生产环境 | ⚠️ Phase 3 |
+| **BLIP-base** | 生成图像描述 | 仅英文 | 内容理解 | ⚠️ PoC2可选 |
 | **GroundingDINO** | 开放词汇、灵活 | 资源消耗较大 | 开放词汇检测 | ⚠️ Phase 3 |
 | **YOLO v8** | 快速、成熟 | AGPL许可限制、精度一般 | 实时检测 | ❌ |
 | **DINOv2** | 强特征提取 | 需要微调 | Few-shot | ✅ Phase 3 |
@@ -32,58 +35,83 @@
 ### 推荐组合
 
 ```python
-# Phase 1 - MVP (CPU友好)
-models_mvp = {
-    'classifier': 'openai/clip-vit-base-patch32',  # 400MB
-    'ocr': None,  # 暂不启用
-    'device': 'cpu'
-}
-
-# Phase 2 - 增强 (GPU可选)
-models_enhanced = {
-    'classifier': 'openai/clip-vit-large-patch14',  # 900MB
-    'detector': 'rtmdet-l',  # MMDetection, Apache-2.0, 高精度
-    'ocr': 'paddleocr-v4',  # 300MB
+# PoC1 - 基础验证 (2周)
+models_poc1 = {
+    'detector': 'rtmdet-l',  # Apache-2.0, 52.8% mAP
+    'ocr': 'paddleocr-v4',  # 中文支持好
+    'database': 'sqlite',   # 零配置
+    'search': 'fts5',      # SQLite全文搜索
     'device': 'cuda:0 if available else cpu'
 }
 
-# Phase 3 - 专业 (GPU推荐)
-models_pro = {
-    'classifier': 'clip-vit-large',
-    'detector': 'rtmdet-x',  # 或 groundingdino用于开放词汇
+# PoC2 - 语义增强 (1个月)
+models_poc2 = {
+    'detector': 'rtmdet-l',  # 保持物体检测能力
+    'embedder': 'google/siglip-base-patch16-224',  # 语义嵌入(384MB)
+    'caption': 'Salesforce/blip-image-captioning-base',  # 可选
     'ocr': 'paddleocr-v4',
-    'few_shot': 'dinov2-base',
-    'device': 'cuda:0'
+    'database': 'sqlite + numpy',  # 简单向量搜索
+    'search': 'hybrid (text + vector)',  # 混合搜索
+    'device': 'cuda:0 if available else cpu'
+}
+
+# Phase 3 - 生产级 (3个月)
+models_production = {
+    'detector': 'rtmdet-x',  # 更高精度
+    'embedder': 'google/siglip-large-patch16-384-i18n',  # 完整多语言(1.5GB)
+    'caption': 'blip-large or LMM',  # 高质量描述
+    'ocr': 'paddleocr-v4',
+    'few_shot': 'dinov2-base',  # Few-shot学习
+    'database': 'postgresql + pgvector',  # 统一数据库和向量搜索
+    'search': 'advanced hybrid with RRF',  # 高级混合搜索
+    'cache': 'redis',  # 性能优化
+    'device': 'cuda:0'  # 建议GPU
 }
 ```
 
 ## 💾 数据存储方案
 
-### 数据库选择
+### 数据库选择（渐进式升级）
 
 | 方案 | 优点 | 缺点 | 适用阶段 |
 |------|------|------|----------|
-| **SQLite** | 零配置、轻量 | 并发限制 | ✅ MVP |
-| **PostgreSQL** | 功能全、pgvector | 需要安装 | ✅ 生产 |
+| **SQLite** | 零配置、轻量 | 并发限制 | ✅ PoC1 |
+| **SQLite + JSON** | 支持向量存储 | 搜索性能受限 | ✅ PoC2 |
+| **PostgreSQL + pgvector** | 原生向量支持、高性能 | 需要安装配置 | ✅ 生产 |
 | **MongoDB** | 灵活schema | 资源占用 | ❌ |
 
-### 向量数据库
+### 向量搜索方案（按复杂度递进）
 
 | 方案 | 优点 | 缺点 | 选择 |
 |------|------|------|------|
-| **Faiss** | 快速、成熟 | 仅向量 | ✅ 首选 |
-| **Qdrant** | 功能全 | 独立服务 | Phase 3 |
+| **Numpy** | 无依赖、简单 | 仅内存、慢 | ✅ PoC2 |
+| **pgvector** | 数据库集成、统一管理 | 需PostgreSQL | ✅ Phase 3/生产 |
+| **Faiss** | 快速、成熟 | 额外维护成本 | ⚠️ 备选 |
+| **Qdrant** | 功能全面 | 独立服务 | ❌ 过度复杂 |
 | **Pinecone** | 云服务 | 付费、网络依赖 | ❌ |
 
 ### 存储架构
 
 ```python
-# 混合存储策略
-storage_architecture = {
-    'metadata': 'SQLite/PostgreSQL',  # 元数据
-    'vectors': 'Faiss',  # 向量索引
+# 渐进式存储策略
+storage_poc1 = {
+    'metadata': 'SQLite',  # 元数据
     'images': 'File System',  # 原始文件
     'thumbnails': 'Cache Directory',  # 缩略图
+}
+
+storage_poc2 = {
+    'metadata': 'SQLite',  # 元数据
+    'vectors': 'JSON in SQLite',  # 向量存储（简单方案）
+    'images': 'File System',  # 原始文件
+    'thumbnails': 'Cache Directory',  # 缩略图
+}
+
+storage_production = {
+    'database': 'PostgreSQL + pgvector',  # 统一存储（元数据+向量）
+    'cache': 'Redis',  # 缓存层
+    'images': 'File System / S3',  # 原始文件
+    'thumbnails': 'CDN / Cache',  # 缩略图
     'models': 'Local Cache'  # 模型文件
 }
 ```
@@ -265,14 +293,15 @@ monitoring:
 
 ## 🎯 决策矩阵
 
-| 技术领域 | MVP选择 | 生产选择 | 理由 |
-|----------|---------|----------|------|
-| AI模型 | CLIP | CLIP+GroundingDINO | 平衡准确性和性能 |
-| 数据库 | SQLite | PostgreSQL | 从简单到强大 |
-| 向量库 | Numpy | Faiss | 规模化需要 |
-| Web框架 | FastAPI | FastAPI | 一致性 |
-| UI | Gradio | React | 用户体验提升 |
-| 部署 | Local | Docker | 标准化 |
+| 技术领域 | PoC1选择 | PoC2选择 | 生产选择 | 理由 |
+|----------|----------|----------|----------|------|
+| 物体检测 | RTMDet-L | RTMDet-L | RTMDet-X | 精度递进 |
+| 语义理解 | - | SigLIP-base | SigLIP-large | 能力增强 |
+| 数据库 | SQLite | SQLite+JSON | PostgreSQL | 从简单到强大 |
+| 向量存储 | - | Numpy/JSON | pgvector | 统一管理 |
+| Web框架 | FastAPI | FastAPI | FastAPI | 一致性 |
+| UI | Streamlit | Gradio | React | 用户体验提升 |
+| 部署 | Local | Local | Docker/K8s | 标准化 |
 
 ## ✅ 最终建议
 
@@ -284,11 +313,12 @@ monitoring:
 
 ### 关键技术决策
 
-- ✅ **使用CLIP作为基础模型** - 平衡效果和资源
-- ✅ **RTMDet-L用于物体检测** - Apache许可、高精度、无法律风险
+- ✅ **RTMDet系列贯穿始终** - Apache许可、高精度、无法律风险
+- ✅ **SigLIP逐步引入** - PoC2开始增加语义理解
 - ✅ **SQLite起步，PostgreSQL生产** - 渐进式升级
+- ✅ **PostgreSQL + pgvector统一存储** - Phase 3避免多系统复杂度
 - ✅ **FastAPI贯穿始终** - 现代、高效、一致
-- ✅ **Gradio快速原型，React长期** - 快速迭代
+- ✅ **UI渐进升级** - Streamlit→Gradio→React
 - ✅ **本地优先，云端可选** - 数据安全
 
 ---

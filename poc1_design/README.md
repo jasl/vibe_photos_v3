@@ -16,6 +16,12 @@
 2. **降低系统复杂度** - 避免过早优化
 3. **快速验证反馈** - 2周内可交付可测试的原型
 
+### POC阶段原则
+- ✅ **可破坏性改动** - 不考虑向后兼容
+- ✅ **无数据迁移** - 每次运行可以重新开始
+- ✅ **快速试错** - 失败了就推倒重来
+- ✅ **灵活调整** - 根据效果随时改变方向
+
 ### 范围界定
 **包含：**
 - ✅ 离线批量图片导入和处理
@@ -65,8 +71,49 @@
 - **第8-10天**: 开发简单UI，实现搜索功能
 - **第11-14天**: 测试优化，准备演示
 
-## 🚀 下一步
+## 📚 文档导航
 
-1. 查看[技术架构](architecture.md)了解详细设计
-2. 查看[实施计划](implementation.md)了解具体步骤
-3. 查看[测试方案](testing.md)了解验证方法
+### 核心文档
+1. [技术架构](architecture.md) - 系统架构和技术栈
+2. [实施计划](implementation.md) - 开发步骤和代码示例
+3. [测试方案](testing.md) - 测试策略和验证方法
+4. [设计决策](design_decisions.md) - 关键决策和权衡
+
+### 使用指南
+5. **[数据集使用](DATASET_USAGE.md)** - 测试数据集处理指南 ⭐ NEW
+6. **[配置文件](config.yaml)** - 系统配置示例 ⭐ NEW
+7. **[处理脚本](process_dataset.py)** - 数据集批处理脚本 ⭐ NEW
+
+## 🚀 快速开始
+
+### ⚠️ 重要：统一使用 `uv` 管理Python环境
+
+**本项目必须使用 `uv` 管理所有Python依赖，请勿使用 pip/venv/poetry**
+
+```bash
+# 安装 uv (如果未安装)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# 或使用 Homebrew (macOS)
+brew install uv
+
+# 1. 准备测试数据集
+mkdir -p samples
+# 将测试图片放入samples目录
+
+# 2. 使用 uv 创建虚拟环境和安装依赖
+uv venv
+source .venv/bin/activate  # Linux/Mac
+# .venv\Scripts\activate  # Windows
+
+# 3. 使用 uv 同步依赖
+uv pip sync requirements.txt
+# 或者使用 uv add 安装新包
+# uv add fastapi streamlit
+
+# 4. 处理数据集（支持增量处理）
+uv run python process_dataset.py
+
+# 5. 启动服务
+uv run uvicorn app.main:app --reload
+uv run streamlit run ui/app.py
+```
