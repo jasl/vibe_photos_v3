@@ -2,6 +2,131 @@
 
 > 本文档为Coding AI提供详细的代码规范和最佳实践，确保代码质量和一致性
 
+## 🌐 语言使用规范
+
+### 核心原则：代码英文，文档中文
+
+| 文件类型 | 语言要求 | 说明 | 示例 |
+|---------|---------|------|------|
+| **源代码文件** | 纯英文 | 所有代码、注释、文档字符串必须使用英文 | `.py`, `.js`, `.yaml` |
+| **文档文件** | 中文 | 面向用户的文档使用中文 | `.md` 文档 |
+| **配置文件** | 英文 | 配置键值对使用英文 | `config.yaml`, `settings.json` |
+| **测试文件** | 英文 | 测试代码和注释使用英文 | `test_*.py` |
+| **提交信息** | 中文/英文 | 可以使用中文说明，但类型标识用英文 | `feat:`, `fix:`, `docs:` |
+
+### 源代码英文规范
+
+```python
+# ✅ 正确示例 - 全英文
+class ImageDetector:
+    """
+    Image detection module using SigLIP and BLIP models.
+    
+    This module provides functionality to detect and classify
+    images using state-of-the-art AI models.
+    """
+    
+    def detect_objects(self, image_path: Path) -> Dict:
+        """
+        Detect objects in the given image.
+        
+        Args:
+            image_path: Path to the image file
+            
+        Returns:
+            Dictionary containing detection results
+        """
+        # Check if file exists
+        if not image_path.exists():
+            logger.error(f"Image file not found: {image_path}")
+            return {"error": "File not found"}
+        
+        # Process the image
+        result = self._process_image(image_path)
+        
+        return result
+
+# ❌ 错误示例 - 混用中文
+class ImageDetector:
+    """
+    图像检测模块  # 错误：使用了中文
+    """
+    
+    def detect_objects(self, image_path: Path) -> Dict:
+        # 检查文件是否存在  # 错误：注释使用了中文
+        if not image_path.exists():
+            logger.error(f"图片未找到: {image_path}")  # 错误：日志信息使用了中文
+            return {"error": "文件不存在"}  # 错误：错误信息使用了中文
+```
+
+### 文档文件中文规范
+
+```markdown
+# ✅ 正确示例 - 文档使用中文
+
+## 图像检测模块使用说明
+
+本模块提供了强大的图像检测功能，支持以下特性：
+- 多语言分类（支持中文标签）
+- 批量处理
+- 自动缓存
+
+### 使用示例
+\```python
+# 代码部分仍然保持英文
+detector = ImageDetector()
+result = detector.detect("image.jpg")
+\```
+```
+
+### 特殊情况处理
+
+1. **用户界面文本**：存储在独立的本地化文件中
+   ```python
+   # messages_zh.py
+   MESSAGES = {
+       "welcome": "欢迎使用Vibe Photos",
+       "processing": "正在处理图片...",
+       "complete": "处理完成"
+   }
+   
+   # main.py (英文)
+   from locales.messages_zh import MESSAGES
+   print(MESSAGES["welcome"])  # Output Chinese text
+   ```
+
+2. **配置文件注释**：使用英文
+   ```yaml
+   # config.yaml
+   # Database configuration
+   database:
+     host: localhost  # Database host address
+     port: 5432      # PostgreSQL default port
+   ```
+
+3. **日志输出**：关键信息用英文，用户提示可本地化
+   ```python
+   # System logs in English
+   logger.info("Starting image processing")
+   logger.error("Database connection failed")
+   
+   # User messages can be localized
+   print(MESSAGES["processing"])  # 显示中文给用户
+   ```
+
+### 命名规范对照表
+
+| 概念 | 英文命名 | 说明 |
+|------|---------|------|
+| 检测器 | detector | 不用 jiance_qi |
+| 处理器 | processor | 不用 chuli_qi |
+| 数据库 | database | 不用 shuju_ku |
+| 搜索 | search | 不用 sousuo |
+| 图像 | image | 不用 tupian |
+| 分类 | category/classify | 不用 fenlei |
+| 标签 | label/tag | 不用 biaoqian |
+| 用户 | user | 不用 yonghu |
+
 ## 📐 Python代码规范
 
 ### 文件组织结构
