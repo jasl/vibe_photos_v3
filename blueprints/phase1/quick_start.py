@@ -51,10 +51,10 @@ fastapi==0.121.1
 uvicorn==0.38.0
 streamlit==1.51.0
 sqlalchemy==2.0.44
-pillow==12.0.0
+pillow==11.3.0
 python-multipart==0.0.20
-aiofiles==25.1.0
-pydantic==2.12.4
+aiofiles==24.1.0
+pydantic==2.11.10
 
 # 识别引擎（推荐SigLIP+BLIP）
 # Option A: 使用SigLIP+BLIP（推荐，多语言支持，~85%准确率）

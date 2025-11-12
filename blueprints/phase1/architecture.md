@@ -72,10 +72,10 @@ uvicorn==0.38.0            # ASGI服务器 (最新版本)
 streamlit==1.51.0          # 快速Web UI
 sqlalchemy==2.0.44         # ORM
 sqlite3                    # 内置数据库
-pillow==12.0.0             # 图像处理
+pillow==11.3.0             # 图像处理
 python-multipart==0.0.20   # 文件上传支持
-aiofiles==25.1.0           # 异步文件操作
-pydantic==2.12.4           # 数据验证
+aiofiles==24.1.0           # 异步文件操作
+pydantic==2.11.10          # 数据验证
 ```
 
 ### 识别引擎

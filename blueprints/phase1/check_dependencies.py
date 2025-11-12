@@ -75,10 +75,10 @@ def check_core_dependencies():
         ("uvicorn", "uvicorn", "0.38.0"),
         ("streamlit", "streamlit", "1.51.0"),
         ("sqlalchemy", "sqlalchemy", "2.0.44"),
-        ("pillow", "PIL", "12.0.0"),
+        ("pillow", "PIL", "11.3.0"),
         ("python-multipart", "multipart", "0.0.20"),
-        ("aiofiles", "aiofiles", "25.1.0"),
-        ("pydantic", "pydantic", "2.12.4"),
+        ("aiofiles", "aiofiles", "24.1.0"),
+        ("pydantic", "pydantic", "2.11.10"),
     ]
     
     success = True

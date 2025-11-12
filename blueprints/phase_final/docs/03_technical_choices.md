@@ -152,7 +152,7 @@ dependencies = [
     # 核心 (2024年11月最新版本)
     "torch==2.9.0",              # 最新稳定版
     "transformers==4.57.1",      # 最新稳定版
-    "pillow==12.0.0",            # 最新稳定版
+    "pillow==11.3.0",            # 最新稳定版
     
     # Web
     "fastapi==0.121.1",          # 最新稳定版
@@ -160,7 +160,7 @@ dependencies = [
     
     # 数据
     "sqlalchemy==2.0.44",        # 最新稳定版  
-    "pydantic==2.12.4",          # 最新稳定版
+    "pydantic==2.11.10",         # 最新稳定版
     
     # AI模型
     "transformers==4.57.1",      # SigLIP + BLIP

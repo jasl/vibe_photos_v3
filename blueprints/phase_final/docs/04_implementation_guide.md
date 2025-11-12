@@ -10,7 +10,7 @@ cd vibe-photos-phase_final
 
 # 2. 初始化环境
 uv init
-uv add torch==2.9.0 transformers==4.57.1 pillow==12.0.0 fastapi==0.121.1 typer rich==14.2.0
+uv add torch==2.9.0 transformers==4.57.1 pillow==11.3.0 fastapi==0.121.1 typer rich==14.2.0
 
 # 3. 验证环境
 uv run python -c "import torch; print(torch.__version__)"

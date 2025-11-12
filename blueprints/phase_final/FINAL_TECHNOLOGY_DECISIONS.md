@@ -93,7 +93,7 @@
 # API框架
 fastapi==0.121.1
 uvicorn==0.35.0
-pydantic==2.10.4
+pydantic==2.11.10
 
 # 数据库
 psycopg2-binary==2.9.9

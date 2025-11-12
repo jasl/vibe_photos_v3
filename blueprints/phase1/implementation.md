@@ -60,7 +60,7 @@ uv venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
 # 安装基础依赖（使用 uv）
-uv add fastapi==0.121.1 uvicorn==0.38.0 streamlit==1.51.0 sqlalchemy==2.0.44 pillow==12.0.0 pydantic==2.12.4
+uv add fastapi==0.121.1 uvicorn==0.38.0 streamlit==1.51.0 sqlalchemy==2.0.44 pillow==11.3.0 pydantic==2.11.10
 
 # 安装SigLIP+BLIP依赖（主要识别引擎）
 uv add torch==2.9.0 torchvision==0.24.0 transformers==4.57.1 sentence-transformers==5.1.2
