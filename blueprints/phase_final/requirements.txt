@@ -25,12 +25,16 @@ requests==2.32.3           # HTTP客户端（下载模型）
 # ==================== AI模型 ====================
 # 图像理解模型
 transformers==4.57.1       # Hugging Face Transformers（用于SigLIP和BLIP）
+sentence-transformers==5.1.2  # 句子嵌入（用于语义搜索）
+
+# OCR引擎
+paddlepaddle==3.2.0        # 百度飞桨框架
+paddleocr==3.3.1           # PaddleOCR文字识别
 
 # ==================== 向量搜索（需要时启用） ====================
 # 主要方案：PostgreSQL + pgvector
 # psycopg2-binary==2.9.9    # PostgreSQL连接
 # pgvector==0.2.5           # PostgreSQL向量扩展
-# sentence-transformers==5.1.2  # 文本嵌入模型
 
 # 可选方案：Faiss（仅当向量超过100万时考虑）
 # faiss-cpu==1.12.0         # Facebook向量搜索（备选）
@@ -49,10 +53,9 @@ streamlit==1.51.0          # 简单易用的UI框架
 # Option B: Gradio（备选，需要时启用）
 # gradio==5.49.1             # 最新稳定版        
 
-# ==================== OCR引擎（可选） ====================
-# 如果需要OCR功能，请取消下面两行的注释
-# paddlepaddle==3.2.0        # 百度飞桨框架
-# paddleocr==3.3.1           # PaddleOCR文字识别
+# ==================== 监控和日志（可选） ====================
+# loguru==0.7.3              # 日志管理
+# prometheus-client==0.23.1  # 性能监控
 
 # ==================== 测试和质量保证 ====================
 # 见 requirements-dev.txt

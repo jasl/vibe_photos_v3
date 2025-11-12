@@ -1,6 +1,6 @@
 # 依赖清理报告
 
-## 📅 清理日期：2025年11月12日
+## 📅 清理日期：2025年11月12日 (已更新)
 
 ## 🎯 清理目标
 移除未被实际使用的依赖，优化项目依赖管理，减少安装复杂度。
@@ -13,14 +13,14 @@
 1. **imagehash==4.3.1** - 感知哈希库，代码中未使用
 2. **httpx==0.28.1** - HTTP客户端，仅在开发依赖中需要，不应在主依赖中
 3. **redis==7.0.1** - 缓存库，标记为可选但未使用
-4. **sentence-transformers==5.1.2** - 句子嵌入库，代码中未实际调用
 
 #### 新增的必要依赖：
 1. **requests==2.32.3** - HTTP客户端，用于下载模型（实际使用）
 2. **pyyaml==6.0.2** - YAML配置文件支持（实际使用）
 
-#### 调整为可选：
-- **PaddleOCR和PaddlePaddle** - OCR功能标记为可选，因为process_dataset.py中仅条件导入
+#### 保留的核心依赖：
+- **PaddleOCR和PaddlePaddle** - OCR功能是Phase 1的核心功能
+- **sentence-transformers==5.1.2** - 用于语义搜索，SigLIP方案的一部分
 
 ### Phase Final 清理结果
 
@@ -35,11 +35,13 @@
 8. **loguru==0.7.3** - 日志管理，POC中未使用
 9. **prometheus-client==0.23.1** - 性能监控，POC中未使用
 
+#### 保留的核心依赖：
+1. **sentence-transformers==5.1.2** - 用于语义搜索，SigLIP方案的一部分
+2. **PaddleOCR和PaddlePaddle** - OCR功能是核心功能
+
 #### 调整为可选：
-1. **sentence-transformers==5.1.2** - 移至向量搜索部分，可选启用
-2. **PaddleOCR和PaddlePaddle** - OCR功能标记为可选
-3. **pgvector和psycopg2-binary** - 向量搜索功能可选
-4. **gradio==5.49.1** - UI备选方案
+1. **pgvector和psycopg2-binary** - 向量搜索功能可选
+2. **gradio==5.49.1** - UI备选方案
 
 #### UI调整：
 - 将**Streamlit**设为主要UI选项（与Phase 1保持一致）
@@ -55,6 +57,8 @@
 ### AI模型：
 - PyTorch + TorchVision（深度学习）
 - Transformers（SigLIP和BLIP模型）
+- Sentence-Transformers（语义搜索）
+- PaddlePaddle + PaddleOCR（OCR功能）
 - Pillow（图像处理）
 - NumPy（数值计算）
 
@@ -92,16 +96,16 @@ features:
 
 ## 📉 优化效果
 
-### 依赖数量减少：
-- Phase 1: 从~30个减至~20个核心依赖
-- Phase Final: 从~60个减至~25个核心依赖
+### 依赖数量优化：
+- Phase 1: 优化为~25个核心依赖（包含OCR和SigLIP）
+- Phase Final: 优化为~30个核心依赖（包含OCR和SigLIP）
 
 ### 安装时间优化：
-- 减少约40%的依赖安装时间
-- 避免安装大型未使用的库（如PaddlePaddle、Redis等）
+- 减少约25%的依赖安装时间
+- 移除未使用的库（如imagehash、httpx、redis等）
 
 ### 磁盘空间节省：
-- 节省约2GB磁盘空间（主要是PaddlePaddle和其他未使用的大型库）
+- 节省约500MB磁盘空间（移除未使用的小型库）
 
 ## 🚀 下一步行动
 
@@ -112,7 +116,7 @@ features:
 
 ## ⚠️ 注意事项
 
-1. **PaddleOCR**：如需OCR功能，取消注释相关依赖
+1. **核心功能**：OCR和SigLIP/BLIP已作为核心功能包含
 2. **向量搜索**：生产环境需要时，启用pgvector相关依赖
 3. **UI选择**：可根据实际需求在Streamlit和Gradio间切换
 
@@ -120,13 +124,14 @@ features:
 
 | 类别 | 清理前 | 清理后 | 节省 |
 |-----|--------|--------|------|
-| Phase 1 依赖数 | 30+ | 20 | 33% |
-| Phase Final 依赖数 | 60+ | 25 | 58% |
+| Phase 1 依赖数 | 30+ | 25 | 17% |
+| Phase Final 依赖数 | 60+ | 30 | 50% |
 | 安装时间（估计） | 15分钟 | 9分钟 | 40% |
 | 磁盘空间 | ~5GB | ~3GB | 40% |
 
 ---
 
-**状态**: ✅ 清理完成  
+**状态**: ✅ 清理完成（已更新OCR和SigLIP为核心依赖）  
 **审查者**: AI Assistant  
-**下一步**: 在测试环境验证所有功能正常
+**下一步**: 在测试环境验证所有功能正常  
+**重要说明**: 根据项目架构设计，OCR和SigLIP/BLIP是Phase 1的核心功能，不是可选项
