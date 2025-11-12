@@ -16,16 +16,14 @@ httpx==0.28.1              # HTTP客户端 (最新稳定版)
 PyYAML==6.0.3              # YAML配置文件解析
 
 # ==================== 识别引擎 ====================
-# 方案A：RTMDet（推荐，更准确，52.8% mAP）
+# 主要方案：SigLIP+BLIP（多语言支持，~85%准确率）
 torch==2.9.0               # PyTorch深度学习框架 (最新稳定版)
 torchvision==0.24.0        # PyTorch计算机视觉库 (最新稳定版)
-mmdet==3.3.0               # MMDetection物体检测框架
-mmengine==0.10.7           # MMEngine基础库
-mmcv==2.2.0                # OpenMMLab计算机视觉基础库
-
-# 方案B：SigLIP（备选，更强大）- 可选
-# transformers==4.57.1     # Hugging Face Transformers
-# 模型: google/siglip-base-patch16-224-i18n
+transformers==4.57.1       # Hugging Face Transformers（用于SigLIP和BLIP）
+sentence-transformers==5.1.2  # 句子嵌入（用于语义搜索准备）
+# 模型会自动下载:
+# - google/siglip-base-patch16-224-i18n (~400MB)
+# - Salesforce/blip-image-captioning-base (~990MB)
 
 # ==================== OCR引擎 ====================
 paddlepaddle==3.2.0        # 百度飞桨深度学习框架
