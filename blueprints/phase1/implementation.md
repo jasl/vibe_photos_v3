@@ -15,7 +15,7 @@
 - [ ] 创建缩略图生成模块
 
 ### Phase 2: 识别引擎集成（Day 5-8）
-- [ ] 集成RTMDet或SigLIP模型
+- [ ] 集成SigLIP+BLIP模型
 - [ ] 实现批量检测功能
 - [ ] 集成PaddleOCR
 - [ ] 保存处理结果到数据库
@@ -62,8 +62,8 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 # 安装基础依赖（使用 uv）
 uv add fastapi==0.121.1 uvicorn==0.38.0 streamlit==1.51.0 sqlalchemy==2.0.44 pillow==12.0.0 pydantic==2.12.4
 
-# 安装RTMDet依赖（推荐的识别引擎）
-uv add torch==2.9.0 torchvision==0.24.0 mmdet==3.3.0 mmengine==0.10.7 mmcv==2.2.0
+# 安装SigLIP+BLIP依赖（主要识别引擎）
+uv add torch==2.9.0 torchvision==0.24.0 transformers==4.57.1 sentence-transformers==5.1.2
 
 # 或者使用 requirements.txt 批量安装
 uv pip sync requirements.txt
@@ -780,7 +780,7 @@ elif page == "处理状态":
 ### 必须实现（MVP）
 - [x] 批量图片导入
 - [x] 缩略图生成
-- [x] 基础物体检测（RTMDet/SigLIP）
+- [x] 基础图像理解（SigLIP+BLIP）
 - [x] 简单OCR提取
 - [x] SQLite存储
 - [x] 关键词搜索

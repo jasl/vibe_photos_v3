@@ -58,12 +58,10 @@ pydantic==2.12.4
 
 # 识别引擎（推荐SigLIP+BLIP）
 # Option A: 使用SigLIP+BLIP（推荐，多语言支持，~85%准确率）
-transformers==4.57.1
 torch==2.9.0
 torchvision==0.24.0
-mmdet==3.3.0
-mmengine==0.10.7
-mmcv==2.2.0
+transformers==4.57.1
+sentence-transformers==5.1.2
 
 # Option B: 使用SigLIP（备选，更强大）
 # transformers==4.57.1
@@ -100,7 +98,7 @@ def create_config_file():
             "supported_formats": [".jpg", ".jpeg", ".png", ".webp"]
         },
         "detection": {
-            "model": "siglip-base",  # 或 "rtmdet-l"
+            "model": "siglip-base",  # 使用SigLIP模型
             "confidence_threshold": 0.3,
             "device": "cpu"  # 或 "cuda"
         },

@@ -60,7 +60,7 @@ class ImageDetectionTask(Task):
     def run(self, image_path: str, user_id: str):
         try:
             # SigLIP+BLIP检测
-            detections = rtmdet_detector.detect(image_path)
+            detections = siglip_blip_detector.detect(image_path)
             
             # SigLIP分类
             category = siglip_classifier.classify(image_path)

@@ -1,48 +1,56 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
-模型预下载脚本 - Phase 1
+模型下载工具 - Vibe Photos Phase 1
 
-预下载所有必需的模型文件到 models/ 目录，避免运行时下载。
-支持断点续传和完整性校验。
+用于下载和准备所需的预训练模型。
+SigLIP和BLIP模型会在首次使用时通过transformers自动下载。
 """
 
 import os
 import sys
+import time
 import hashlib
+import tarfile
+import zipfile
+import requests
 from pathlib import Path
 from typing import Dict, Optional
-import requests
-from tqdm import tqdm
-import json
-import time
+from urllib.parse import urlparse
 
-# 添加项目根目录到路径
+
+# 配置
 PROJECT_ROOT = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
-
-# 模型存储目录
 MODELS_DIR = PROJECT_ROOT / "models"
+CACHE_DIR = PROJECT_ROOT / "cache"
+
+# 创建必要的目录
 MODELS_DIR.mkdir(exist_ok=True)
 
-# 模型配置
+# 模型配置（注意：SigLIP和BLIP会通过transformers自动下载）
 MODELS_CONFIG = {
-    "rtmdet": {
-        "name": "SigLIP+BLIP",
-        "description": "多语言图像理解模型",
-        "files": {
-            "config": {
-                "url": "https://download.openmmlab.com/mmdetection/v3.0/rtmdet/rtmdet_l_8xb32-300e_coco/rtmdet_l_8xb32-300e_coco.py",
-                "size": "~10KB",
-                "path": "rtmdet/rtmdet_l_coco.py"
-            },
-            "checkpoint": {
-                "url": "https://download.openmmlab.com/mmdetection/v3.0/rtmdet/rtmdet_l_8xb32-300e_coco/rtmdet_l_8xb32-300e_coco_20220719_112030-5a0be7c4.pth",
-                "size": "~330MB",
-                "path": "rtmdet/rtmdet_l_coco.pth",
-                "sha256": "5a0be7c4"  # 简化的hash，实际使用时需要完整hash
-            }
+    "models_info": {
+        "name": "Vibe Photos Phase 1 模型集",
+        "description": "包含SigLIP、BLIP和PaddleOCR模型",
+        "note": "SigLIP和BLIP模型会在首次运行时自动下载"
+    },
+    
+    "auto_download": {
+        "siglip": {
+            "name": "google/siglip-base-patch16-224-i18n",
+            "description": "多语言图像分类模型",
+            "size": "~400MB",
+            "source": "Hugging Face",
+            "note": "通过transformers库自动下载"
+        },
+        "blip": {
+            "name": "Salesforce/blip-image-captioning-base",
+            "description": "图像描述生成模型",
+            "size": "~990MB",
+            "source": "Hugging Face",
+            "note": "通过transformers库自动下载"
         }
     },
+    
     "paddleocr": {
         "name": "PaddleOCR",
         "description": "中英文OCR模型",
@@ -61,7 +69,7 @@ MODELS_CONFIG = {
             },
             "cls_model": {
                 "url": "https://paddleocr.bj.bcebos.com/dygraph_v2.0/ch/ch_ppocr_mobile_v2.0_cls_infer.tar",
-                "size": "~2.1MB",
+                "size": "~2.2MB",
                 "path": "paddleocr/ch_ppocr_mobile_v2.0_cls_infer.tar",
                 "extract": True
             }
@@ -69,204 +77,181 @@ MODELS_CONFIG = {
     }
 }
 
-def download_file(url: str, dest_path: Path, desc: str, chunk_size: int = 8192) -> bool:
-    """
-    下载文件，支持断点续传和进度显示
+
+class ModelDownloader:
+    """模型下载器"""
     
-    Args:
-        url: 下载URL
-        dest_path: 目标文件路径
-        desc: 进度条描述
-        chunk_size: 下载块大小
-    
-    Returns:
-        是否下载成功
-    """
-    dest_path.parent.mkdir(parents=True, exist_ok=True)
-    
-    # 检查是否需要断点续传
-    resume_pos = 0
-    mode = 'wb'
-    if dest_path.exists():
-        resume_pos = dest_path.stat().st_size
-        mode = 'ab'
-    
-    try:
-        # 设置请求头
-        headers = {}
-        if resume_pos > 0:
-            headers['Range'] = f'bytes={resume_pos}-'
-            print(f"  继续下载: {dest_path.name} (已下载 {resume_pos:,} bytes)")
+    def __init__(self, models_dir: Path = MODELS_DIR):
+        self.models_dir = models_dir
+        self.models_dir.mkdir(parents=True, exist_ok=True)
         
-        response = requests.get(url, headers=headers, stream=True, timeout=30)
-        response.raise_for_status()
+    def download_file(self, url: str, dest_path: Path, 
+                     expected_size: Optional[str] = None) -> bool:
+        """下载文件
         
-        # 获取文件总大小
-        total_size = int(response.headers.get('content-length', 0))
-        if resume_pos > 0:
-            total_size += resume_pos
-        
-        # 如果文件已完整下载
-        if resume_pos >= total_size and total_size > 0:
-            print(f"  ✓ {dest_path.name} 已存在且完整")
+        Args:
+            url: 下载URL
+            dest_path: 目标路径
+            expected_size: 预期文件大小（用于显示）
+            
+        Returns:
+            是否下载成功
+        """
+        # 如果文件已存在，跳过下载
+        if dest_path.exists():
+            print(f"✓ 文件已存在: {dest_path.name}")
             return True
+            
+        # 确保目标目录存在
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
         
-        # 下载文件
-        with open(dest_path, mode) as f:
-            with tqdm(
-                total=total_size,
-                initial=resume_pos,
-                unit='iB',
-                unit_scale=True,
-                desc=desc,
-                ncols=100
-            ) as pbar:
-                for chunk in response.iter_content(chunk_size=chunk_size):
+        print(f"下载: {dest_path.name}")
+        if expected_size:
+            print(f"  预期大小: {expected_size}")
+            
+        try:
+            response = requests.get(url, stream=True)
+            response.raise_for_status()
+            
+            total_size = int(response.headers.get('content-length', 0))
+            downloaded = 0
+            
+            with open(dest_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
-                        pbar.update(len(chunk))
-        
-        print(f"  ✓ 下载完成: {dest_path.name}")
-        return True
-        
-    except requests.exceptions.RequestException as e:
-        print(f"  ✗ 下载失败: {e}")
-        return False
-    except KeyboardInterrupt:
-        print("\n  ! 下载被中断，下次运行将继续")
-        return False
-
-def extract_tar(tar_path: Path) -> bool:
-    """解压tar文件"""
-    import tarfile
-    
-    try:
-        extract_dir = tar_path.parent
-        print(f"  解压中: {tar_path.name}")
-        
-        with tarfile.open(tar_path, 'r') as tar:
-            tar.extractall(extract_dir)
-        
-        print(f"  ✓ 解压完成: {extract_dir}")
-        return True
-        
-    except Exception as e:
-        print(f"  ✗ 解压失败: {e}")
-        return False
-
-def verify_file(file_path: Path, expected_hash: Optional[str] = None) -> bool:
-    """验证文件完整性"""
-    if not file_path.exists():
-        return False
-    
-    if expected_hash:
-        # 计算文件hash（简化版，实际需要完整实现）
-        print(f"  验证中: {file_path.name}")
-        # TODO: 实现完整的hash验证
-        return True
-    
-    # 基本检查：文件大小不为0
-    return file_path.stat().st_size > 0
-
-def download_all_models() -> bool:
-    """下载所有模型"""
-    print("=" * 60)
-    print("Phase 1 模型预下载")
-    print("=" * 60)
-    print(f"模型目录: {MODELS_DIR}")
-    print()
-    
-    all_success = True
-    
-    for model_key, model_info in MODELS_CONFIG.items():
-        print(f"\n📦 {model_info['name']}")
-        print(f"   {model_info['description']}")
-        print("-" * 40)
-        
-        for file_key, file_info in model_info['files'].items():
-            dest_path = MODELS_DIR / file_info['path']
+                        downloaded += len(chunk)
+                        
+                        if total_size > 0:
+                            progress = downloaded / total_size * 100
+                            sys.stdout.write(f"\r  进度: {progress:.1f}%")
+                            sys.stdout.flush()
+                            
+            print(f"\n✓ 下载完成: {dest_path.name}")
+            return True
             
-            # 检查文件是否已存在
-            if dest_path.exists() and verify_file(dest_path, file_info.get('sha256')):
-                print(f"  ✓ {dest_path.name} 已存在")
+        except Exception as e:
+            print(f"\n✗ 下载失败: {e}")
+            if dest_path.exists():
+                dest_path.unlink()
+            return False
+            
+    def extract_archive(self, archive_path: Path) -> bool:
+        """解压缩文件
+        
+        Args:
+            archive_path: 压缩文件路径
+            
+        Returns:
+            是否解压成功
+        """
+        extract_dir = archive_path.parent
+        
+        try:
+            if archive_path.suffix == '.tar':
+                with tarfile.open(archive_path, 'r') as tar:
+                    tar.extractall(extract_dir)
+            elif archive_path.suffix == '.zip':
+                with zipfile.ZipFile(archive_path, 'r') as zip_ref:
+                    zip_ref.extractall(extract_dir)
+            else:
+                print(f"不支持的压缩格式: {archive_path.suffix}")
+                return False
                 
-                # 如果需要解压且未解压
-                if file_info.get('extract') and dest_path.suffix == '.tar':
-                    extract_dir = dest_path.parent / dest_path.stem
-                    if not extract_dir.exists():
-                        extract_tar(dest_path)
+            print(f"✓ 解压完成: {archive_path.name}")
+            return True
+            
+        except Exception as e:
+            print(f"✗ 解压失败: {e}")
+            return False
+            
+    def download_paddleocr_models(self) -> bool:
+        """下载PaddleOCR模型"""
+        print("\n" + "="*50)
+        print("下载PaddleOCR模型")
+        print("="*50)
+        
+        paddleocr_config = MODELS_CONFIG['paddleocr']
+        success = True
+        
+        for file_key, file_info in paddleocr_config['files'].items():
+            dest_path = self.models_dir / file_info['path']
+            
+            if not self.download_file(
+                file_info['url'], 
+                dest_path, 
+                file_info.get('size')
+            ):
+                success = False
                 continue
+                
+            # 如果需要解压
+            if file_info.get('extract'):
+                if not self.extract_archive(dest_path):
+                    success = False
+                    
+        return success
+        
+    def show_auto_download_info(self):
+        """显示自动下载模型的信息"""
+        print("\n" + "="*50)
+        print("自动下载模型说明")
+        print("="*50)
+        
+        auto_models = MODELS_CONFIG['auto_download']
+        
+        for model_key, model_info in auto_models.items():
+            print(f"\n{model_info['name']}")
+            print(f"  描述: {model_info['description']}")
+            print(f"  大小: {model_info['size']}")
+            print(f"  来源: {model_info['source']}")
+            print(f"  说明: {model_info['note']}")
             
-            # 下载文件
-            print(f"  下载: {file_info['size']} - {file_key}")
-            success = download_file(
-                file_info['url'],
-                dest_path,
-                f"  {model_info['name']}/{file_key}"
-            )
+        print("\n这些模型会在首次运行程序时自动下载到Hugging Face缓存目录。")
+        print("缓存位置通常为: ~/.cache/huggingface/hub/")
+        
+    def download_all(self) -> bool:
+        """下载所有模型"""
+        print("\n" + "="*50)
+        print("Vibe Photos Phase 1 模型下载工具")
+        print("="*50)
+        
+        # 显示自动下载模型信息
+        self.show_auto_download_info()
+        
+        # 下载PaddleOCR模型
+        if not self.download_paddleocr_models():
+            print("\n⚠️ 部分模型下载失败，请检查网络连接后重试")
+            return False
             
-            if not success:
-                all_success = False
-                continue
-            
-            # 解压文件（如果需要）
-            if file_info.get('extract') and dest_path.suffix == '.tar':
-                extract_tar(dest_path)
-    
-    # 创建模型信息文件
-    info_file = MODELS_DIR / "models_info.json"
-    with open(info_file, 'w', encoding='utf-8') as f:
-        info = {
-            "download_time": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "models": MODELS_CONFIG
-        }
-        json.dump(info, f, indent=2, ensure_ascii=False)
-    
-    print("\n" + "=" * 60)
-    if all_success:
-        print("✅ 所有模型下载完成！")
-        print(f"   模型存储在: {MODELS_DIR}")
-        print("\n   下一步：")
-        print("   python process_dataset.py")
-    else:
-        print("⚠️  部分模型下载失败")
-        print("   请重新运行此脚本继续下载")
-    print("=" * 60)
-    
-    return all_success
+        print("\n" + "="*50)
+        print("✅ 所有手动下载的模型已准备就绪！")
+        print("="*50)
+        print("\n提示：")
+        print("1. SigLIP和BLIP模型会在首次运行时自动下载")
+        print("2. 如需预先下载，可运行以下Python代码：")
+        print("\n```python")
+        print("from transformers import AutoModel, AutoProcessor, BlipForConditionalGeneration, BlipProcessor")
+        print("# 下载SigLIP")
+        print("AutoModel.from_pretrained('google/siglip-base-patch16-224-i18n')")
+        print("AutoProcessor.from_pretrained('google/siglip-base-patch16-224-i18n')")
+        print("# 下载BLIP")
+        print("BlipForConditionalGeneration.from_pretrained('Salesforce/blip-image-captioning-base')")
+        print("BlipProcessor.from_pretrained('Salesforce/blip-image-captioning-base')")
+        print("```")
+        
+        return True
 
-def clean_models():
-    """清理所有已下载的模型"""
-    print("清理模型目录...")
-    import shutil
+
+def main():
+    """主函数"""
+    downloader = ModelDownloader()
     
-    if MODELS_DIR.exists():
-        shutil.rmtree(MODELS_DIR)
-        MODELS_DIR.mkdir(exist_ok=True)
-        print(f"✓ 已清理: {MODELS_DIR}")
+    if downloader.download_all():
+        sys.exit(0)
+    else:
+        sys.exit(1)
+
 
 if __name__ == "__main__":
-    import argparse
-    
-    parser = argparse.ArgumentParser(description="Phase 1 模型预下载工具")
-    parser.add_argument(
-        "--clean",
-        action="store_true",
-        help="清理所有已下载的模型"
-    )
-    parser.add_argument(
-        "--check",
-        action="store_true",
-        help="仅检查模型是否已下载"
-    )
-    
-    args = parser.parse_args()
-    
-    if args.clean:
-        clean_models()
-    elif args.check:
-        # TODO: 实现检查功能
-        print("检查功能待实现")
-    else:
-        success = download_all_models()
-        sys.exit(0 if success else 1)
+    main()

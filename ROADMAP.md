@@ -348,7 +348,7 @@ CREATE INDEX ON images USING gin(to_tsvector('simple',
 ### 技术风险
 | 风险 | 影响 | 缓解措施 |
 |------|------|----------|
-| SigLIP性能不佳 | Phase 2失败 | 备选CLIP-large，降级到纯文本 |
+| SigLIP性能不佳 | Phase 2失败 | 备选SigLIP-large，降级到纯文本 |
 | 向量搜索太慢 | 用户体验差 | 使用缓存，限制搜索范围 |
 | 模型内存过大 | 部署困难 | 模型量化，使用轻量版本 |
 | 混合搜索复杂 | 开发延期 | 简化融合算法，渐进实现 |

@@ -39,7 +39,7 @@
 │                                                        │
 │  ┌──────────────┐  ┌──────────────┐  ┌────────────┐  │
 │  │ 图像识别引擎 │  │  OCR引擎     │  │ 批处理器   │  │
-│  │(RTMDet/SigLIP)│  │ (PaddleOCR)  │  │            │  │
+│  │(SigLIP+BLIP) │  │ (PaddleOCR)  │  │            │  │
 │  └──────────────┘  └──────────────┘  └────────────┘  │
 │                                                        │
 └────────────────────────────────────────────────────────┘
@@ -80,12 +80,11 @@ pydantic==2.12.4           # 数据验证
 
 ### 识别引擎
 ```python
-# 主方案：RTMDet (推荐使用)
+# 主方案：SigLIP+BLIP (多语言支持)
 torch==2.9.0              # PyTorch (最新版本)
 torchvision==0.24.0       # TorchVision (最新版本)
-mmdet==3.3.0              # MMDetection框架
-mmengine==0.10.7          # MMEngine基础库
-mmcv==2.2.0               # MMCV基础库
+transformers==4.57.1      # Hugging Face Transformers（用于SigLIP和BLIP）
+sentence-transformers==5.1.2  # 句子嵌入（用于语义搜索）
 
 # 备选方案：SigLIP (更强大，可选安装)
 # transformers==4.57.1    # Hugging Face
@@ -310,7 +309,7 @@ class Settings:
     USE_WEBP = True  # 缩略图使用WebP格式节省空间
     
     # 检测引擎
-    DETECTION_MODEL = "rtmdet-l"  # RTMDet-L (52.8% mAP, Apache-2.0许可)
+    DETECTION_MODEL = "siglip-base"  # SigLIP (~85%准确率, 多语言支持)
     # DETECTION_MODEL = "siglip-base"  # 备选方案（多语言支持）
     CONFIDENCE_THRESHOLD = 0.3
     

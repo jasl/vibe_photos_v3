@@ -16,7 +16,7 @@ blueprints/
 ### Phase 1 - 基础验证 ✅
 **目标**：验证核心技术可行性
 
-- **重点**：RTMDet物体检测、基础分类
+- **重点**：SigLIP多语言分类、BLIP图像理解
 - **规模**：1,000张测试照片
 - **时间**：2周
 - **文档**：[phase1/README.md](./phase1/README.md)
@@ -54,7 +54,7 @@ graph LR
     A[Phase 1<br/>基础验证] -->|2周| B[Phase 2<br/>功能增强]
     B -->|3周| C[Phase Final<br/>完整系统]
     
-    A --> A1[RTMDet检测]
+    A --> A1[SigLIP分类]
     A --> A2[基础分类]
     
     B --> B1[向量搜索]
