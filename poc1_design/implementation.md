@@ -258,9 +258,9 @@ class ImagePreprocessor:
     
     def save_normalized(self, img: Image.Image, name: str) -> Path:
         """保存归一化后的图像"""
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.processed_dir.mkdir(parents=True, exist_ok=True)
         
-        processed_path = self.cache_dir / f"{name}.{self.target_format.lower()}"
+        processed_path = self.processed_dir / f"{name}.{self.target_format.lower()}"
         save_kwargs = {'format': self.target_format}
         if self.target_format == 'JPEG':
             save_kwargs['quality'] = 95
