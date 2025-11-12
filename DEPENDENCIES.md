@@ -72,7 +72,7 @@
 | **Black** | 25.11.0 | 代码格式化 |
 | **Ruff** | 0.14.4 | 快速linter |
 | **Mypy** | 1.18.2 | 类型检查 |
-| **Isort** | 7.0.0 | import排序 |
+| **Isort** | 5.13.2 | import排序 |
 | **Pre-commit** | 4.4.0 ⭐ | Git钩子 |
 
 ### 📚 文档工具
@@ -163,7 +163,7 @@ uv pip sync requirements.txt
 
 # Phase Final（完整功能）
 cd blueprints/phase_final
-uv venv --python 3.12
+uv venv --python 3.12 --seed
 source .venv/bin/activate  # Linux/Mac
 uv pip sync requirements.txt
 ```
