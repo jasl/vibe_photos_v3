@@ -25,6 +25,7 @@ Consult [`DIRECTORY_STRUCTURE.md`](DIRECTORY_STRUCTURE.md) for operational detai
 | Objective | Read This First |
 |-----------|-----------------|
 | Understand every maintained document quickly | [`AI_PROJECT_MAP.md`](AI_PROJECT_MAP.md) |
+| Review contributor-specific guidelines | [`AGENTS.md`](AGENTS.md) |
 | Align with timeline & deliverables | [`ROADMAP.md`](ROADMAP.md) |
 | Confirm environment tooling | [`UV_USAGE.md`](UV_USAGE.md) + [`DEPENDENCIES.md`](DEPENDENCIES.md) |
 | Check mandatory dev practices | [`AI_CODING_STANDARDS.md`](AI_CODING_STANDARDS.md) |
