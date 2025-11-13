@@ -40,7 +40,7 @@ class BlipCaptioner:
             )
             raise RuntimeError(message) from error
 
-        self._processor = BlipProcessor.from_pretrained(self.model_name)
+        self._processor = BlipProcessor.from_pretrained(self.model_name, use_fast=True)
         self._model = BlipForConditionalGeneration.from_pretrained(self.model_name)
         return self._processor, self._model
 

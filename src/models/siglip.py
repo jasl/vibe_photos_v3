@@ -46,7 +46,7 @@ class SiglipClassifier:
             message = "transformers is required for SigLIP support (failed to import transformers.pipeline)"
             raise RuntimeError(message) from error
 
-        self._pipeline = hf_pipeline("zero-shot-image-classification", model=self.model_name)
+        self._pipeline = hf_pipeline("zero-shot-image-classification", model=self.model_name, use_fast=True)
         return self._pipeline
 
     def classify(
