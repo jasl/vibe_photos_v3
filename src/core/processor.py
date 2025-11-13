@@ -121,8 +121,11 @@ class BatchProcessor:
             )
         except Exception as error:  # noqa: BLE001
             await self._increment_stat("failed")
-            self.logger.error(
-                "Failed to process image",
+            self.logger.exception(
+                "Failed to process image %s: %s: %s",
+                str(image_path),
+                type(error).__name__,
+                error,
                 extra={"path": str(image_path), "error": str(error)},
             )
 
