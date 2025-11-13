@@ -1,4 +1,4 @@
-"""Typer-based CLI for Phase 1 workflows."""
+"""Typer CLI exposing ingestion and search helpers."""
 
 from __future__ import annotations
 
@@ -7,28 +7,56 @@ import asyncio
 import typer
 
 from src.core.database import get_session_factory, init_db
+from src.core.detector import SigLIPBLIPDetector
+from src.core.ocr import PaddleOCREngine
+from src.core.preprocessor import ImagePreprocessor
+from src.core.processor import BatchProcessor
 from src.core.searcher import AssetSearchService
 from src.utils.runtime import load_phase1_config
 
-app = typer.Typer(help="Vibe Photos Phase 1 command-line interface.")
+app = typer.Typer(help="Vibe Photos command-line interface")
+cli = app
 
 
-@app.command("ingest")
-def ingest_command() -> None:
-    """Run batch dataset ingestion."""
-    from process_dataset import main as process_dataset_main
-
-    exit_code = asyncio.run(process_dataset_main())
-    raise typer.Exit(code=exit_code)
-
-
-@app.command("search")
-def search_command(query: str, limit: int = typer.Option(10, "--limit", "-n", min=1, max=100)) -> None:
-    """Run a metadata search against the local SQLite store."""
-    load_phase1_config()
+def _build_processor(config: dict) -> BatchProcessor:
     init_db()
     session_factory = get_session_factory()
-    service = AssetSearchService(session_factory=session_factory)
+    preprocessor = ImagePreprocessor(config["preprocessing"])
+    detector = SigLIPBLIPDetector(
+        model=config["detection"]["model"],
+        device=config["detection"].get("device", "auto"),
+    )
+    ocr_engine = PaddleOCREngine(config["ocr"]) if config.get("ocr", {}).get("enabled", True) else None
+
+    return BatchProcessor(
+        session_factory=session_factory,
+        detector=detector,
+        preprocessor=preprocessor,
+        ocr_engine=ocr_engine,
+        config=config,
+    )
+
+
+@app.command()
+def ingest(incremental: bool = typer.Option(True, help="Skip files already processed via perceptual hash.")) -> None:
+    """Process the dataset defined in config/settings.yaml."""
+    config = load_phase1_config()
+    processor = _build_processor(config)
+
+    typer.echo("Starting ingestion…")
+    asyncio.run(processor.process_dataset(incremental=incremental))
+    stats = processor.get_statistics()
+    typer.echo(f"Processed: {stats['successful']} success, {stats['duplicates']} duplicates, {stats['failed']} failed.")
+
+
+@app.command()
+def search(
+    query: str = typer.Argument(..., help="Search query"),
+    limit: int = typer.Option(10, help="Maximum results"),
+) -> None:
+    """Execute a metadata search and print the results."""
+    init_db()
+    service = AssetSearchService()
     hits = service.search(query=query, limit=limit)
 
     if not hits:
@@ -36,11 +64,16 @@ def search_command(query: str, limit: int = typer.Option(10, "--limit", "-n", mi
         raise typer.Exit(code=0)
 
     for hit in hits:
-        filename = hit.data.get("filename", "")
-        typer.echo(f"{hit.asset_id}\t{hit.score:.2f}\t{filename}")
+        asset = hit.data
+        typer.echo(
+            f"[{hit.score:.2f}] #{asset['id']} {asset['filename']} – "
+            f"caption: {asset['captions'][0]['text'] if asset['captions'] else 'N/A'}"
+        )
 
 
-@app.command("rebuild-index")
-def rebuild_index_command() -> None:
-    """Placeholder for future embedding index rebuild."""
-    typer.echo("Rebuild index is not implemented for the Phase 1 PoC. Search uses metadata only.")
+@app.command(name="rebuild-index")
+def rebuild_index() -> None:
+    """Placeholder command that recreates database tables."""
+    typer.echo("Rebuilding SQLite schema…")
+    init_db()
+    typer.echo("Done.")

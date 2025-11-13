@@ -139,7 +139,7 @@ def render_search_panel() -> None:
         cols = st.columns([1, 3])
         with cols[0]:
             if thumbnail_path and Path(thumbnail_path).exists():
-                st.image(thumbnail_path, width="stretch")
+                st.image(thumbnail_path, use_column_width=True)
         with cols[1]:
             st.markdown(f"**{asset['filename']}** — score {hit.score:.2f}")
             if asset["captions"]:
@@ -229,7 +229,7 @@ def render_gallery_panel() -> None:
             with col:
                 thumbnail_path = asset.get("thumbnail_path") or asset.get("processed_path")
                 if thumbnail_path and Path(thumbnail_path).exists():
-                    st.image(thumbnail_path, width="stretch")
+                    st.image(thumbnail_path, use_column_width=True)
                 st.caption(asset.get("filename", ""))
                 if st.button("View details", key=f"view-{asset['id']}"):
                     st.session_state["selected_asset_id"] = int(asset["id"])
@@ -255,7 +255,7 @@ def render_asset_detail_panel() -> None:
     with col_image:
         image_path = asset.get("processed_path") or asset.get("thumbnail_path")
         if image_path and Path(image_path).exists():
-            st.image(image_path, width="stretch")
+            st.image(image_path, use_column_width=True)
         else:
             st.warning("Image file not found on disk.")
 

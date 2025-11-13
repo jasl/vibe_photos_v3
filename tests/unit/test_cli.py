@@ -7,17 +7,24 @@ runner = CliRunner()
 
 
 def test_ingest_command_invokes_process(monkeypatch):
-    called = {"run": False}
+    called = {"run": False, "incremental": None}
 
-    async def fake_main():
-        called["run"] = True
-        return 0
+    class DummyProcessor:
+        async def process_dataset(self, incremental: bool = True) -> None:
+            called["run"] = True
+            called["incremental"] = incremental
 
-    monkeypatch.setattr("process_dataset.main", fake_main)
+        def get_statistics(self) -> dict:
+            return {"successful": 1, "duplicates": 0, "failed": 0}
 
-    result = runner.invoke(cli.app, ["ingest"])
+    def fake_build_processor(config: dict) -> DummyProcessor:
+        return DummyProcessor()
+
+    monkeypatch.setattr(cli, "_build_processor", fake_build_processor)
+
+    result = runner.invoke(cli.cli, ["ingest"])
     assert result.exit_code == 0
-    assert called["run"]
+    assert called["run"] is True
 
 
 def test_search_command_handles_no_results(monkeypatch):
@@ -25,11 +32,9 @@ def test_search_command_handles_no_results(monkeypatch):
         def search(self, query: str, limit: int = 10):
             return []
 
-    monkeypatch.setattr(cli, "load_phase1_config", lambda: {})
     monkeypatch.setattr(cli, "init_db", lambda: None)
-    monkeypatch.setattr(cli, "get_session_factory", lambda: None)
-    monkeypatch.setattr(cli, "AssetSearchService", lambda session_factory: DummyService())
+    monkeypatch.setattr(cli, "AssetSearchService", lambda: DummyService())
 
-    result = runner.invoke(cli.app, ["search", "nothing"])
+    result = runner.invoke(cli.cli, ["search", "nothing"])
     assert result.exit_code == 0
     assert "No matches found." in result.stdout
