@@ -10,9 +10,9 @@
 
 ## Workstreams
 1. **Environment (ENV-001…ENV-005)**
-   - Generate structure via `init_project.sh`.
+   - Generate structure via `./init_project.sh` (wraps the quick-start checklist).
    - Pin dependencies in `pyproject.toml` and `uv.lock`.
-   - Sync models (`download_models.py`) and config templates.
+   - Sync models (`blueprints/phase1/download_models.py`) and config templates.
 2. **Perception (DET-001…OCR-001)**
    - Build SigLIP + BLIP wrappers with caching and candidate labels.
    - Implement PaddleOCR batch service with GPU/CPU autodetect.

@@ -8,7 +8,7 @@
 - Simplifies operations; no secondary synchronization layer required.
 
 ## When to Reconsider
-Introduce FAISS or a dedicated vector service only if:
+Introduce an external vector service only if:
 - Embedding count exceeds ~1M and latency crosses 200 ms.
 - Concurrency requires GPU-accelerated search.
 - Operational monitoring reveals sustained bottlenecks despite tuning.

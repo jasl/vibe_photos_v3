@@ -29,33 +29,34 @@ Consult [`DIRECTORY_STRUCTURE.md`](DIRECTORY_STRUCTURE.md) for operational detai
 | Confirm environment tooling | [`UV_USAGE.md`](UV_USAGE.md) + [`DEPENDENCIES.md`](DEPENDENCIES.md) |
 | Check mandatory dev practices | [`AI_CODING_STANDARDS.md`](AI_CODING_STANDARDS.md) |
 | Prepare for handoff or reviews | [`FINAL_CHECKLIST.md`](FINAL_CHECKLIST.md) |
+| Align configuration schema | [`config/CONFIG_CONTRACT.md`](config/CONFIG_CONTRACT.md) |
 | Investigate Phase 1 specifics | [`blueprints/phase1/README.md`](blueprints/phase1/README.md) |
 | Investigate target architecture | [`blueprints/phase_final/README.md`](blueprints/phase_final/README.md) |
 
 ## 4. Execution Quickstart
 1. **Pin the toolchain** – Python 3.12 only, managed via `uv`. Follow [`UV_USAGE.md`](UV_USAGE.md) step-by-step.
-2. **Rehydrate the environment** – Activate the Phase 1 venv and sync `requirements.txt`.
+2. **Run the bootstrap script** – Execute `./init_project.sh` once to mirror the quick-start checklist and scaffold `config/settings.yaml` from the template.
+3. **Rehydrate the environment** – Activate the Phase 1 venv and sync against the root lockfile.
    ```bash
-   cd blueprints/phase1
-   uv venv --python 3.12
-   source .venv/bin/activate
-   uv pip sync requirements.txt
-   ```
-3. **Prime the models** – Run the provided download script once, then process the sample dataset.
-   ```bash
-   uv run python download_models.py
-   uv run python process_dataset.py
-   ```
-4. **Stay within scope** – every deviation must be justified against the decision logs in `decisions/` before implementation.
+    uv venv --python 3.12
+    source .venv/bin/activate
+    uv sync  # run from repository root
+    ```
+4. **Prime the models** – Run the provided download script once, then process the sample dataset.
+    ```bash
+    uv run python blueprints/phase1/download_models.py
+    uv run python blueprints/phase1/process_dataset.py
+    ```
+5. **Stay within scope** – every deviation must be justified against the decision logs in `decisions/` before implementation.
 
 ## 5. Technology Baseline
 - **Perception stack:** SigLIP (multilingual classification) + BLIP (captioning) + PaddleOCR.
-- **Search stack:** SQLite/FAISS for Phase 1, PostgreSQL + pgvector + Celery + Redis for Phase Final.
-- **Serving stack:** FastAPI + Uvicorn, Streamlit UI for MVP, Gradio UI for production.
-- **Language rules:** Implementation code in English, documentation can be bilingual when necessary.
+- **Search stack:** SQLite + cosine similarity for Phase 1, PostgreSQL + pgvector + Celery + Redis for Phase Final.
+- **Serving stack:** FastAPI + Uvicorn, Streamlit UI across MVP and production.
+- **Language rules:** Keep all code, configuration, UI strings, and documented code snippets in English. Narrative documentation should default to English, with Chinese translations added only when absolutely required.
 
 ## 6. Delivery Status
-- ✅ Document suite synchronized for coding AI.
+- ✅ Document suite synchronized—use the dependency tables and search stack notes in this repo as the single source of truth.
 - ✅ Technical decisions locked for Phase Final (see `decisions/TECHNICAL_DECISIONS.md`).
 - 🚧 Phase 1 build-out in progress—treat documentation as authoritative requirements.
 - ⏳ Phase 2 and Final execution pending validation milestones.

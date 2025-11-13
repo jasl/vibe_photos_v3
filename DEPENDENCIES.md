@@ -1,6 +1,6 @@
 # Dependency Manifest — Coding AI Reference
 
-Use this manifest to validate that your environment matches the expected versions for Vibe Photos.
+Use this manifest to validate that your environment matches the expected versions for Vibe Photos. The root `pyproject.toml` + `uv.lock` pair is the authoritative source; every other requirement list mirrors those files.
 
 ## 1. Python Runtime
 - Python **3.12.x** (pinned via `uv python pin 3.12`).
@@ -25,17 +25,19 @@ Use this manifest to validate that your environment matches the expected version
 ## 3. Phase Final Add-ons
 | Category | Package | Version | Usage |
 |----------|---------|---------|-------|
-| Vector DB | pgvector | 0.2.5 | PostgreSQL vector extension |
-| | psycopg2-binary | 2.9.9 | PostgreSQL driver |
-| UI | gradio | 5.49.1 | Production UI |
-| Monitoring | loguru | 0.7.3 | Enhanced logging |
+| Database | psycopg2-binary | 2.9.9 | PostgreSQL driver |
+| Vector | pgvector | 0.2.5 | PostgreSQL vector extension |
+| Queue | redis | 5.0.1 | Message broker |
+| Worker | celery | 5.3.4 | Task execution |
+| Observability | prometheus-client | 0.19.0 | Metrics export |
+
+> UI Note: Streamlit (1.51.0) remains the single UI stack across all phases; no alternate frontend frameworks are planned.
 
 ## 4. Installation Workflow
 ```bash
 uv venv --python 3.12
 source .venv/bin/activate
-uv pip sync requirements.txt              # core deps
-uv pip sync requirements-dev.txt          # add dev tooling if needed
+uv sync                                   # install core + dev deps as defined in the lockfile
 ```
 For GPU builds on NVIDIA hardware:
 ```bash
@@ -51,11 +53,11 @@ uv pip install torch==2.9.1 torchvision==0.24.1 --index-url https://download.pyt
 ```
 blueprints/
 ├── phase1/
-│   ├── requirements.txt
-│   └── requirements-dev.txt
+│   ├── requirements.txt          # mirrors the root lockfile for offline bootstrap
+│   └── requirements-dev.txt      # mirrors optional dev dependencies
 └── phase_final/
-    ├── requirements.txt
+    ├── requirements.txt          # references production baseline packages
     └── requirements-dev.txt
 ```
 
-Record any dependency adjustments in this file and re-lock the environment so downstream coding AIs inherit a consistent stack.
+When adjustments are required, update `pyproject.toml`, run `uv lock`, then reflect the change in any mirrored requirement lists so downstream coding AIs inherit a consistent stack.

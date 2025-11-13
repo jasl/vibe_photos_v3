@@ -1,7 +1,7 @@
 # Phase Final System Architecture — Coding AI Summary
 
 ## Layered View
-1. **Interface Layer** — Gradio web app, FastAPI endpoints, CLI automations.
+1. **Interface Layer** — Streamlit web app, FastAPI endpoints, CLI automations.
 2. **Service Layer** — Detection/OCR, annotation assistance, search/ranking, learning engine, task orchestration via Celery.
 3. **Persistence Layer** — PostgreSQL + pgvector, Redis cache/queue, object storage for originals & thumbnails, model registry.
 

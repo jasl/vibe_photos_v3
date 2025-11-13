@@ -15,7 +15,7 @@
 ## Success Criteria
 - PostgreSQL + pgvector stack operational with migration scripts.
 - Celery/Redis job pipeline processing ingestion tasks reliably.
-- Gradio UI delivering production-ready workflows.
+- Streamlit UI delivering production-ready workflows.
 - Monitoring hooks in place (Prometheus/Grafana) with baseline dashboards.
 
 Keep this checklist updated as Phase Final moves from design to implementation so the next coding AI inherits accurate context.

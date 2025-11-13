@@ -4,7 +4,7 @@ Follow these standards verbatim. They encode the minimum quality bar expected fr
 
 ## 1. Language Policy
 - **Source code, comments, commits:** English only.
-- **User-facing documentation:** Chinese is acceptable; technical references may be bilingual if it reduces ambiguity.
+- **UI assets, configuration files, and code snippets inside documentation:** English only.
 - **Runtime messages:** System logs in English. User-visible strings go through localization modules where relevant.
 
 ## 2. File Layout & Imports

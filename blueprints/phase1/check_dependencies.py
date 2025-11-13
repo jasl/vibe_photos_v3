@@ -1,75 +1,73 @@
 #!/usr/bin/env python3
-"""
-依赖兼容性检查脚本
-用于验证所有依赖是否正确安装并能正常工作
-"""
+"""Dependency compatibility checker for Phase 1."""
 
-import sys
 import platform
-from importlib.metadata import version, PackageNotFoundError
+import sys
+from importlib.metadata import PackageNotFoundError, version
 
-# ANSI颜色代码
-GREEN = '\033[92m'
-RED = '\033[91m'
-YELLOW = '\033[93m'
-BLUE = '\033[94m'
-RESET = '\033[0m'
+# ANSI color codes
+GREEN = "\033[92m"
+RED = "\033[91m"
+YELLOW = "\033[93m"
+BLUE = "\033[94m"
+RESET = "\033[0m"
 
-def print_header(text):
-    """打印标题"""
-    print(f"\n{BLUE}{'='*60}{RESET}")
+
+def print_header(text: str) -> None:
+    """Render a section header with colorized formatting."""
+    print(f"\n{BLUE}{'=' * 60}{RESET}")
     print(f"{BLUE}{text}{RESET}")
-    print(f"{BLUE}{'='*60}{RESET}")
+    print(f"{BLUE}{'=' * 60}{RESET}")
 
-def check_python_version():
-    """检查Python版本"""
-    print_header("Python环境检查")
-    
+
+def check_python_version() -> bool:
+    """Validate the active Python interpreter."""
+    print_header("Python environment")
+
     py_version = sys.version_info
     py_version_str = f"{py_version.major}.{py_version.minor}.{py_version.patch}"
-    
-    print(f"Python版本: {py_version_str}")
-    print(f"平台: {platform.platform()}")
-    print(f"架构: {platform.machine()}")
-    
-    if py_version.major < 3 or (py_version.major == 3 and py_version.minor < 8):
-        print(f"{RED}❌ Python版本需要 >= 3.8{RESET}")
-        return False
-    else:
-        print(f"{GREEN}✅ Python版本符合要求{RESET}")
-        return True
 
-def check_package(package_name, import_name=None, min_version=None):
-    """检查单个包是否安装"""
+    print(f"Python version: {py_version_str}")
+    print(f"Platform: {platform.platform()}")
+    print(f"Architecture: {platform.machine()}")
+
+    if py_version.major < 3 or (py_version.major == 3 and py_version.minor < 12):
+        print(f"{RED}❌ Python 3.12 is required.{RESET}")
+        return False
+
+    print(f"{GREEN}✅ Python version is compatible.{RESET}")
+    return True
+
+
+def check_package(package_name: str, import_name: str | None = None, min_version: str | None = None) -> bool:
+    """Verify that a package is installed and importable."""
     if import_name is None:
         import_name = package_name
-    
+
     try:
-        # 获取版本
         installed_version = version(package_name)
-        
-        # 尝试导入
+
         try:
             __import__(import_name)
             status = f"{GREEN}✅{RESET}"
-            
-            # 版本检查
+
             if min_version and installed_version < min_version:
-                status = f"{YELLOW}⚠️  (版本较旧){RESET}"
-        except ImportError as e:
-            status = f"{YELLOW}⚠️  (已安装但无法导入: {e}){RESET}"
-        
+                status = f"{YELLOW}⚠️  (outdated version){RESET}"
+        except ImportError as error:
+            status = f"{YELLOW}⚠️  (installed but failed to import: {error}){RESET}"
+
         print(f"  {status} {package_name:20} {installed_version}")
         return True
-        
+
     except PackageNotFoundError:
-        print(f"  {RED}❌{RESET} {package_name:20} 未安装")
+        print(f"  {RED}❌{RESET} {package_name:20} not installed")
         return False
 
-def check_core_dependencies():
-    """检查核心依赖"""
-    print_header("核心依赖检查")
-    
+
+def check_core_dependencies() -> bool:
+    """Check core runtime dependencies."""
+    print_header("Core dependencies")
+
     packages = [
         ("fastapi", "fastapi", "0.121.1"),
         ("uvicorn", "uvicorn", "0.38.0"),
@@ -80,168 +78,169 @@ def check_core_dependencies():
         ("aiofiles", "aiofiles", "24.1.0"),
         ("pydantic", "pydantic", "2.11.10"),
     ]
-    
+
     success = True
     for pkg, import_name, min_ver in packages:
         if not check_package(pkg, import_name, min_ver):
             success = False
-    
+
     return success
 
-def check_ai_dependencies():
-    """检查AI/ML依赖"""
-    print_header("AI/ML框架检查")
-    
-    # 检查PyTorch
+
+def check_ai_dependencies() -> None:
+    """Verify AI and ML tooling."""
+    print_header("AI/ML frameworks")
+
     pytorch_available = False
     try:
         import torch
+
         pytorch_available = True
         print(f"  {GREEN}✅{RESET} PyTorch {torch.__version__}")
-        
-        # 检查CUDA/MPS支持
+
         if torch.cuda.is_available():
-            print(f"     └─ CUDA可用: {torch.cuda.get_device_name(0)}")
-        elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-            print(f"     └─ Apple Silicon MPS可用")
+            print(f"     └─ CUDA available: {torch.cuda.get_device_name(0)}")
+        elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            print("     └─ Apple Silicon MPS available")
         else:
-            print(f"     └─ 仅CPU模式")
-            
+            print("     └─ CPU mode only")
+
     except ImportError:
-        print(f"  {RED}❌{RESET} PyTorch 未安装（必需）")
-    
-    # 检查TorchVision
+        print(f"  {RED}❌{RESET} PyTorch is not installed (required)")
+
     if pytorch_available:
         check_package("torchvision", "torchvision", "0.24.0")
-    
-    # 检查主要方案：SigLIP+BLIP
-    print(f"  \n  SigLIP+BLIP依赖（主要方案）:")
+
+    print("\n  SigLIP + BLIP dependencies:")
     transformers_available = check_package("transformers", "transformers", "4.57.1")
     if transformers_available:
-        print(f"     └─ {GREEN}SigLIP+BLIP方案可用{RESET}")
+        print(f"     └─ {GREEN}SigLIP + BLIP stack ready{RESET}")
     else:
-        print(f"     └─ {YELLOW}请安装transformers以使用SigLIP+BLIP{RESET}")
+        print(f"     └─ {YELLOW}Install transformers to enable SigLIP + BLIP{RESET}")
 
-def check_ocr_dependencies():
-    """检查OCR依赖"""
-    print_header("OCR引擎检查")
-    
-    # 检查PaddlePaddle
+
+def check_ocr_dependencies() -> None:
+    """Validate OCR stack."""
+    print_header("OCR engine")
+
     paddle_available = False
     try:
         import paddle
+
         paddle_available = True
         print(f"  {GREEN}✅{RESET} PaddlePaddle {paddle.__version__}")
-        
-        # 检查设备支持
+
         if paddle.is_compiled_with_cuda():
-            print(f"     └─ CUDA支持已启用")
+            print("     └─ CUDA support enabled")
         else:
-            print(f"     └─ CPU模式")
-            
+            print("     └─ CPU mode")
+
     except ImportError:
-        print(f"  {RED}❌{RESET} PaddlePaddle 未安装")
-    
-    # 检查PaddleOCR
+        print(f"  {RED}❌{RESET} PaddlePaddle not installed")
+
     if paddle_available:
         try:
             from paddleocr import PaddleOCR
-            print(f"  {GREEN}✅{RESET} PaddleOCR 已安装")
-            
-            # 测试OCR功能
-            print(f"     └─ 正在测试OCR功能...")
-            ocr = PaddleOCR(use_angle_cls=True, lang='ch', show_log=False)
-            print(f"     └─ OCR引擎初始化成功")
-        except Exception as e:
-            print(f"  {YELLOW}⚠️{RESET}  PaddleOCR 安装但初始化失败: {e}")
 
-def check_optional_dependencies():
-    """检查可选依赖"""
-    print_header("可选依赖检查")
-    
+            print(f"  {GREEN}✅{RESET} PaddleOCR available")
+            print("     └─ Initializing OCR engine...")
+            PaddleOCR(use_angle_cls=True, lang="ch", show_log=False)
+            print("     └─ OCR engine initialized successfully")
+        except Exception as error:  # noqa: BLE001
+            print(f"  {YELLOW}⚠️{RESET} PaddleOCR initialization failed: {error}")
+
+
+def check_optional_dependencies() -> None:
+    """Check optional helper packages."""
+    print_header("Optional dependencies")
+
     optional_packages = [
         ("redis", "redis"),
         ("numpy", "numpy"),
         ("httpx", "httpx"),
     ]
-    
+
     for pkg, import_name in optional_packages:
         check_package(pkg, import_name)
 
-def run_quick_tests():
-    """运行快速功能测试"""
-    print_header("快速功能测试")
-    
-    # 测试FastAPI
+
+def run_quick_tests() -> None:
+    """Run basic smoke tests for critical libraries."""
+    print_header("Quick smoke tests")
+
     try:
         from fastapi import FastAPI
-        app = FastAPI()
-        print(f"  {GREEN}✅{RESET} FastAPI应用创建成功")
-    except Exception as e:
-        print(f"  {RED}❌{RESET} FastAPI测试失败: {e}")
-    
-    # 测试SQLAlchemy
+
+        FastAPI()
+        print(f"  {GREEN}✅{RESET} FastAPI app instantiated")
+    except Exception as error:  # noqa: BLE001
+        print(f"  {RED}❌{RESET} FastAPI smoke test failed: {error}")
+
     try:
         from sqlalchemy import create_engine
-        engine = create_engine("sqlite:///:memory:")
-        print(f"  {GREEN}✅{RESET} SQLAlchemy数据库连接成功")
-    except Exception as e:
-        print(f"  {RED}❌{RESET} SQLAlchemy测试失败: {e}")
-    
-    # 测试Pillow
+
+        create_engine("sqlite:///:memory:")
+        print(f"  {GREEN}✅{RESET} SQLAlchemy in-memory DB ready")
+    except Exception as error:  # noqa: BLE001
+        print(f"  {RED}❌{RESET} SQLAlchemy smoke test failed: {error}")
+
     try:
         from PIL import Image
-        img = Image.new('RGB', (100, 100))
-        print(f"  {GREEN}✅{RESET} Pillow图像处理可用")
-    except Exception as e:
-        print(f"  {RED}❌{RESET} Pillow测试失败: {e}")
 
-def print_recommendations():
-    """打印建议"""
-    print_header("建议和下一步")
-    
-    print(f"""
-1. 如有缺失的依赖，请运行：
+        Image.new("RGB", (100, 100))
+        print(f"  {GREEN}✅{RESET} Pillow image creation succeeded")
+    except Exception as error:  # noqa: BLE001
+        print(f"  {RED}❌{RESET} Pillow smoke test failed: {error}")
+
+
+def print_recommendations() -> None:
+    """Summarize remediation steps."""
+    print_header("Recommendations")
+
+    print(
+        f"""
+1. Install missing dependencies with:
    {YELLOW}uv sync{RESET}
 
-2. 对于GPU加速（可选）：
+2. Optional GPU acceleration:
    - NVIDIA GPU (CUDA 13.0): {YELLOW}uv pip install torch==2.9.1 torchvision==0.24.1 --index-url https://download.pytorch.org/whl/cu130{RESET}
-   - Apple Silicon: PyTorch会自动使用MPS加速
+   - Apple Silicon: PyTorch will automatically use MPS acceleration when available
 
-3. 如遇到PaddlePaddle安装问题：
+3. PaddlePaddle fallback index (CPU builds):
    {YELLOW}uv pip install paddlepaddle==3.2.1 -i https://www.paddlepaddle.org.cn/packages/stable/cpu/{RESET}
 
-4. 开发工具（可选）：
+4. Developer tooling bundle:
    {YELLOW}uv pip install -r requirements-dev.txt{RESET}
-""")
+"""
+    )
 
-def main():
-    """主函数"""
-    print(f"{BLUE}{'='*60}{RESET}")
-    print(f"{BLUE}  Vibe Photos Phase 1 - 依赖兼容性检查{RESET}")
-    print(f"{BLUE}{'='*60}{RESET}")
-    
-    # 运行检查
+
+def main() -> int:
+    """Program entrypoint."""
+    print(f"{BLUE}{'=' * 60}{RESET}")
+    print(f"{BLUE}  Vibe Photos Phase 1 — Dependency compatibility check{RESET}")
+    print(f"{BLUE}{'=' * 60}{RESET}")
+
     python_ok = check_python_version()
     if not python_ok:
-        print(f"\n{RED}请先升级Python版本{RESET}")
+        print(f"\n{RED}Upgrade Python before continuing.{RESET}")
         return 1
-    
+
     core_ok = check_core_dependencies()
     check_ai_dependencies()
     check_ocr_dependencies()
     check_optional_dependencies()
     run_quick_tests()
     print_recommendations()
-    
-    # 总结
-    print_header("检查完成")
+
+    print_header("Summary")
     if core_ok:
-        print(f"{GREEN}核心依赖已就绪，可以开始开发！{RESET}")
+        print(f"{GREEN}Core dependencies are ready — you can start building!{RESET}")
     else:
-        print(f"{YELLOW}部分依赖缺失，请根据上述建议安装{RESET}")
-    
+        print(f"{YELLOW}Some dependencies are missing. Follow the steps above to resolve them.{RESET}")
+
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

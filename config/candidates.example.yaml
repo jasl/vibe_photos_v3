@@ -1,0 +1,23 @@
+version: 1
+updated_at: 2025-02-15
+labels:
+  - key: food.recipe
+    name: "Recipe"
+    synonyms:
+      - home cooking
+      - kitchen
+  - key: document.invoice
+    name: "Invoice"
+    synonyms:
+      - bill
+      - receipt
+  - key: tutorial.step-by-step
+    name: "Tutorial"
+    synonyms:
+      - how-to
+      - guide
+  - key: product.launch
+    name: "Product Launch"
+    synonyms:
+      - campaign
+      - merch

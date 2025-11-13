@@ -15,7 +15,7 @@ This playbook transforms the product contract into concrete work packages. Follo
 | Architecture | Favor functional decomposition; introduce classes only when stateful orchestration is mandatory. |
 | API | FastAPI with async endpoints, streaming responses where practical. |
 | Error handling | Guard clauses, explicit typed results (`Result`-style or `Either` patterns acceptable). |
-| Language | All code + comments in English. User-facing docs may be bilingual. |
+| Language | All UI text, source code, comments, configuration, and documented code snippets must be written in English. |
 | Observability | Structured logging (JSON-friendly), correlation IDs propagated across async tasks. |
 
 ## 3. Program Phases
@@ -25,7 +25,7 @@ This playbook transforms the product contract into concrete work packages. Follo
 2. **Phase 2 — Semantic Search Upgrade (pending)**
    - Introduce hybrid vector search, object detection enhancements, improved annotations.
 3. **Phase Final — Production Platform (planned)**
-   - PostgreSQL + pgvector, Celery/Redis task fabric, Gradio interface, deployment automation.
+   - PostgreSQL + pgvector, Celery/Redis task fabric, Streamlit hardening, deployment automation.
 
 ## 4. Reference Architecture (Phase 1)
 ```
@@ -34,7 +34,7 @@ src/
 │   ├── detector.py        # SigLIP+BLIP fusion, optional candidate labels
 │   ├── ocr.py             # PaddleOCR wrapper with batching support
 │   ├── processor.py       # Bulk ingestion, dedupe, metadata extraction
-│   ├── searcher.py        # Embedding index + similarity queries (FAISS/SQLite)
+│   ├── searcher.py        # Embedding cache + cosine similarity queries (SQLite)
 │   └── database.py        # Persistence layer (SQLite + SQLAlchemy models)
 ├── models/
 │   ├── siglip.py
@@ -73,7 +73,7 @@ Tests live in `tests/` mirroring the module structure with fixtures under `tests
 # Bootstrap environment
 uv venv --python 3.12
 source .venv/bin/activate
-uv pip sync requirements.txt
+uv sync
 
 # Run formatters / linters
 task fmt   # optional make task if defined; otherwise run ruff/black manually

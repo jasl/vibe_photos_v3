@@ -9,7 +9,7 @@
 | Layer | Choice | Notes |
 |-------|--------|-------|
 | API | FastAPI | Async, typed, OpenAPI support. |
-| UI | Gradio (production) + Streamlit (prototyping) | Fast iteration with option to swap for React later. |
+| UI | Streamlit | Single UI surface from MVP through production; revisit after stabilization if needed. |
 | Task Queue | Celery + Redis | Handles ingestion/analysis jobs and scheduled maintenance. |
 | Database | PostgreSQL 16 + pgvector | Unified store for metadata and embeddings. |
 | Cache | Redis | Session + search result caching. |

@@ -7,7 +7,7 @@
 2. **Core Services**
    - Implement ingestion worker: thumbnail → classification → OCR → embedding → persistence.
    - Build search API combining metadata filters, full-text, and vector ranking.
-   - Expose annotation endpoints and integrate Gradio UI.
+   - Expose annotation endpoints and extend the Streamlit UI.
 3. **Learning Enhancements**
    - Add few-shot registration workflow (upload exemplars, train prototype, validate accuracy).
    - Schedule retraining/reindex jobs; log outcomes for audit.
@@ -23,7 +23,7 @@ src/
 ├── core/
 ├── data/              # repositories, migrations
 ├── ml/                # model wrappers, few-shot utilities
-├── ui/                # Gradio frontend
+├── ui/                # Streamlit frontend
 └── utils/
 ```
 

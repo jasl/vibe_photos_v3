@@ -2,19 +2,78 @@
 name = "vibe-photos"
 version = "1.0.0"
 description = "AI-powered photo management system for content creators"
-requires-python = "==3.12.*"
 readme = "README.md"
+requires-python = "==3.12.*"
+license = { text = "MIT" }
+authors = [{ name = "Vibe Photos Team", email = "team@vibephotos.ai" }]
+
+dependencies = [
+    "fastapi==0.121.1",
+    "uvicorn==0.38.0",
+    "streamlit==1.51.0",
+    "sqlalchemy==2.0.44",
+    "pillow==11.3.0",
+    "python-multipart==0.0.20",
+    "aiofiles==24.1.0",
+    "pydantic==2.11.10",
+    "requests==2.32.3",
+    "pyyaml==6.0.2",
+    "torch==2.9.1",
+    "torchvision==0.24.1",
+    "transformers==4.57.1",
+    "sentence-transformers==5.1.2",
+    "paddlepaddle==3.2.1",
+    "paddleocr==3.3.1",
+    "numpy==2.3.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.0.0",
+    "pytest-asyncio==1.3.0",
+    "pytest-cov==7.0.0",
+    "pytest-mock==3.15.1",
+    "httpx==0.28.1",
+    "black==25.11.0",
+    "ruff==0.14.4",
+    "mypy==1.18.2",
+    "isort==5.13.2",
+    "ipython==9.7.0",
+    "ipdb==0.13.13",
+    "rich==14.2.0",
+    "python-dotenv==1.2.1",
+    "mkdocs==1.6.1",
+    "mkdocs-material==9.7.0",
+    "pdoc==16.0.0",
+    "memory-profiler==0.61.0",
+    "line-profiler==5.0.0",
+    "py-spy==0.4.1",
+]
+phase_final = [
+    "psycopg2-binary==2.9.9",
+    "pgvector==0.2.5",
+    "redis==5.0.1",
+    "celery==5.3.4",
+    "prometheus-client==0.19.0",
+]
+
+[project.scripts]
+vibe = "src.cli:app"
+vibe-server = "src.api.main:run"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.uv]
+dev-dependencies = []
+
 [tool.ruff]
 target-version = "py312"
-line-length = 88
+line-length = 150
 select = [
     "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings  
+    "W",   # pycodestyle warnings
     "F",   # pyflakes
     "I",   # isort
     "B",   # flake8-bugbear
@@ -26,8 +85,8 @@ ignore = [
 ]
 
 [tool.black]
-line-length = 88
-target-version = ['py312']
+line-length = 150
+target-version = ["py312"]
 
 [tool.mypy]
 python_version = "3.12"

@@ -1,60 +1,53 @@
-# Vibe Photos Phase Final - 完整依赖清单
-# 更新日期：2024年11月
-# Python版本要求：>=3.9 (推荐3.11+)
+# Vibe Photos Phase Final — dependency snapshot
+# Last updated: 2024-11
+# Python version requirement: ==3.12.*
+# Mirrors the root `pyproject.toml` + `uv.lock` for the production milestone.
 
-# ==================== 核心依赖 ====================
-torch==2.9.1               # PyTorch深度学习框架
-torchvision==0.24.1        # PyTorch计算机视觉库
+# ==================== Core dependencies ====================
+torch==2.9.1               # PyTorch runtime
+torchvision==0.24.1        # PyTorch vision helpers
 transformers==4.57.1       # Hugging Face Transformers
-pillow==11.3.0             # 图像处理库
-numpy==2.3.4               # 数值计算库
+pillow==11.3.0             # Image processing
+numpy==2.3.4               # Numerical computing
 
-# ==================== Web框架 ====================
-fastapi==0.121.1           # 高性能Web API框架
-uvicorn[standard]==0.38.0  # ASGI服务器
-httpx==0.28.1              # HTTP客户端
-python-multipart==0.0.20   # 文件上传支持
-aiofiles==24.1.0           # 异步文件操作
+# ==================== Web framework ====================
+fastapi==0.121.1           # Web API framework
+uvicorn[standard]==0.38.0  # ASGI server
+httpx==0.28.1              # HTTP client
+python-multipart==0.0.20   # Multipart uploads
+aiofiles==24.1.0           # Async file IO
 
-# ==================== 数据处理 ====================
-sqlalchemy==2.0.44         # 数据库ORM
-pydantic==2.11.10          # 数据验证和序列化
-pyyaml==6.0.2              # YAML配置文件支持
-requests==2.32.3           # HTTP客户端（下载模型）
+# ==================== Data handling ====================
+sqlalchemy==2.0.44         # Database ORM
+pydantic==2.11.10          # Data validation and serialization
+pyyaml==6.0.2              # YAML parsing
 
-# ==================== AI模型 ====================
-# 图像理解模型
-sentence-transformers==5.1.2  # 句子嵌入（用于语义搜索）
+# ==================== AI models ====================
+# Image understanding models
+sentence-transformers==5.1.2  # Sentence embeddings for semantic search
 
-# OCR引擎
-paddlepaddle==3.2.1        # 百度飞桨框架
-paddleocr==3.3.1           # PaddleOCR文字识别
+# OCR stack
+paddlepaddle==3.2.1        # PaddlePaddle runtime
+paddleocr==3.3.1           # PaddleOCR text recognition
 
-# ==================== 向量搜索（需要时启用） ====================
-# 主要方案：PostgreSQL + pgvector
-# psycopg2-binary==2.9.9    # PostgreSQL连接
-# pgvector==0.2.5           # PostgreSQL向量扩展
+# ==================== Vector search (enable when required) ====================
+# Primary stack: PostgreSQL + pgvector
+# psycopg2-binary==2.9.9    # PostgreSQL connector
+# pgvector==0.2.5           # PostgreSQL vector extension
 
-# 可选方案：Faiss（仅当向量超过100万时考虑）
-# faiss-cpu==1.12.0         # Facebook向量搜索（备选）
+# ==================== Optional developer tools ====================
+# Enable these only if necessary
+# typer[all]==0.20.0         # CLI tooling
+# rich==14.2.0               # Rich terminal output
+# python-dotenv==1.2.1       # Environment variable loader
+# tqdm==4.67.1               # Progress bars
 
-# ==================== 可选开发工具 ====================
-# 以下工具可根据需要启用
-# typer[all]==0.20.0         # CLI工具
-# rich==14.2.0               # 美化终端输出
-# python-dotenv==1.2.1       # 环境变量管理
-# tqdm==4.67.1               # 进度条显示
+# ==================== UI stack ====================
+streamlit==1.51.0          # Sole UI framework (MVP and production)
 
-# ==================== UI选项 ====================
-# Option A: Streamlit（用于快速原型）
-streamlit==1.51.0          # 简单易用的UI框架
+# ==================== Observability (optional) ====================
+# loguru==0.7.3              # Logging helper
+# prometheus-client==0.23.1  # Metrics exporter
 
-# Option B: Gradio（备选，需要时启用）
-# gradio==5.49.1             # 最新稳定版        
-
-# ==================== 监控和日志（可选） ====================
-# loguru==0.7.3              # 日志管理
-# prometheus-client==0.23.1  # 性能监控
-
-# ==================== 测试和质量保证 ====================
-# 见 requirements-dev.txt
+# ==================== Testing and QA ====================
+# See requirements-dev.txt
