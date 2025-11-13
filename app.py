@@ -107,6 +107,19 @@ def load_gallery_assets(limit: int, offset: int) -> List[Dict[str, Any]]:
         session.close()
 
 
+@st.cache_data(ttl=60, show_spinner=False)
+def load_asset_detail(asset_id: int) -> Dict[str, Any] | None:
+    """Load a single asset with full metadata."""
+    session_factory = get_session_factory()
+    session = session_factory()
+    try:
+        repo = AssetRepository(session)
+        asset = repo.get_asset(asset_id)
+        return serialize_asset(asset) if asset else None
+    finally:
+        session.close()
+
+
 def render_search_panel() -> None:
     """Render a lightweight search UI backed by the SQLite metadata store."""
     query = st.text_input("Query", placeholder="e.g. recipe cards from 2024")
@@ -146,6 +159,24 @@ def render_gallery_panel() -> None:
         return
 
     st.subheader("Gallery")
+
+    with st.expander("Filters", expanded=False):
+        text_query = st.text_input(
+            "Search text",
+            placeholder="Caption, labels, OCR",
+            key="gallery_text_query",
+        )
+        label_query = st.text_input(
+            "Label contains",
+            placeholder="e.g. beach",
+            key="gallery_label_query",
+        )
+        only_with_ocr = st.checkbox(
+            "Only photos with OCR text",
+            key="gallery_only_with_ocr",
+            value=False,
+        )
+
     page_size = 24
     max_page = max(1, (total_assets + page_size - 1) // page_size)
 
@@ -157,11 +188,39 @@ def render_gallery_panel() -> None:
         st.info("No assets available for this page.")
         return
 
-    st.caption(f"Showing page {page} of {max_page} ({len(assets)} assets on this page).")
+    query_lower = (text_query or "").strip().lower()
+    label_lower = (label_query or "").strip().lower()
+
+    def _matches_filters(asset: Dict[str, Any]) -> bool:
+        if query_lower:
+            in_caption = any(query_lower in cap["text"].lower() for cap in asset.get("captions", []))
+            in_label = any(query_lower in lbl["label"].lower() for lbl in asset.get("labels", []))
+            in_ocr = any(query_lower in blk["text"].lower() for blk in asset.get("ocr", []))
+            if not (in_caption or in_label or in_ocr):
+                return False
+
+        if label_lower:
+            if not any(label_lower in lbl["label"].lower() for lbl in asset.get("labels", [])):
+                return False
+
+        if only_with_ocr and not asset.get("ocr"):
+            return False
+
+        return True
+
+    filtered_assets = [asset for asset in assets if _matches_filters(asset)]
+    if not filtered_assets:
+        st.info("No assets match the current filters on this page.")
+        return
+
+    st.caption(
+        f"Showing page {page} of {max_page} "
+        f"({len(filtered_assets)} assets on this page after filters).",
+    )
 
     columns_per_row = 4
-    for index in range(0, len(assets), columns_per_row):
-        row_assets = assets[index : index + columns_per_row]
+    for index in range(0, len(filtered_assets), columns_per_row):
+        row_assets = filtered_assets[index : index + columns_per_row]
         cols = st.columns(len(row_assets))
         for col, asset in zip(cols, row_assets):
             with col:
@@ -169,6 +228,60 @@ def render_gallery_panel() -> None:
                 if thumbnail_path and Path(thumbnail_path).exists():
                     st.image(thumbnail_path, use_column_width=True)
                 st.caption(asset.get("filename", ""))
+                if st.button("View details", key=f"view-{asset['id']}"):
+                    st.session_state["selected_asset_id"] = asset["id"]
+
+    render_asset_detail_panel()
+
+
+def render_asset_detail_panel() -> None:
+    """Render a detail view for the selected asset."""
+    asset_id = st.session_state.get("selected_asset_id")
+    if not asset_id:
+        return
+
+    asset = load_asset_detail(int(asset_id))
+    if asset is None:
+        st.info("Selected asset could not be found. It may have been removed.")
+        return
+
+    st.markdown("---")
+    st.subheader("Photo details")
+
+    col_image, col_meta = st.columns([2, 3])
+    with col_image:
+        image_path = asset.get("processed_path") or asset.get("thumbnail_path")
+        if image_path and Path(image_path).exists():
+            st.image(image_path, use_column_width=True)
+        else:
+            st.warning("Image file not found on disk.")
+
+    with col_meta:
+        st.markdown(f"**ID:** {asset.get('id')}")
+        st.markdown(f"**Filename:** {asset.get('filename', '')}")
+        st.markdown(f"**Original path:** `{asset.get('original_path', '')}`")
+        st.markdown(f"**Processed path:** `{asset.get('processed_path') or ''}`")
+        st.markdown(f"**Thumbnail path:** `{asset.get('thumbnail_path') or ''}`")
+
+        if asset.get("captions"):
+            st.markdown("**Captions**")
+            for caption in asset["captions"]:
+                source = caption.get("source", "unknown")
+                st.write(f"- {caption['text']} ({source})")
+
+        if asset.get("labels"):
+            st.markdown("**Labels**")
+            for label in asset["labels"]:
+                st.write(f"- {label['label']} ({label['confidence']:.2f})")
+
+        if asset.get("ocr"):
+            st.markdown("**OCR text blocks**")
+            for block in asset["ocr"]:
+                language = block.get("language") or "unknown"
+                st.write(f"- [{language}] {block['text']}")
+
+    if st.button("Clear selection", key="clear-selected-asset"):
+        st.session_state["selected_asset_id"] = None
 
 
 def render_missing_settings_error(error: FileNotFoundError) -> None:
