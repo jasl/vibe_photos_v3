@@ -52,23 +52,43 @@ class PaddleOCREngine:
         if engine is None:
             return []
 
-        lang = self.config.get("languages", ["ch"])
-        lang_value = ",".join(lang) if isinstance(lang, list) else str(lang)
+        languages = self.config.get("languages", ["ch"])
+        lang_value = ",".join(languages) if isinstance(languages, list) else str(languages)
         # The `cls`/`use_angle_cls` parameter used in older PaddleOCR versions has been
         # replaced by `use_textline_orientation` on the engine itself, so we no longer
         # pass it per-call and instead rely on the engine configuration.
         result = engine.ocr(str(image_path))
         ocr_text: List[OCRText] = []
 
-        for block in result or []:
-            for bbox, (text, confidence) in block:
-                ocr_text.append(
-                    OCRText(
-                        text=text,
-                        confidence=float(confidence),
-                        language=lang_value,
-                        bbox=bbox,
+        for item in result or []:
+            # New PaddleOCR>=3.3 path: list[OCRResult], where each item is a dict-like
+            # object exposing `rec_texts`, `rec_scores`, and `rec_polys`.
+            if isinstance(item, dict) and "rec_texts" in item:
+                texts = item.get("rec_texts") or []
+                scores = item.get("rec_scores") or []
+                polys = item.get("rec_polys") or []
+                for text, score, bbox in zip(texts, scores, polys):
+                    ocr_text.append(
+                        OCRText(
+                            text=str(text),
+                            confidence=float(score),
+                            language=lang_value,
+                            bbox=bbox,
+                        )
                     )
-                )
+                continue
+
+            # Backwards-compatibility path for older PaddleOCR versions that returned
+            # nested lists of (bbox, (text, confidence)) tuples.
+            for block in item or []:
+                for bbox, (text, confidence) in block:
+                    ocr_text.append(
+                        OCRText(
+                            text=text,
+                            confidence=float(confidence),
+                            language=lang_value,
+                            bbox=bbox,
+                        )
+                    )
 
         return ocr_text
