@@ -1,266 +1,49 @@
-# 🤖 Vibe Photos - AI开发者导航指南
+# Coding AI Navigation Manual — Vibe Photos v3
 
-> 本文档为Coding AI提供快速导航，了解如何使用项目文档进行开发
+Use this manual whenever you (a coding AI) enter the repository. It compresses the decision space into actionable checkpoints so you can self-orient in under five minutes.
 
-## 📚 文档体系概览
+## 1. Orient Yourself
+1. Open [`AI_PROJECT_MAP.md`](AI_PROJECT_MAP.md) to understand how every document interrelates.
+2. Review [`decisions/REQUIREMENTS_BRIEF.md`](decisions/REQUIREMENTS_BRIEF.md) and [`decisions/TECHNICAL_DECISIONS.md`](decisions/TECHNICAL_DECISIONS.md) to align on product needs and the locked technology stack.
+3. Read [`AI_DEVELOPMENT_GUIDE.md`](AI_DEVELOPMENT_GUIDE.md) for the implementation blueprint and task breakdown.
 
-### 🎯 核心开发文档（AI专用）
+## 2. Daily Operating Loop
+| Step | Action | Reference |
+|------|--------|-----------|
+| Plan | Claim the highest-priority open item in [`AI_TASK_TRACKER.md`](AI_TASK_TRACKER.md) and confirm dependencies. | `AI_TASK_TRACKER.md` |
+| Prepare | Sync tooling: Python 3.12 via `uv`, install dependencies, download required models. | `UV_USAGE.md`, `DEPENDENCIES.md` |
+| Build | Follow module-specific guidance, enforce coding standards, write tests first. | `AI_CODING_STANDARDS.md`, `AI_DEVELOPMENT_GUIDE.md` |
+| Validate | Execute linters/tests and log outcomes in commit messages and PR summary. | `FINAL_CHECKLIST.md` |
+| Report | Update the task board (⬜→🟨→✅) and document any blockers. | `AI_TASK_TRACKER.md` |
 
-| 文档名称 | 用途 | 何时使用 |
-|---------|------|----------|
-| **[AI_DEVELOPMENT_GUIDE.md](./AI_DEVELOPMENT_GUIDE.md)** | 完整开发指南 | 开始新功能开发时必读 |
-| **[AI_TASK_TRACKER.md](./AI_TASK_TRACKER.md)** | 任务管理清单 | 每日查看，跟踪进度 |
-| **[AI_CODING_STANDARDS.md](./AI_CODING_STANDARDS.md)** | 代码规范标准 | 编写代码时参考 |
-| **README_FOR_AI.md** | 本文档（导航指南） | 首次开始时阅读 |
+## 3. Guardrails You Must Honor
+- **Language policy:** All source code, comments, and commit messages in English. Documentation may be bilingual when it improves clarity.
+- **Tooling policy:** Only `uv` for environment + dependency management; no `pip`, `conda`, or `poetry`.
+- **Design policy:** Prefer functional composition, guard-clause error handling, explicit typing, and deterministic logging.
+- **Scope policy:** Implement only what is authorized in the roadmaps and decision logs. Escalate uncertainties via notes in `AI_TASK_TRACKER.md`.
 
-### 📖 项目背景文档（了解需求）
-
-| 文档路径 | 内容 | 重要性 |
-|---------|------|---------|
-| `decisions/REQUIREMENTS_BRIEF.md` | 需求概要 | ⭐⭐⭐⭐⭐ |
-| `decisions/TECHNICAL_DECISIONS.md` | 技术决策记录 | ⭐⭐⭐⭐ |
-| `blueprints/phase_final/HANDOVER.md` | 设计交接文档 | ⭐⭐⭐ |
-| `ROADMAP.md` | 产品路线图 | ⭐⭐⭐ |
-
-## 🚀 快速开始工作流
-
-### Step 1: 理解项目（首次开始）
-```bash
-# 1. 阅读项目需求
-cat decisions/REQUIREMENTS_BRIEF.md
-
-# 2. 了解技术栈
-cat decisions/TECHNICAL_DECISIONS.md
-
-# 3. 查看开发指南
-cat AI_DEVELOPMENT_GUIDE.md
+## 4. Artifact Quick Reference
+```
+AI_DEVELOPMENT_GUIDE.md   → Program-level requirements, milestones, scaffolding
+AI_IMPLEMENTATION_DETAILS.md → Deep-dive on module behaviors and data flows
+AI_CODING_STANDARDS.md    → Style, logging, error-handling, testing rules
+AI_TASK_TRACKER.md        → Current backlog, priority, owners, status icons
+DIRECTORY_STRUCTURE.md    → Storage rules for data/cache/log/tmp
+UV_USAGE.md               → Environment bootstrap scripts
+ROADMAP.md                → Phase objectives and exit criteria
 ```
 
-### Step 2: 选择任务
-```bash
-# 1. 打开任务跟踪器
-cat AI_TASK_TRACKER.md
+## 5. Execution Checklist
+- [ ] Confirm you are working on the correct git branch.
+- [ ] Initialize/activate the Phase 1 `uv` environment.
+- [ ] Run formatters/linters/tests relevant to your change.
+- [ ] Update documentation snippets impacted by the code.
+- [ ] Capture diffs for review and summarize them in the PR template when prompted.
 
-# 2. 找到未开始的最高优先级任务（⬜ + 🔴 P0）
-# 3. 检查任务依赖是否已完成
-# 4. 将任务状态从⬜改为🟨
-```
+## 6. Escalation Protocol
+If you detect mismatched specifications, missing context, or tooling blockers:
+1. Document the issue in the "Notes" column of `AI_TASK_TRACKER.md`.
+2. Cross-reference impacted decisions in `decisions/` and link them inside your PR description.
+3. Avoid speculative fixes—pause coding until documentation is realigned.
 
-### Step 3: 实现功能
-```bash
-# 1. 参考开发指南中的代码示例
-# 2. 遵循编码标准文档的规范
-# 3. 实现功能代码
-# 4. 编写对应的测试
-# 5. 更新文档
-```
-
-### Step 4: 验证和提交
-```bash
-# 1. 运行测试
-uv run pytest tests/
-
-# 2. 检查代码质量
-uv run ruff check src/
-
-# 3. 提交代码（遵循Git提交规范）
-git add .
-git commit -m "feat(module): implement feature description"
-
-# 4. 更新任务状态为✅
-```
-
-## 💡 AI开发核心原则
-
-### 1. 语言使用规范
-- **源代码**: 必须全部使用英文（代码、注释、文档字符串）
-- **文档文件**: 使用中文（面向用户的.md文档）
-- **变量命名**: 英文命名（如detector，不用jiance_qi）
-- **日志信息**: 系统日志用英文，用户提示可中文
-
-### 2. 代码质量优先
-- **必须** 使用类型注解
-- **必须** 处理错误情况
-- **必须** 编写测试（TDD）
-- **必须** 添加日志记录
-
-### 3. 遵循项目约束
-- **Python版本**: 3.12（固定）
-- **包管理器**: uv（禁止pip/conda）
-- **编程风格**: 函数式优先
-- **错误处理**: 早期返回模式
-
-### 4. 渐进式开发
-- 先实现MVP，再优化
-- 先本地运行，再考虑部署
-- 先单用户，再多用户
-- 先简单，后复杂
-
-## 📋 日常工作检查清单
-
-### 每日开始前
-- [ ] 检查 `AI_TASK_TRACKER.md` 中的任务状态
-- [ ] 选择1-3个高优先级任务
-- [ ] 确认环境配置正常
-- [ ] 拉取最新代码
-
-### 编码过程中
-- [ ] 遵循 `AI_CODING_STANDARDS.md` 规范
-- [ ] 参考 `AI_DEVELOPMENT_GUIDE.md` 示例
-- [ ] 先写测试，再写实现
-- [ ] 及时提交代码
-
-### 每日结束时
-- [ ] 更新任务状态
-- [ ] 运行所有测试
-- [ ] 提交剩余代码
-- [ ] 记录遇到的问题
-
-## 🏗️ 项目结构速查
-
-```
-vibe_photos_v3/
-├── AI文档（你需要的）
-│   ├── AI_DEVELOPMENT_GUIDE.md    # 开发指南
-│   ├── AI_TASK_TRACKER.md         # 任务清单
-│   ├── AI_CODING_STANDARDS.md     # 代码规范
-│   └── README_FOR_AI.md           # 本文档
-│
-├── 源代码（你要创建的）
-│   └── src/
-│       ├── core/                  # 核心模块
-│       ├── models/                # AI模型
-│       ├── api/                   # API接口
-│       └── utils/                 # 工具函数
-│
-└── 配置和测试
-    ├── tests/                     # 测试代码
-    ├── config/                    # 配置文件
-    └── pyproject.toml             # 项目配置
-```
-
-## 🎯 Phase 1 MVP核心任务（优先完成）
-
-### 必须实现的功能（2周内）
-1. **图像检测器** - 使用SigLIP+BLIP识别图像内容
-2. **批处理器** - 处理大量图像（>10张/秒）
-3. **数据库层** - SQLite存储和搜索
-4. **FastAPI接口** - RESTful API
-5. **CLI工具** - 命令行界面
-
-### 关键代码文件
-```python
-# 你需要创建这些文件
-src/core/detector.py          # 图像检测器（最重要）
-src/core/processor.py         # 批处理逻辑
-src/core/database.py          # 数据库操作
-src/api/main.py              # FastAPI应用
-src/cli.py                   # 命令行接口
-```
-
-## 🔧 开发环境命令速查
-
-### 环境初始化
-```bash
-# 创建虚拟环境
-uv venv
-
-# 安装依赖
-uv add torch transformers pillow fastapi sqlalchemy
-
-# 激活环境（如需要）
-source .venv/bin/activate  # Linux/Mac
-```
-
-### 常用开发命令
-```bash
-# 运行API服务器
-uv run uvicorn src.api.main:app --reload
-
-# 运行CLI
-uv run python -m src.cli --help
-
-# 运行测试
-uv run pytest tests/ -v
-
-# 代码检查
-uv run ruff check src/
-
-# 格式化代码
-uv run ruff format src/
-```
-
-### 模型下载（首次需要）
-```python
-# 下载AI模型（会自动缓存）
-from transformers import AutoModel, AutoProcessor
-
-# SigLIP - 多语言分类（~400MB）
-AutoModel.from_pretrained("google/siglip-base-patch16-224-i18n")
-
-# BLIP - 图像描述（~990MB）
-AutoModel.from_pretrained("Salesforce/blip-image-captioning-base")
-```
-
-## 📊 性能和质量要求
-
-### Phase 1 必须达标
-- ✅ 图像处理速度: <2秒/张
-- ✅ 批处理速度: >10张/秒
-- ✅ 搜索响应: <1秒
-- ✅ 测试覆盖: >80%
-- ✅ 内存使用: <2GB
-
-### 代码质量标准
-- 所有函数必须有类型注解
-- 所有函数必须有文档字符串
-- 复杂函数必须有单元测试
-- 错误必须有明确处理
-- 日志必须记录关键操作
-
-## ❓ 常见问题解答
-
-### Q: 从哪里开始？
-**A:** 先阅读 `AI_DEVELOPMENT_GUIDE.md`，然后从 `AI_TASK_TRACKER.md` 中选择ENV-001任务开始。
-
-### Q: 如何知道代码是否符合规范？
-**A:** 参考 `AI_CODING_STANDARDS.md`，使用ruff工具自动检查。
-
-### Q: 遇到技术问题怎么办？
-**A:** 查看 `decisions/TECHNICAL_DECISIONS.md` 了解技术选型原因，参考 `AI_DEVELOPMENT_GUIDE.md` 中的故障排查部分。
-
-### Q: 如何跟踪进度？
-**A:** 每完成一个任务，在 `AI_TASK_TRACKER.md` 中更新状态（⬜→🟨→✅）。
-
-### Q: 需要创建新文件时怎么办？
-**A:** 遵循 `AI_DEVELOPMENT_GUIDE.md` 中的项目结构，使用 `AI_CODING_STANDARDS.md` 的命名规范。
-
-## 🎉 开始编码
-
-现在你已经了解了整个文档体系，可以开始开发工作了！
-
-**推荐工作流程：**
-1. 📖 先读文档，理解需求
-2. 📋 选择任务，更新状态
-3. 💻 编写代码，遵循规范
-4. 🧪 编写测试，确保质量
-5. ✅ 完成任务，更新进度
-
-**记住核心理念：**
-> "为自媒体创作者打造最好用的AI照片管理工具"
-
-让我们开始吧！🚀
-
----
-
-**文档版本**: 1.0.0
-**创建日期**: 2024-11-12
-**目标用户**: Coding AI
-**项目阶段**: Phase 1 MVP开发
-
-## 🔗 快速链接
-
-- [开始第一个任务 →](./AI_TASK_TRACKER.md#day-1-2-项目初始化和环境配置)
-- [查看代码示例 →](./AI_DEVELOPMENT_GUIDE.md#任务12-实现核心检测器)
-- [了解编码规范 →](./AI_CODING_STANDARDS.md#python代码规范)
-- [查看项目需求 →](./decisions/REQUIREMENTS_BRIEF.md)
+Stay disciplined, keep the documentation synchronized, and the project remains tractable for any subsequent coding AI.

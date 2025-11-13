@@ -1,348 +1,55 @@
-# 🎯 AI任务跟踪器 - Vibe Photos开发任务清单
+# Vibe Photos Task Tracker — Coding AI Backlog
 
-> 本文档为Coding AI提供结构化的任务清单，便于跟踪进度和管理开发工作
+Use this tracker as the single source of truth for what each coding AI should execute next. Update statuses and notes as you work.
 
-## 📊 任务管理规范
+## Legend
+- **Status:** ⬜ Not started · 🟨 In progress · ✅ Done · 🔄 Rework · ❌ Dropped
+- **Priority:** 🔴 P0 (blocker), 🟠 P1 (critical), 🟡 P2 (important), 🟢 P3 (nice-to-have)
+- **Notes column:** Log blockers, decisions, links to commits/PRs, or context for the next assignee.
 
-### 任务状态定义
-- ⬜ **待开始**: 尚未开始的任务
-- 🟨 **进行中**: 正在进行的任务
-- ✅ **已完成**: 已完成并验证的任务
-- ❌ **已取消**: 因需求变更取消的任务
-- 🔄 **需重做**: 需要重新实现的任务
+## Phase 1 — MVP Delivery (Active)
+| Status | Priority | ID | Description | Dependencies | Expected Output | Notes |
+|--------|----------|----|-------------|--------------|-----------------|-------|
+| ⬜ | 🔴 P0 | ENV-001 | Materialize repository structure & init script. | — | `init_project.sh`, directory tree | |
+| ⬜ | 🔴 P0 | ENV-002 | Finalize `pyproject.toml` + lockfile. | ENV-001 | Updated `pyproject.toml`, `uv.lock` | |
+| ⬜ | 🔴 P0 | ENV-003 | Bootstrap `uv` environment and core deps install. | ENV-002 | Reproducible venv instructions | |
+| ⬜ | 🟠 P1 | ENV-004 | Model cache bootstrap (SigLIP, BLIP, PaddleOCR). | ENV-003 | Cached models under `models/` | |
+| ⬜ | 🟠 P1 | ENV-005 | Configuration templates (`config/settings.yaml`). | ENV-001 | Template + documentation | |
+| ⬜ | 🔴 P0 | DET-001 | Implement SigLIP loader abstraction. | ENV-004 | `src/models/siglip.py` | |
+| ⬜ | 🔴 P0 | DET-002 | Implement BLIP loader abstraction. | ENV-004 | `src/models/blip.py` | |
+| ⬜ | 🔴 P0 | DET-003 | Compose unified detector (labels + captions). | DET-001, DET-002 | `src/core/detector.py` | |
+| ⬜ | 🟠 P1 | DET-004 | Batch processor orchestrating detector + OCR. | DET-003, OCR-001 | `src/core/processor.py` | |
+| ⬜ | 🔴 P0 | OCR-001 | PaddleOCR service with caching + batching. | ENV-004 | `src/core/ocr.py` | |
+| ⬜ | 🔴 P0 | DB-001 | Define SQLite schema & migrations. | ENV-001 | `src/core/database.py`, migrations | |
+| ⬜ | 🔴 P0 | DB-002 | Persistence services (CRUD + search helpers). | DB-001 | Repository classes/tests | |
+| ⬜ | 🔴 P0 | API-001 | FastAPI app factory + health endpoint. | DB-002 | `src/api/main.py` | |
+| ⬜ | 🔴 P0 | API-002 | `/import` ingestion endpoint (async upload). | API-001, DET-004 | `routes/import.py` | |
+| ⬜ | 🔴 P0 | API-003 | `/search` endpoint returning ranked assets. | API-001, DB-002 | `routes/search.py` | |
+| ⬜ | 🟠 P1 | CLI-001 | Typer CLI commands (`ingest`, `search`). | DET-004, DB-002 | `src/cli.py` | |
+| ⬜ | 🟠 P1 | UI-001 | Streamlit MVP dashboard hooking core services. | DET-004, DB-002 | `blueprints/phase1/app.py` | |
+| ⬜ | 🟠 P1 | TEST-001 | Unit tests for detector/ocr/database/search. | DET-003, DB-002 | `tests/unit/...` | |
+| ⬜ | 🟠 P1 | TEST-002 | API + CLI integration tests. | API-003, CLI-001 | `tests/integration/...` | |
+| ⬜ | 🟡 P2 | PERF-001 | Benchmark ingestion throughput (≥10 img/s). | DET-004 | `tests/perf/test_ingestion_speed.py` | |
+| ⬜ | 🟡 P2 | DOC-001 | Update docs + diagrams after MVP stabilization. | INT-001 | Updated manuals | |
 
-### 优先级定义
-- 🔴 **P0-紧急**: 必须立即完成，阻塞其他任务
-- 🟠 **P1-高**: 核心功能，必须完成
-- 🟡 **P2-中**: 重要功能，本阶段需要完成
-- 🟢 **P3-低**: 优化类任务，可延后
+## Phase 2 — Semantic Search Upgrade (Planned)
+| Status | Priority | ID | Description | Dependencies | Output |
+|--------|----------|----|-------------|--------------|--------|
+| ⬜ | 🔴 P0 | EMB-001 | Image embedding pipeline (SigLIP features). | Phase 1 complete | `src/models/embedder.py` |
+| ⬜ | 🔴 P0 | EMB-002 | Text embedding pipeline for captions/OCR. | EMB-001 | Unified embedding interface |
+| ⬜ | 🟠 P1 | SRCH-001 | Vector index management (FAISS/pgvector). | EMB-001 | Vector store adapter |
+| ⬜ | 🟠 P1 | SRCH-002 | Hybrid search ranking (vector + metadata). | SRCH-001 | Ranking module |
+| ⬜ | 🟡 P2 | UI-002 | Advanced filtering UI for semantic search. | SRCH-002 | Updated Streamlit/Gradio views |
 
-## 📅 Phase 1: MVP开发任务
+## Phase Final — Production Platform (Planned)
+| Status | Priority | ID | Description | Dependencies | Output |
+|--------|----------|----|-------------|--------------|--------|
+| ⬜ | 🔴 P0 | INF-001 | Provision PostgreSQL + pgvector infra scripts. | Phase 2 | Terraform/Ansible templates |
+| ⬜ | 🔴 P0 | INF-002 | Celery + Redis task fabric. | INF-001 | Worker deployment configs |
+| ⬜ | 🟠 P1 | OPS-001 | Observability stack (Prometheus/Grafana). | INF-002 | Monitoring dashboards |
+| ⬜ | 🟡 P2 | OPS-002 | CI/CD automation + smoke tests. | INF-001 | Pipeline definitions |
 
-### 模块1: 项目初始化和环境配置
-| 状态 | 优先级 | 任务ID | 任务描述 | 依赖 | 输出 |
-|------|--------|--------|----------|------|------|
-| ⬜ | 🔴 P0 | ENV-001 | 初始化项目结构 | - | 项目目录结构 |
-| ⬜ | 🔴 P0 | ENV-002 | 配置pyproject.toml | ENV-001 | 依赖配置文件 |
-| ⬜ | 🔴 P0 | ENV-003 | 安装核心依赖（torch, transformers） | ENV-002 | 虚拟环境 |
-| ⬜ | 🟠 P1 | ENV-004 | 下载AI模型文件 | ENV-003 | 模型缓存 |
-| ⬜ | 🟠 P1 | ENV-005 | 创建配置文件模板 | ENV-001 | config/settings.yaml |
-| ⬜ | 🟡 P2 | ENV-006 | 设置日志系统 | ENV-001 | src/utils/logger.py |
-
-### 模块2: 核心检测器实现
-| 状态 | 优先级 | 任务ID | 任务描述 | 依赖 | 输出 |
-|------|--------|--------|----------|------|------|
-| ⬜ | 🔴 P0 | DET-001 | 实现SigLIP模型加载 | ENV-004 | siglip_model.py |
-| ⬜ | 🔴 P0 | DET-002 | 实现BLIP模型加载 | ENV-004 | blip_model.py |
-| ⬜ | 🔴 P0 | DET-003 | 实现基础图像检测器 | DET-001,DET-002 | detector.py |
-| ⬜ | 🟠 P1 | DET-004 | 实现批处理逻辑 | DET-003 | processor.py |
-| ⬜ | 🟠 P1 | DET-005 | 添加缓存机制 | DET-004 | cache_manager.py |
-| ⬜ | 🟡 P2 | DET-006 | 实现性能监控 | DET-004 | metrics.py |
-
-### 模块3: 数据层实现
-| 状态 | 优先级 | 任务ID | 任务描述 | 依赖 | 输出 |
-|------|--------|--------|----------|------|------|
-| ⬜ | 🔴 P0 | DB-001 | 设计数据库schema | - | 数据模型文档 |
-| ⬜ | 🔴 P0 | DB-002 | 实现SQLAlchemy模型 | DB-001 | database.py |
-| ⬜ | 🔴 P0 | DB-003 | 实现CRUD操作 | DB-002 | 数据库操作方法 |
-| ⬜ | 🟠 P1 | DB-004 | 实现搜索功能 | DB-003 | search方法 |
-| ⬜ | 🟠 P1 | DB-005 | 添加数据库索引 | DB-002 | 优化查询 |
-| ⬜ | 🟡 P2 | DB-006 | 实现数据导出 | DB-003 | export方法 |
-
-### 模块4: FastAPI接口开发
-| 状态 | 优先级 | 任务ID | 任务描述 | 依赖 | 输出 |
-|------|--------|--------|----------|------|------|
-| ⬜ | 🔴 P0 | API-001 | 创建FastAPI应用主体 | DB-003 | main.py |
-| ⬜ | 🔴 P0 | API-002 | 实现/import/batch接口 | DET-004 | 批量导入API |
-| ⬜ | 🔴 P0 | API-003 | 实现/search接口 | DB-004 | 搜索API |
-| ⬜ | 🟠 P1 | API-004 | 实现/annotate接口 | DB-003 | 标注API |
-| ⬜ | 🟠 P1 | API-005 | 实现/stats接口 | DB-003 | 统计API |
-| ⬜ | 🟠 P1 | API-006 | 添加API文档 | API-001 | OpenAPI文档 |
-| ⬜ | 🟡 P2 | API-007 | 实现错误处理中间件 | API-001 | 错误处理 |
-| ⬜ | 🟡 P2 | API-008 | 添加请求日志 | API-001 | 日志中间件 |
-
-### 模块5: CLI和测试
-| 状态 | 优先级 | 任务ID | 任务描述 | 依赖 | 输出 |
-|------|--------|--------|----------|------|------|
-| ⬜ | 🔴 P0 | CLI-001 | 实现import命令 | DET-004 | CLI导入功能 |
-| ⬜ | 🔴 P0 | CLI-002 | 实现search命令 | DB-004 | CLI搜索功能 |
-| ⬜ | 🟠 P1 | CLI-003 | 实现stats命令 | DB-003 | CLI统计功能 |
-| ⬜ | 🟠 P1 | CLI-004 | 添加进度条显示 | CLI-001 | 用户体验优化 |
-| ⬜ | 🟠 P1 | TEST-001 | 编写检测器测试 | DET-003 | test_detector.py |
-| ⬜ | 🟠 P1 | TEST-002 | 编写数据库测试 | DB-003 | test_database.py |
-| ⬜ | 🟡 P2 | TEST-003 | 编写API测试 | API-003 | test_api.py |
-| ⬜ | 🟡 P2 | TEST-004 | 性能基准测试 | DET-004 | benchmark.py |
-
-### 模块6: 集成和优化
-| 状态 | 优先级 | 任务ID | 任务描述 | 依赖 | 输出 |
-|------|--------|--------|----------|------|------|
-| ⬜ | 🔴 P0 | INT-001 | 端到端测试 | ALL | 集成测试 |
-| ⬜ | 🔴 P0 | INT-002 | 修复发现的bug | INT-001 | Bug修复 |
-| ⬜ | 🟠 P1 | INT-003 | 性能优化 | INT-001 | 性能提升 |
-| ⬜ | 🟠 P1 | DOC-001 | 编写README | INT-002 | 文档 |
-| ⬜ | 🟡 P2 | DOC-002 | 编写API文档 | API-006 | API说明 |
-| ⬜ | 🟡 P2 | DOC-003 | 创建示例代码 | INT-002 | examples/ |
-
-## 📅 Phase 2: 语义搜索增强
-
-### 模块7: 向量嵌入实现
-| 状态 | 优先级 | 任务ID | 任务描述 | 依赖 | 输出 |
-|------|--------|--------|----------|------|------|
-| ⬜ | 🔴 P0 | EMB-001 | 实现图像向量编码 | Phase1 | embedder.py |
-| ⬜ | 🔴 P0 | EMB-002 | 实现文本向量编码 | EMB-001 | 文本编码 |
-| ⬜ | 🔴 P0 | EMB-003 | 实现相似度计算 | EMB-001 | 相似度函数 |
-| ⬜ | 🟠 P1 | EMB-004 | 向量存储到数据库 | EMB-001 | 数据库更新 |
-| ⬜ | 🟠 P1 | EMB-005 | 批量向量处理 | EMB-004 | 批处理优化 |
-| ⬜ | 🟡 P2 | EMB-006 | 向量缓存机制 | EMB-004 | 缓存优化 |
-
-### 模块8: 混合搜索实现
-| 状态 | 优先级 | 任务ID | 任务描述 | 依赖 | 输出 |
-|------|--------|--------|----------|------|------|
-| ⬜ | 🔴 P0 | SRCH-001 | 实现向量搜索 | EMB-003 | vector_search |
-| ⬜ | 🔴 P0 | SRCH-002 | 实现混合搜索 | SRCH-001 | hybrid_search |
-| ⬜ | 🟠 P1 | SRCH-003 | 实现结果融合算法 | SRCH-002 | merge算法 |
-| ⬜ | 🟠 P1 | SRCH-004 | 搜索性能优化 | SRCH-002 | 优化 |
-| ⬜ | 🟡 P2 | SRCH-005 | 添加搜索日志 | SRCH-002 | 日志分析 |
-
-## 📅 Phase 3: 生产级系统
-
-### 模块9: 基础设施升级
-| 状态 | 优先级 | 任务ID | 任务描述 | 依赖 | 输出 |
-|------|--------|--------|----------|------|------|
-| ⬜ | 🔴 P0 | PROD-001 | PostgreSQL环境搭建 | - | 数据库环境 |
-| ⬜ | 🔴 P0 | PROD-002 | pgvector配置 | PROD-001 | 向量支持 |
-| ⬜ | 🔴 P0 | PROD-003 | 数据迁移脚本 | PROD-002 | 迁移工具 |
-| ⬜ | 🟠 P1 | PROD-004 | Redis缓存集成 | PROD-001 | 缓存层 |
-| ⬜ | 🟠 P1 | PROD-005 | Celery任务队列 | PROD-004 | 异步处理 |
-| ⬜ | 🟡 P2 | PROD-006 | 监控系统搭建 | PROD-005 | Prometheus |
-
-### 模垂10: 高级功能开发
-| 状态 | 优先级 | 任务ID | 任务描述 | 依赖 | 输出 |
-|------|--------|--------|----------|------|------|
-| ⬜ | 🔴 P0 | ADV-001 | RRF搜索算法 | PROD-002 | 高级搜索 |
-| ⬜ | 🟠 P1 | ADV-002 | Few-shot学习 | ADV-001 | 学习系统 |
-| ⬜ | 🟠 P1 | ADV-003 | 用户偏好学习 | ADV-002 | 个性化 |
-| ⬜ | 🟡 P2 | ADV-004 | 批量标注工具 | ADV-001 | 标注优化 |
-| ⬜ | 🟡 P2 | ADV-005 | 高级过滤器 | ADV-001 | 过滤功能 |
-
-### 模垂11: 部署和优化
-| 状态 | 优先级 | 任务ID | 任务描述 | 依赖 | 输出 |
-|------|--------|--------|----------|------|------|
-| ⬜ | 🔴 P0 | DEPL-001 | Docker镜像构建 | ADV-001 | Dockerfile |
-| ⬜ | 🔴 P0 | DEPL-002 | CI/CD配置 | DEPL-001 | GitHub Actions |
-| ⬜ | 🟠 P1 | DEPL-003 | 负载测试 | DEPL-001 | 性能报告 |
-| ⬜ | 🟠 P1 | DEPL-004 | 安全审计 | DEPL-001 | 安全报告 |
-| ⬜ | 🟡 P2 | DEPL-005 | 文档完善 | DEPL-002 | 完整文档 |
-| ⬜ | 🟡 P2 | DEPL-006 | 培训材料 | DEPL-005 | 培训文档 |
-
-## 📈 任务执行指南
-
-### 任务执行顺序规则
-1. **先P0后P1**: 始终先完成P0任务
-2. **依赖优先**: 有依赖的任务必须等待依赖完成
-3. **并行执行**: 无依赖关系的任务可并行
-4. **测试驱动**: 先写测试，再写实现
-5. **持续集成**: 每完成一个模块就集成测试
-
-### 任务完成标准
-```yaml
-代码完成:
-  - 功能实现完整
-  - 类型注解完整
-  - 错误处理完善
-  - 日志记录充分
-
-测试完成:
-  - 单元测试通过
-  - 集成测试通过
-  - 测试覆盖>80%
-  - 性能达标
-
-文档完成:
-  - 代码注释清晰
-  - API文档更新
-  - README更新
-  - 示例代码可运行
-```
-
-### 任务评估模板
-```markdown
-## 任务ID: XXX-000
-### 完成情况
-- 实现功能: ✅/❌
-- 编写测试: ✅/❌
-- 更新文档: ✅/❌
-- 代码审查: ✅/❌
-
-### 性能指标
-- 执行时间: Xms
-- 内存占用: XMB
-- 测试覆盖: X%
-
-### 问题和风险
-- 问题1: 描述
-- 风险1: 描述
-
-### 下一步
-- 后续任务1
-- 优化方向1
-```
-
-## 🔄 任务状态汇总
-
-### Phase 1 进度
-```
-总任务数: 46
-⬜ 待开始: 46 (100%)
-🟨 进行中: 0 (0%)
-✅ 已完成: 0 (0%)
-❌ 已取消: 0 (0%)
-
-优先级分布:
-🔴 P0: 18个
-🟠 P1: 18个
-🟡 P2: 10个
-🟢 P3: 0个
-```
-
-### 关键路径任务
-```mermaid
-graph LR
-    ENV-001 --> ENV-002 --> ENV-003 --> ENV-004
-    ENV-004 --> DET-001 --> DET-003
-    ENV-004 --> DET-002 --> DET-003
-    DET-003 --> DET-004 --> API-002
-    DB-002 --> DB-003 --> DB-004 --> API-003
-    API-001 --> API-002
-    API-001 --> API-003
-```
-
-## 🎯 任务执行建议
-
-### 任务并行建议
-```
-可并行任务组:
-- Group 1: [DET-001, DET-002] - 模型加载可并行
-- Group 2: [DB-002, ENV-005, ENV-006] - 无依赖关系
-- Group 3: [API-002, API-003, API-004] - 不同接口可并行开发
-- Group 4: [TEST-001, TEST-002, TEST-003] - 测试可并行编写
-```
-
-## 💡 AI执行提示
-
-### 任务开始前检查
-```python
-def before_task_checklist(task_id: str):
-    """任务开始前的检查清单"""
-    checklist = {
-        "dependencies_ready": check_dependencies(task_id),
-        "environment_ready": check_environment(),
-        "tests_planned": plan_tests(task_id),
-        "time_allocated": estimate_time(task_id),
-        "output_defined": define_outputs(task_id)
-    }
-    return all(checklist.values())
-```
-
-### 任务完成后验证
-```python
-def after_task_validation(task_id: str):
-    """任务完成后的验证"""
-    validation = {
-        "code_complete": verify_implementation(),
-        "tests_passing": run_tests(),
-        "docs_updated": check_documentation(),
-        "performance_ok": check_performance(),
-        "no_regressions": run_regression_tests()
-    }
-    return all(validation.values())
-```
-
-### 任务切换策略
-1. **完成当前任务**: 不要半途切换
-2. **提交代码**: 每个任务完成后提交
-3. **运行测试**: 确保不破坏已有功能
-4. **更新文档**: 及时记录变更
-5. **标记完成**: 更新任务状态
-
-## 📊 风险管理矩阵
-
-| 风险类别 | 风险描述 | 概率 | 影响 | 缓解措施 |
-|----------|----------|------|------|----------|
-| 技术风险 | 模型加载失败 | 中 | 高 | 提供离线模型下载方案 |
-| 技术风险 | 内存溢出 | 中 | 高 | 实现批处理和内存管理 |
-| 进度风险 | 任务延期 | 高 | 中 | 保持最小功能集，渐进增强 |
-| 质量风险 | 测试不足 | 中 | 高 | 强制TDD，自动化测试 |
-| 依赖风险 | 包版本冲突 | 低 | 中 | 使用uv锁定版本 |
-
-## 🏁 里程碑和交付物
-
-### Phase 1 里程碑
-- **M1**: 核心检测功能完成
-  - 交付物: 可运行的检测器，测试报告
-- **M2**: MVP系统完成
-  - 交付物: 完整API，CLI工具，文档
-
-### Phase 2 里程碑
-- **M3**: 向量搜索实现
-  - 交付物: 向量搜索API，性能报告
-- **M4**: 混合搜索完成
-  - 交付物: 增强搜索系统，测试结果
-
-### Phase 3 里程碑
-- **M5**: 基础设施升级
-  - 交付物: PostgreSQL系统，迁移工具
-- **M6**: 高级功能完成
-  - 交付物: Few-shot学习，个性化系统
-- **M7**: 生产部署
-  - 交付物: Docker镜像，部署文档，运维手册
-
----
-
-## 📝 使用说明
-
-### 给Coding AI的使用指南
-
-1. **查看当前任务**
-   - 找到状态为⬜的最高优先级任务
-   - 检查其依赖是否已完成
-   - 评估预计时间
-
-2. **开始任务**
-   - 将状态从⬜改为🟨
-   - 记录开始时间
-   - 创建相应的代码文件
-
-3. **完成任务**
-   - 运行测试确保通过
-   - 将状态从🟨改为✅
-   - 记录实际用时
-   - 更新相关文档
-
-4. **遇到问题**
-   - 记录在"问题和风险"部分
-   - 如果阻塞，标记任务为🔄
-   - 寻找可并行的其他任务
-
-5. **每日总结**
-   - 统计完成的任务数
-   - 更新进度百分比
-   - 计划第二天的任务
-
-### 任务优先级决策树
-```
-是否有P0任务未完成？
-  是 → 执行P0任务
-  否 → 是否有P1任务未完成？
-    是 → 执行P1任务
-    否 → 是否有P2任务未完成？
-      是 → 执行P2任务
-      否 → 执行P3任务或优化
-```
-
----
-
-**文档版本**: 1.1.0
-**最后更新**: 2024-11-12
-**用途**: AI开发任务管理
-**注意**: 开发效率完全取决于AI，无需时间估算
+## Usage Notes
+- Update this file immediately after changing a task’s status.
+- Link related commits or PR numbers in the Notes column.
+- When closing a task, ensure deliverables meet the Definition of Done in `AI_DEVELOPMENT_GUIDE.md`.

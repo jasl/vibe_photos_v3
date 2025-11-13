@@ -1,87 +1,40 @@
-# 需求概要 - AI理解专用
+# Requirements Brief — Coding AI Edition
 
-> 本文档专门为AI模型理解需求而设计，不包含技术决策细节
+This brief captures user-facing needs without prescribing implementation details. Treat it as the product contract.
 
-## 🎯 核心目标
+## Mission Statement
+Deliver a local-first, AI-assisted photo management assistant for Chinese content creators who maintain thousands of images for reviews, tutorials, and recommendations.
 
-为自媒体创作者打造一个智能照片管理助手，帮助他们从海量照片中快速找到所需素材。
+## Target Users
+- Independent or small-team creators producing long-form articles or videos.
+- Maintain personal libraries spanning electronics, food, documents, portraits, and scenery.
+- Need fast recall of niche items (e.g., specific gadget models) and story-driven photo sets.
 
-## 👤 目标用户
+## Functional Requirements
+1. **Photo Understanding**
+   - Classify high-level categories and drill down to brand/model when possible.
+   - Extract captions and OCR text for mixed-language assets.
+2. **Search & Retrieval**
+   - Natural-language queries like “latest iPhone photos from last month”.
+   - Combine filters (category + time range + tags) with fuzzy matching.
+   - Group near-duplicate or similar images.
+3. **Bulk Operations**
+   - Import and process thousands of images in a single batch.
+   - Support incremental updates—only new files require full processing.
+   - Export curated collections for publication workflows.
+4. **Adaptive Learning**
+   - Accept manual corrections; learn user-specific labels over time.
+   - Provide transparent suggestions rather than full automation.
 
-**自媒体创作者**
-- 撰写产品评测、美食推荐、技术教程
-- 拥有大量照片素材（数千到数万张）
-- 需要快速检索特定类型照片
-- 经常处理专业/罕见产品
+## Success Metrics
+- Classification accuracy ≥85% on representative creator datasets.
+- Search latency ≤500 ms for libraries up to 10k images.
+- Ingestion throughput ≥10 images/sec (CPU baseline).
+- Users can complete a typical retrieval task within 3 minutes of logging in.
 
-## 📋 功能需求
+## Non-Goals
+- No image editing or advanced manipulation features.
+- No built-in social sharing or cloud synchronization during POC phases.
+- No promise of full autonomy; human-in-the-loop workflows remain.
 
-### 1. 照片识别
-- **识别什么**：电子产品、美食、文档、人物、风景等
-- **识别粒度**：大类 → 品牌 → 具体型号
-- **特殊需求**：支持罕见/专业产品识别
-
-### 2. 智能搜索
-- **自然语言**：理解"最近拍的iPhone"等描述
-- **组合条件**：支持多条件组合搜索
-- **模糊匹配**：相关内容也能找到
-- **时间过滤**：按拍摄时间筛选
-
-### 3. 批量管理
-- **批量导入**：一次处理上千张照片
-- **自动分类**：智能归类整理
-- **去重功能**：识别相似照片
-- **导出功能**：按主题导出素材包
-
-### 4. 学习能力
-- **个性化**：学习用户标注习惯
-- **持续优化**：越用越准确
-- **人工辅助**：支持人工标注改进
-
-## 📊 典型使用场景
-
-1. **写作准备**："找出所有MacBook Pro照片用于历史回顾文章"
-2. **产品对比**："收集iPhone各代对比照片"
-3. **主题创作**："整理所有美食照片做专题"
-4. **时间线**："按时间顺序查看产品演进"
-
-## ✨ 用户价值
-
-- **节省时间**：每日节省30分钟找图时间
-- **提升效率**：3分钟内找到所需照片
-- **易于使用**：无需专业知识
-- **持续改进**：使用越多越智能
-
-## 📈 成功标准
-
-### 功能指标
-- 通用物品识别准确率 > 85%
-- 搜索响应时间 < 500ms
-- 批处理速度 > 10张/秒
-
-### 用户体验
-- 3分钟内看到效果
-- 一周内显著提升效率
-- 简单直观的操作界面
-
-## 🚫 明确不做
-
-- 不追求100%全自动化（保留人工干预）
-- 不做图像编辑功能（专注管理）
-- 不做社交分享（专注个人生产力）
-- 不做云端存储（本地化处理）
-
-## 📝 需求总结
-
-**一句话概括**：为自媒体创作者提供一个简单、智能、高效的本地照片素材管理工具，通过AI识别和智能搜索，大幅提升找图效率。
-
-**核心差异化**：
-1. 专为创作者优化（非通用相册）
-2. AI+人工混合策略（实用优先）
-3. 支持专业产品识别（可学习）
-4. 本地化处理（隐私保护）
-
----
-
-*注：技术实现细节请查看 [技术决策文档](./TECHNICAL_DECISIONS.md)*
-
+Keep this brief intact. Any scope change must be explicitly approved and recorded in the decision logs.

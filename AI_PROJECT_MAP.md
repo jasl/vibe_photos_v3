@@ -1,194 +1,46 @@
-# 🗺️ AI项目地图 - Vibe Photos开发导航
+# Vibe Photos Documentation Map — Coding AI Edition
 
-> 本文档为Coding AI提供项目文档的快速导航地图
+Treat this file as the directory of directories. Every maintained artifact is listed here with its purpose so you can navigate the knowledge base without guesswork.
 
-## 📚 核心文档体系
+## 1. Primary Manuals
+| File | Why it matters | When to read |
+|------|----------------|--------------|
+| [`README.md`](README.md) | High-level orientation, repository entry checklist. | First touch each session. |
+| [`AI_DEVELOPMENT_GUIDE.md`](AI_DEVELOPMENT_GUIDE.md) | Execution blueprint: scope, milestones, reference architecture. | Before starting a feature or refactor. |
+| [`AI_IMPLEMENTATION_DETAILS.md`](AI_IMPLEMENTATION_DETAILS.md) | Module-by-module expectations, data flow notes. | When implementing or modifying a component. |
+| [`AI_CODING_STANDARDS.md`](AI_CODING_STANDARDS.md) | Style, logging, testing, error-handling guardrails. | While coding and reviewing. |
+| [`AI_TASK_TRACKER.md`](AI_TASK_TRACKER.md) | Source of truth for backlog, owners, and current status. | At the beginning and end of every work cycle. |
 
-### 🎯 开发执行文档
-| 文档 | 用途 | 优先级 | 状态 |
-|------|------|--------|------|
-| [AI_DEVELOPMENT_GUIDE.md](./AI_DEVELOPMENT_GUIDE.md) | 完整开发指南和代码示例 | 🔴 必读 | ✅ 完成 |
-| [AI_TASK_TRACKER.md](./AI_TASK_TRACKER.md) | 任务管理和进度跟踪 | 🔴 必读 | ✅ 完成 |
-| [AI_CODING_STANDARDS.md](./AI_CODING_STANDARDS.md) | 代码规范和质量标准 | 🔴 必读 | ✅ 完成 |
-| [README_FOR_AI.md](./README_FOR_AI.md) | AI快速入门指南 | 🟡 建议 | ✅ 完成 |
+## 2. Decision Intelligence
+| File | Scope |
+|------|-------|
+| [`decisions/REQUIREMENTS_BRIEF.md`](decisions/REQUIREMENTS_BRIEF.md) | Product contract: user stories, must-have features, anti-goals. |
+| [`decisions/TECHNICAL_DECISIONS.md`](decisions/TECHNICAL_DECISIONS.md) | Binding tech choices for each program phase. |
+| [`decisions/AI_DECISION_RECORD.md`](decisions/AI_DECISION_RECORD.md) | Lightweight ADRs with rationale and status. |
+| [`decisions/archives/*.md`](decisions/archives) | Superseded decisions (read only for context). |
 
-### 🏗️ 技术方案文档
-| 文档 | 内容 | 使用场景 | 状态 |
-|------|------|----------|------|
-| [blueprints/AI_BLUEPRINT_GUIDE.md](./blueprints/AI_BLUEPRINT_GUIDE.md) | 架构设计和模块定义 | 实现新模块时参考 | ✅ 新建 |
-| [decisions/AI_DECISION_RECORD.md](./decisions/AI_DECISION_RECORD.md) | 技术决策和约束 | 遇到技术选择时查阅 | ✅ 新建 |
+## 3. Blueprint Library
+- `blueprints/phase1/` – Active phase documents, runnable prototypes, dataset usage guides, architecture slices.
+- `blueprints/phase_final/` – Target system design, integration plans, and research summaries for the production build.
+- `blueprints/AI_BLUEPRINT_GUIDE.md` – How to consume and extend blueprint material.
 
-## 🚀 开发工作流
+## 4. Delivery Lifecycle Artifacts
+| Purpose | Artifact |
+|---------|----------|
+| Release planning | [`ROADMAP.md`](ROADMAP.md) |
+| Dependency governance | [`DEPENDENCIES.md`](DEPENDENCIES.md), [`UV_USAGE.md`](UV_USAGE.md) |
+| Quality gates | [`FINAL_CHECKLIST.md`](FINAL_CHECKLIST.md), [`AI_AUDIT_REPORT.md`](AI_AUDIT_REPORT.md) |
+| Phase transition notices | [`POC_PHASE_NOTICE.md`](POC_PHASE_NOTICE.md) |
 
-### Step 1: 理解项目
-```bash
-# Read in this order:
-1. README_FOR_AI.md          # Quick overview
-2. AI_DECISION_RECORD.md     # Technical constraints
-3. AI_BLUEPRINT_GUIDE.md     # Architecture design
-```
+## 5. How to Consume This Map
+1. Identify the task you are about to perform (e.g., implement detector API, adjust vector DB integration).
+2. Use the tables above to open the documents that constrain or inform that task.
+3. Record any gaps you discover in `AI_TASK_TRACKER.md` under the "Notes" column so the next coding AI can patch the docs.
+4. If multiple artifacts disagree, default to the most specific scope (e.g., blueprint > roadmap > README) and flag the conflict.
 
-### Step 2: 开始编码
-```bash
-# Check task and start coding:
-1. AI_TASK_TRACKER.md        # Pick a task
-2. AI_DEVELOPMENT_GUIDE.md   # Follow examples
-3. AI_CODING_STANDARDS.md    # Apply standards
-```
+## 6. Maintenance Expectations
+- Keep links valid when renaming or relocating files.
+- When adding new documentation, register it here with the same structure so future coding AIs can discover it instantly.
+- Update status indicators (e.g., ✅/🚧/⬜) in the referenced docs instead of duplicating progress notes here.
 
-### Step 3: 验证质量
-```bash
-# Verify implementation:
-1. Run tests: uv run pytest
-2. Check coverage: >80%
-3. Update task status in AI_TASK_TRACKER.md
-```
-
-## 📋 任务执行优先级
-
-### Phase 1 MVP (Current Focus)
-```yaml
-priority_order:
-  1. Environment Setup:
-     - Initialize project structure
-     - Configure uv and dependencies
-     - Download AI models
-     
-  2. Core Modules:
-     - Image detector (SigLIP + BLIP)
-     - Database layer (SQLite)
-     - Batch processor
-     
-  3. API Layer:
-     - FastAPI application
-     - Core endpoints
-     - Error handling
-     
-  4. Testing:
-     - Unit tests
-     - Integration tests
-     - Performance benchmarks
-```
-
-## 🎯 核心技术约束
-
-### Must Follow Rules
-```yaml
-language:
-  code: "English only"           # All source code in English
-  docs: "Chinese allowed"         # Documentation can be Chinese
-  
-technology:
-  python: "3.12"                  # Fixed version
-  package_manager: "uv"           # No pip/conda/poetry
-  
-patterns:
-  programming: "Functional first" # Avoid unnecessary classes
-  errors: "Early return"          # Handle errors early
-  async: "Preferred"              # Use async/await for I/O
-```
-
-## 📊 文档使用矩阵
-
-| 场景 | 查阅文档 |
-|------|----------|
-| 开始新任务 | AI_TASK_TRACKER.md |
-| 实现新功能 | AI_DEVELOPMENT_GUIDE.md |
-| 架构设计 | AI_BLUEPRINT_GUIDE.md |
-| 技术选型 | AI_DECISION_RECORD.md |
-| 代码规范 | AI_CODING_STANDARDS.md |
-| 遇到问题 | AI_DECISION_RECORD.md → Anti-Patterns |
-| 性能优化 | AI_BLUEPRINT_GUIDE.md → Performance |
-| 测试策略 | AI_CODING_STANDARDS.md → Testing |
-
-## 🔄 项目状态
-
-### Current Phase
-```yaml
-phase: "Phase 1 MVP"
-status: "Ready to implement"
-next_milestone: "Core detector module"
-```
-
-### Implementation Progress
-```yaml
-completed:
-  - Project documentation ✅
-  - Technical decisions ✅
-  - Architecture design ✅
-  
-in_progress:
-  - Environment setup 🟡
-  
-pending:
-  - Core modules ⬜
-  - API implementation ⬜
-  - Testing ⬜
-```
-
-## 💡 Quick Commands
-
-### Development Commands
-```bash
-# Environment setup
-uv init
-uv add torch transformers fastapi sqlalchemy
-
-# Run development server
-uv run uvicorn src.api.main:app --reload
-
-# Run tests
-uv run pytest tests/ -v
-
-# Check code quality
-uv run ruff check src/
-```
-
-### Model Download
-```python
-# Download required models (run once)
-from transformers import AutoModel
-
-AutoModel.from_pretrained("google/siglip-base-patch16-224-i18n")
-AutoModel.from_pretrained("Salesforce/blip-image-captioning-base")
-```
-
-## 📝 Document Maintenance
-
-### Update Triggers
-- Task completion → Update AI_TASK_TRACKER.md
-- New technical decision → Update AI_DECISION_RECORD.md
-- Architecture change → Update AI_BLUEPRINT_GUIDE.md
-- Code pattern discovered → Update AI_CODING_STANDARDS.md
-
-### Version Control
-```yaml
-commit_format:
-  type: ["feat", "fix", "docs", "refactor", "test", "perf"]
-  scope: "(module_name)"
-  description: "Clear description in English or Chinese"
-  
-example: "feat(detector): implement SigLIP classification"
-```
-
-## ✅ Success Criteria
-
-### Phase 1 Completion
-- [ ] All P0 tasks in AI_TASK_TRACKER.md completed
-- [ ] Core modules implemented and tested
-- [ ] API endpoints functional
-- [ ] Test coverage >80%
-- [ ] Documentation updated
-
-### Quality Gates
-- [ ] No Python code with Chinese comments
-- [ ] All functions have type hints
-- [ ] All errors properly handled
-- [ ] Performance meets requirements
-- [ ] Code follows standards
-
----
-
-**Navigation Guide Version**: 1.0.0
-**Project Status**: Ready for Implementation
-**Next Action**: Start ENV-001 task from AI_TASK_TRACKER.md
+Stay disciplined about using this map—documentation drift is the fastest way to make the project hostile to autonomous contributors.

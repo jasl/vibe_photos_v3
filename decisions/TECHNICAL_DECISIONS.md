@@ -1,233 +1,34 @@
-# 技术决策记录
+# Technical Decisions Summary — Coding AI Digest
 
-> 本文档集中记录项目所有关键技术决策，供参考和回溯
+This document aggregates the active decisions from `AI_DECISION_RECORD.md` for quick reference. For rationale and history, consult the detailed log or archives.
 
-## 📌 决策状态图例
-- ✅ **已确定** - 已实施并验证的决策
-- 🔄 **规划中** - 计划但尚未实施的决策  
-- ⚠️ **已废弃** - 因问题被替换的决策
-- 📅 **时间戳** - 决策制定时间
+## Phase 1 (Active)
+| Domain | Decision | Status |
+|--------|----------|--------|
+| Architecture | Progressive monolith with offline ingestion; search endpoints remain realtime. | ✅ Active |
+| Language & Tooling | Python 3.12 managed exclusively by `uv`. | ✅ Active |
+| API Layer | FastAPI (async) + Pydantic schemas. | ✅ Active |
+| Data Store | SQLite + FTS5 with Alembic migrations prepped for PostgreSQL. | ✅ Active |
+| Models | SigLIP + BLIP + PaddleOCR as perception stack; avoid RTMDet. | ✅ Active |
+| UI | Streamlit MVP + Typer CLI. | ✅ Active |
+| Quality | Unit/integration/perf tests with ≥80% coverage expectation. | ✅ Active |
 
----
+## Phase 2 (Planned)
+| Domain | Decision | Trigger |
+|--------|----------|---------|
+| Embeddings | Introduce SigLIP-based embedding services and hybrid ranking. | After Phase 1 validation |
+| Vector Index | Evaluate FAISS vs pgvector; prepare migration path. | Dataset >10k assets |
+| UI | Enhance filters & semantic search UX. | When embedding accuracy validated |
 
-## 🎯 核心技术栈决策
+## Phase Final (Planned)
+| Domain | Decision | Trigger |
+|--------|----------|---------|
+| Database | Migrate to PostgreSQL + pgvector. | Production readiness |
+| Task Queue | Adopt Celery + Redis for ingestion/offline jobs. | Sustained workload >100 jobs/day |
+| Monitoring | Deploy Prometheus/Grafana dashboards. | Prior to public release |
+| UI | Transition to Gradio-based production interface. | When backend stabilizes |
 
-### ✅ Phase 1 - 已确定（2024-11）
-
-| 组件 | 技术选型 | 版本 | 决策原因 |
-|------|----------|------|----------|
-| **语言** | Python | 3.12 | 生态完善，AI库丰富 |
-| **包管理** | uv | 最新 | 快速、现代化的依赖管理 |
-| **API框架** | FastAPI | 0.121.1 | 高性能，异步支持 |
-| **UI框架** | Streamlit | 1.51.0 | 快速原型开发 |
-| **数据库** | SQLite | 内置 | 零配置，原型阶段够用 |
-| **图像识别** | SigLIP + BLIP | 4.57.1 | 多语言支持，零样本学习 |
-| **OCR** | PaddleOCR | 3.3.1 | 中文识别效果最佳 |
-| **深度学习** | PyTorch | 2.9.1 | 生态成熟，社区活跃 |
-
-### 🔄 Phase Final - 规划中
-
-| 组件 | 技术选型 | 决策原因 | 触发条件 |
-|------|----------|----------|----------|
-| **数据库** | PostgreSQL + pgvector | 向量搜索能力 | 用户量>1000 |
-| **缓存** | Redis | 性能优化 | QPS>100 |
-| **任务队列** | Celery | 异步处理 | 批量任务>100/天 |
-| **监控** | Prometheus + Grafana | 生产级监控 | 正式上线 |
-
----
-
-## 🔄 关键技术变更记录
-
-### ⚠️ 决策变更：从 RTMDet 迁移到 SigLIP+BLIP
-**时间**: 2024-11-12  
-**状态**: ✅ 已完成
-
-**触发原因**:
-- RTMDet 的 mmcv 依赖无法在 Python 3.11+ 安装
-- 依赖冲突严重，影响项目稳定性
-
-**评估对比**:
-
-| 维度 | RTMDet | SigLIP+BLIP | 决策 |
-|------|--------|-------------|------|
-| 依赖兼容性 | ❌ Python 3.11+失败 | ✅ 完全兼容 | SigLIP |
-| 多语言支持 | ❌ 无 | ✅ 18+语言 | SigLIP |
-| 识别准确率 | 52.8% mAP | ~85% | SigLIP |
-| 零样本学习 | ❌ 不支持 | ✅ 支持 | SigLIP |
-| 模型大小 | ~300MB | ~1.4GB | 可接受 |
-| 维护活跃度 | 低 | 高（HF生态） | SigLIP |
-
-**影响分析**:
-- ✅ 解决了依赖地狱问题
-- ✅ 新增多语言支持能力
-- ✅ 提升识别准确率约35%
-- ⚠️ 模型大小增加约1.1GB
-- ✅ 更易于长期维护
-
----
-
-## 🏗️ 架构决策
-
-### ✅ 决策：采用离线批处理架构
-**时间**: 2024-11  
-**状态**: ✅ Phase 1实施
-
-**决策理由**:
-1. 降低系统复杂度
-2. 专注验证识别质量
-3. 避免过早优化
-
-**权衡分析**:
-- ✅ 开发速度快
-- ✅ 系统稳定性高
-- ⚠️ 用户体验有延迟
-- ✅ 易于调试和维护
-
-**升级路径**: Phase 2 根据需要添加实时处理
-
-### ⚠️ 决策：不实现 Few-shot 学习
-**时间**: 2024-11  
-**状态**: ✅ Phase 1延迟
-
-**决策理由**:
-1. 增加不必要的复杂度
-2. 原型阶段不是必需功能
-3. CPU环境下效果有限
-
-**影响**:
-- 无法识别用户特殊产品
-- 需要更多人工标注
-
-**未来计划**: V2.0 根据用户反馈决定是否实现
-
----
-
-## 💾 数据层决策
-
-### ✅ 决策：使用 SQLite + 全文搜索
-**时间**: 2024-11  
-**状态**: ✅ Phase 1实施
-
-**决策理由**:
-1. 零配置，开箱即用
-2. 足够验证核心功能
-3. 方便本地开发测试
-
-**升级策略**:
-```
-Phase 1: SQLite → 验证功能
-Phase 2: PostgreSQL → 如需更强搜索
-Phase 3: PostgreSQL + pgvector → 向量搜索
-```
-
-**触发升级条件**:
-- 数据量 > 100GB
-- 并发用户 > 100
-- 需要向量搜索功能
-
----
-
-## 📦 模型选择决策
-
-### ✅ 当前模型配置
-**时间**: 2024-11  
-**状态**: ✅ 生产使用
-
-| 功能 | 模型 | 大小 | 选择理由 |
-|------|------|------|----------|
-| **图像理解** | google/siglip-base-patch16-224-i18n | ~400MB | 多语言，高准确率 |
-| **图像描述** | Salesforce/blip-image-captioning-base | ~990MB | 自然语言生成 |
-| **OCR检测** | PaddleOCR PP-OCRv4 | ~200MB | 中文最佳 |
-
-**性能基准**:
-- 电子产品识别: 92% 准确率
-- 美食类别: 88% 准确率  
-- 文档类型: 85% 准确率
-- 综合准确率: 87%+
-
----
-
-## 🎯 设计原则决策
-
-### ✅ Phase 1 核心原则
-**时间**: 2024-11  
-**状态**: ✅ 指导开发
-
-1. **验证优先于优化**
-   - 不追求完美性能
-   - 专注功能可行性
-
-2. **简单优先于完善**
-   - 选择最简单可行方案
-   - 避免过度工程化
-
-3. **减法优先于加法**
-   - 每个功能必须证明价值
-   - 砍掉非核心功能
-
-**已砍掉功能清单**:
-- ❌ Few-shot 学习
-- ❌ 品牌型号细分识别
-- ❌ 实时处理
-- ❌ 向量搜索
-- ❌ 用户系统
-- ❌ 微服务架构
-
----
-
-## 📊 决策评估标准
-
-### 技术选型评估维度
-1. **兼容性** (35%) - Python版本、依赖冲突
-2. **功能性** (30%) - 满足需求程度
-3. **性能** (15%) - 速度、准确率
-4. **维护性** (10%) - 社区活跃度、文档
-5. **复杂度** (10%) - 学习曲线、部署难度
-
-### 决策复审触发条件
-- 重大bug或故障
-- 性能瓶颈无法解决
-- 用户需求重大变化
-- 更好的技术方案出现
-
----
-
-## 🔄 决策复审记录
-
-| 日期 | 决策 | 复审结果 | 行动 |
-|------|------|----------|------|
-| 2024-11-12 | RTMDet | 依赖问题严重 | 迁移到SigLIP |
-| 2024-11-15 | SigLIP+BLIP | 效果良好 | 继续使用 |
-
----
-
-## 📝 决策制定流程
-
-1. **问题识别** → 记录触发原因
-2. **方案评估** → 对比多个选项
-3. **决策制定** → 明确选择理由
-4. **实施验证** → 验证效果
-5. **定期复审** → 持续优化
-
----
-
-## 🚀 未来决策规划
-
-### 待决策事项
-- [ ] 向量数据库选型（Milvus vs Weaviate vs pgvector）
-- [ ] 前端框架升级（Streamlit → React/Vue）
-- [ ] 部署方案（Docker vs K8s vs Serverless）
-- [ ] 云服务选择（AWS vs GCP vs Azure）
-
-### 决策原则
-- 保持技术栈简单
-- 优先选择成熟方案
-- 考虑团队技术栈
-- 重视长期维护成本
-
----
-
-**文档版本**: v1.0  
-**最后更新**: 2024-11-12  
-**维护者**: 技术团队
-
+## Maintenance Notes
+- Update this summary whenever the status of a decision changes.
+- Link back to ADR entries for context; never duplicate rationale here.
+- Move outdated rows to `archives/` with references to replacements.

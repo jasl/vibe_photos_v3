@@ -1,149 +1,23 @@
-# 需求分析 - Vibe Photos Phase Final
+# Phase Final Requirements — Coding AI Summary
 
-## 🎯 用户画像
+## Users & Context
+- Primary audience: Chinese content creators managing 30k+ local photos for reviews, tutorials, and lifestyle content.
+- Pain points: retrieving specific assets (rare devices, food shots, documents) quickly, often under deadline pressure.
 
-### 主要用户：自媒体创作者
-- **工作内容**：撰写产品评测、美食推荐、技术教程等文章
-- **痛点**：从海量照片中快速找到所需素材
-- **特殊需求**：识别罕见/专业产品
+## Functional Needs
+1. **Perception** — Recognize categories, brands/models, captions, and text (OCR). Support few-shot personalization for rare devices.
+2. **Search** — Natural-language queries, hybrid filters (metadata + embeddings + time), similarity grouping, export bundles.
+3. **Operations** — Bulk ingestion, incremental updates, dedupe, audit trails, manual overrides.
+4. **Learning Loop** — Capture corrections, adapt suggestions, surface confidence scores for human review.
 
-### 典型场景
-1. **写作场景**："我要写MacBook Pro发展史，需要找到所有相关照片"
-2. **对比场景**："找出iPhone 14和iPhone 15的对比照片"
-3. **主题场景**："收集所有披萨照片用于美食专题"
-4. **时间线场景**："按时间顺序整理产品照片"
+## Success Criteria
+- ≥85% accuracy for common categories; ≥60% for niche devices with human-in-the-loop confirmation.
+- Search latency ≤500 ms for 50k assets; ingestion throughput ≥10 images/sec sustained with workers.
+- Users derive results within 3 minutes, saving ≥30 minutes per day on asset retrieval.
 
-## 📊 数据集特征
+## Non-Goals
+- No cloud storage mandate; operate locally or within user-controlled infra.
+- No social sharing or heavy image editing features.
+- No guarantee of fully autonomous labeling—human participation remains integral.
 
-用户提供的照片库（`/home/jasl/datasets/my_photos`）包含：
-
-| 类型 | 特点 | 挑战 | 解决思路 |
-|------|------|------|----------|
-| 风景照 | 场景多样 | 主体不明确 | 场景识别+标签 |
-| 人像照 | 单人/多人 | 隐私保护 | 关注服装/配饰 |
-| 电子产品 | 专业设备多 | 型号识别困难 | 品牌+OCR+人工 |
-| 屏幕截图 | 包含文字 | 内容理解 | OCR+界面识别 |
-| 证件文档 | 敏感信息 | 分类+保护 | 类型识别+脱敏 |
-| 美食照片 | 种类繁多 | 细分困难 | 菜系+食材识别 |
-| 杂拍 | 无明确主题 | 价值判断 | 低优先级处理 |
-
-## 🔍 核心需求
-
-### 1. 物体识别需求
-```
-必须识别：
-├─ 大类：电子产品、美食、文档
-├─ 品牌：Apple、Samsung、Sony等
-├─ 具体：iPhone 15 Pro、MacBook M3
-└─ 属性：颜色、尺寸、版本
-```
-
-### 2. 搜索需求
-- **自然语言搜索**："最近拍的iPhone照片"
-- **组合条件**："白色背景的产品照"
-- **模糊搜索**："披萨"能找到各种披萨
-- **时间过滤**："本周/本月/今年"
-
-### 3. 管理需求
-- **批量处理**：一次处理上千张照片
-- **增量更新**：新照片自动处理
-- **去重**：识别相似/重复照片
-- **导出**：按主题导出素材包
-
-### 4. 学习需求
-- **个性化**：学习用户的标注习惯
-- **专业产品**：识别用户特有的设备
-- **持续优化**：越用越准确
-
-## 💡 关键洞察
-
-### 来自用户反馈
-
-1. **"很多产品都是市面上罕见的"**
-   - 启示：不能完全依赖预训练模型
-   - 方案：Few-shot learning + 人工标注
-
-2. **"AI是我的伙伴，让工作流智能化"**
-   - 启示：不追求100%自动化
-   - 方案：AI辅助 + 人工决策
-
-3. **"需要平衡复杂度"**
-   - 启示：功能强大但要易用
-   - 方案：渐进式功能，核心简单
-
-## 📈 成功标准
-
-### 量化指标
-- 通用物品识别准确率 > 85%
-- 专业设备识别准确率 > 60%（含人工）
-- 搜索响应时间 < 500ms
-- 批处理速度 > 10张/秒
-
-### 用户体验
-- 3分钟内能看到效果
-- 无需专业知识即可使用
-- 每日节省30分钟找图时间
-- 一周内显著提升效率
-
-## 🚫 非目标
-
-明确不做什么同样重要：
-
-1. **不做**：100%全自动化系统
-   - **原因**：专业产品无法完全自动识别
-   
-2. **不做**：复杂的图像编辑功能
-   - **原因**：专注于查找和管理
-
-3. **不做**：社交分享功能
-   - **原因**：专注于个人生产力
-
-4. **不做**：云端存储
-   - **原因**：数据隐私+简化架构
-
-## 🔄 需求优先级
-
-### P0 - 核心必须（第一周）
-- [x] 基础分类（大类识别）
-- [x] 简单搜索
-- [x] 批量导入
-- [x] 结果导出
-
-### P1 - 重要功能（第二周）
-- [ ] 品牌识别
-- [ ] OCR文字提取
-- [ ] 人工标注
-- [ ] 相似图片分组
-
-### P2 - 增强功能（第一个月）
-- [ ] Few-shot学习
-- [ ] 时间线整理
-- [ ] 智能推荐
-- [ ] 标注助手
-
-### P3 - 长期优化（三个月）
-- [ ] 完全个性化
-- [ ] 高级过滤器
-- [ ] 批量编辑
-- [ ] 插件系统
-
-## 📝 需求验证清单
-
-- [x] 用户访谈已完成
-- [x] 数据集已获取
-- [x] 技术可行性已验证
-- [x] MVP范围已确定
-- [x] 优先级已排序
-- [x] 成功标准已定义
-
-## 🎯 总结
-
-Phase Final的核心是：**为自媒体创作者打造一个简单、实用、智能的照片素材管理助手**。
-
-关键差异化：
-1. 专为创作者优化（不是通用相册）
-2. AI+人工的混合策略（不追求全自动）
-3. 支持专业产品识别（通过学习）
-4. 极简但强大（平衡复杂度）
-
-下一步：基于这些需求设计解决方案 → [查看解决方案设计](02_solution_design.md)
+Use this summary with `02_solution_design.md` to map requirements to architecture.
