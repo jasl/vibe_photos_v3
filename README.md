@@ -62,4 +62,9 @@ Consult [`DIRECTORY_STRUCTURE.md`](DIRECTORY_STRUCTURE.md) for operational detai
 - ⏳ Phase 2 and Final execution pending validation milestones.
 
 ## 7. License
-Distributed under the [MIT License](LICENSE).
+Distributed under the [GNU Affero General Public License v3.0](LICENSE).
+
+Third-party libraries, models, and tools referenced in this project remain
+subject to their own licenses—consult their upstream repositories and the
+[`DEPENDENCIES.md`](DEPENDENCIES.md) register before redistribution or
+commercial use.
