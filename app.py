@@ -16,6 +16,11 @@ REPO_ROOT = Path(__file__).resolve().parent
 SETTINGS_PATH = REPO_ROOT / "config" / "settings.yaml"
 
 
+def _select_asset(asset_id: int) -> None:
+    """Store the selected asset ID in the session state."""
+    st.session_state["selected_asset_id"] = int(asset_id)
+
+
 @st.cache_resource(show_spinner=False)
 def load_settings() -> Dict[str, Any]:
     """Load runtime settings for display."""
@@ -151,6 +156,9 @@ def render_search_panel() -> None:
 
 def render_gallery_panel() -> None:
     """Render a paginated gallery of processed assets."""
+    if "selected_asset_id" not in st.session_state:
+        st.session_state["selected_asset_id"] = None
+
     stats = load_ingestion_stats()
     total_assets = stats["total_assets"]
 
@@ -228,8 +236,12 @@ def render_gallery_panel() -> None:
                 if thumbnail_path and Path(thumbnail_path).exists():
                     st.image(thumbnail_path, use_container_width=True)
                 st.caption(asset.get("filename", ""))
-                if st.button("View details", key=f"view-{asset['id']}"):
-                    st.session_state["selected_asset_id"] = asset["id"]
+                st.button(
+                    "View details",
+                    key=f"view-{asset['id']}",
+                    on_click=_select_asset,
+                    args=(int(asset["id"]),),
+                )
 
     render_asset_detail_panel()
 
