@@ -10,7 +10,7 @@ def test_siglip_classifier_uses_injected_pipeline(tmp_path):
     calls = {"count": 0}
 
     class DummyPipeline:
-        def __call__(self, images, candidate_labels, top_k=5):
+        def __call__(self, image, candidate_labels, top_k=5):
             calls["count"] += 1
             return [
                 {"label": candidate_labels[0], "score": 0.9},

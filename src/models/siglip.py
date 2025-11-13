@@ -61,7 +61,7 @@ class SiglipClassifier:
 
         pipeline = self._load_pipeline()
         image = Image.open(image_path).convert("RGB")
-        result = pipeline(images=image, candidate_labels=list(candidate_labels), top_k=top_k)
+        result = pipeline(image=image, candidate_labels=list(candidate_labels), top_k=top_k)
 
         # The pipeline returns either a list of dicts or a dict depending on transformers version.
         if isinstance(result, dict):
