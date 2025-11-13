@@ -9,7 +9,7 @@ from typing import Any, Dict, List
 import streamlit as st
 import yaml
 
-from src.core.database import AssetRepository, get_session_factory
+from src.core.database import AssetRepository, get_session_factory, serialize_asset
 from src.core.searcher import AssetSearchService
 
 REPO_ROOT = Path(__file__).resolve().parent
@@ -94,6 +94,19 @@ def load_ingestion_stats() -> Dict[str, Any]:
     return {"total_assets": total_assets, "refreshed_at": st.session_state.get("last_refresh", "now")}
 
 
+@st.cache_data(ttl=15, show_spinner=False)
+def load_gallery_assets(limit: int, offset: int) -> List[Dict[str, Any]]:
+    """Return a page of assets for the gallery view."""
+    session_factory = get_session_factory()
+    session = session_factory()
+    try:
+        repo = AssetRepository(session)
+        assets = repo.list_assets(limit=limit, offset=offset)
+        return [serialize_asset(asset) for asset in assets]
+    finally:
+        session.close()
+
+
 def render_search_panel() -> None:
     """Render a lightweight search UI backed by the SQLite metadata store."""
     query = st.text_input("Query", placeholder="e.g. recipe cards from 2024")
@@ -123,6 +136,41 @@ def render_search_panel() -> None:
                 st.write("Labels:", labels)
 
 
+def render_gallery_panel() -> None:
+    """Render a paginated gallery of processed assets."""
+    stats = load_ingestion_stats()
+    total_assets = stats["total_assets"]
+
+    if total_assets == 0:
+        st.info("No assets found in the database. Run the ingestion pipeline first.")
+        return
+
+    st.subheader("Gallery")
+    page_size = 24
+    max_page = max(1, (total_assets + page_size - 1) // page_size)
+
+    page = st.number_input("Page", min_value=1, max_value=max_page, value=1, step=1)
+    offset = (page - 1) * page_size
+
+    assets = load_gallery_assets(limit=page_size, offset=offset)
+    if not assets:
+        st.info("No assets available for this page.")
+        return
+
+    st.caption(f"Showing page {page} of {max_page} ({len(assets)} assets on this page).")
+
+    columns_per_row = 4
+    for index in range(0, len(assets), columns_per_row):
+        row_assets = assets[index : index + columns_per_row]
+        cols = st.columns(len(row_assets))
+        for col, asset in zip(cols, row_assets):
+            with col:
+                thumbnail_path = asset.get("thumbnail_path") or asset.get("processed_path")
+                if thumbnail_path and Path(thumbnail_path).exists():
+                    st.image(thumbnail_path, use_column_width=True)
+                st.caption(asset.get("filename", ""))
+
+
 def render_missing_settings_error(error: FileNotFoundError) -> None:
     """Render guidance when the settings file is unavailable."""
     st.error(str(error))
@@ -142,7 +190,11 @@ def main() -> None:
     st.session_state["last_refresh"] = datetime.utcnow().isoformat()
     render_sidebar(settings)
     render_header()
-    render_status_panels(settings)
+    view = st.sidebar.radio("View", ["Overview", "Gallery"], index=0)
+    if view == "Overview":
+        render_status_panels(settings)
+    else:
+        render_gallery_panel()
 
 
 if __name__ == "__main__":
