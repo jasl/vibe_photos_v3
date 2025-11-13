@@ -23,6 +23,7 @@ dependencies = [
     "torchvision==0.24.1",
     "transformers==4.57.1",
     "sentence-transformers==5.1.2",
+    "datasets==2.21.0",
     "paddlepaddle==3.2.1",
     "paddleocr==3.3.1",
     "numpy==2.3.4",

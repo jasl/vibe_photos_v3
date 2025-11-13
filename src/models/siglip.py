@@ -61,21 +61,17 @@ class SiglipClassifier:
             self._pipeline = pipeline
             return pipeline
 
-    def classify(
+    def _classify_single(
         self,
         image_path: Path,
         candidate_labels: Sequence[str],
-        top_k: int = 5,
+        top_k: int,
     ) -> LabelScores:
-        """Run zero-shot classification for the provided labels."""
-        if not candidate_labels:
-            return []
-
+        """Fallback single-image classification without Hugging Face Datasets."""
         pipeline = self._load_pipeline()
         image = Image.open(image_path).convert("RGB")
         result = pipeline(image=image, candidate_labels=list(candidate_labels), top_k=top_k)
 
-        # The pipeline returns either a list of dicts or a dict depending on transformers version.
         if isinstance(result, dict):
             iterable: Iterable[dict] = [result]
         else:
@@ -84,4 +80,60 @@ class SiglipClassifier:
         return [
             LabelScore(label=item["label"], confidence=float(item["score"]))
             for item in iterable
+        ]
+
+    def classify(
+        self,
+        image_path: Path,
+        candidate_labels: Sequence[str],
+        top_k: int = 5,
+    ) -> LabelScores:
+        """Run zero-shot classification for the provided labels.
+
+        When the optional ``datasets`` library is available, this method wraps the
+        pipeline call with a tiny ``datasets.Dataset`` and ``map(..., batched=True)``
+        invocation. This keeps the implementation aligned with Hugging Face's
+        recommended dataset integration while preserving the existing single-image
+        behavior and test doubles.
+        """
+        if not candidate_labels:
+            return []
+
+        try:
+            from datasets import Dataset, Image as HFImage  # type: ignore[import]
+        except Exception:
+            # Datasets is not installed; fall back to the original single-image path.
+            return self._classify_single(image_path=image_path, candidate_labels=candidate_labels, top_k=top_k)
+
+        pipeline = self._load_pipeline()
+
+        # Build a minimal dataset with a single image entry and use `map` in batched
+        # mode. Even with one item, this keeps the code ready for future batch
+        # extensions while matching the existing classifier semantics.
+        dataset = Dataset.from_dict({"image": [str(image_path)]})
+        dataset = dataset.cast_column("image", HFImage())
+
+        def _apply(batch: Dict[str, Any]) -> Dict[str, Any]:
+            images = batch["image"]
+            # We expect a single image in the batch for now.
+            image_obj = images[0]
+            outputs = pipeline(image=image_obj, candidate_labels=list(candidate_labels), top_k=top_k)
+
+            if isinstance(outputs, dict):
+                items: Iterable[dict] = [outputs]
+            else:
+                items = outputs  # type: ignore[assignment]
+
+            labels = [str(item["label"]) for item in items]
+            scores = [float(item["score"]) for item in items]
+            # Wrap in lists so the shapes align with the batched map expectation.
+            return {"labels": [labels], "scores": [scores]}
+
+        mapped = dataset.map(_apply, batched=True, batch_size=1)
+        labels = mapped["labels"][0]
+        scores = mapped["scores"][0]
+
+        return [
+            LabelScore(label=str(label), confidence=float(score))
+            for label, score in zip(labels, scores)
         ]
