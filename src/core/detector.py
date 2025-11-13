@@ -35,8 +35,6 @@ def load_candidate_labels(path: Path | None = None) -> List[str]:
 
     labels = data.get("labels", [])
     return [entry["name"] if isinstance(entry, dict) else str(entry) for entry in labels]
-
-
 class SigLIPBLIPDetector:
     """High-level detector that returns labels and captions for an image."""
 
@@ -45,9 +43,11 @@ class SigLIPBLIPDetector:
         model: str,
         device: str = "auto",
         candidate_labels_path: Path | None = None,
+        classifier: SiglipClassifier | None = None,
+        captioner: BlipCaptioner | None = None,
     ) -> None:
-        self.classifier = SiglipClassifier(model_name=model)
-        self.captioner = BlipCaptioner()
+        self.classifier = classifier or SiglipClassifier(model_name=model)
+        self.captioner = captioner or BlipCaptioner()
         self.device = device
         self.default_labels = load_candidate_labels(candidate_labels_path)
 

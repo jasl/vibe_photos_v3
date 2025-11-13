@@ -13,6 +13,8 @@ from src.core.ocr import PaddleOCREngine
 from src.core.preprocessor import ImagePreprocessor
 from src.core.processor import BatchProcessor
 from src.core.database import get_session_factory, init_db
+from src.models.blip import BlipCaptioner
+from src.models.siglip import SiglipClassifier
 from src.utils.runtime import load_phase1_config
 
 
@@ -45,6 +47,54 @@ def load_config() -> dict:
     return load_phase1_config()
 
 
+def _build_detector(config: dict, logger: logging.Logger) -> SigLIPBLIPDetector:
+    """Construct a SigLIP+BLIP detector with injected transformers components.
+
+    This ensures that `transformers` is imported and the Hugging Face objects are
+    created exactly once per process, avoiding repeated lazy imports in workers.
+    """
+    detection_config = config.get("detection", {})
+    model_name = detection_config.get("model", "google/siglip2-base-patch16-224")
+    device = detection_config.get("device", "auto")
+
+    try:
+        from transformers import (
+            BlipForConditionalGeneration,
+            BlipProcessor,
+            pipeline as hf_pipeline,
+        )
+    except ImportError as error:  # pragma: no cover - exercised only without transformers
+        logger.error("transformers is required for SigLIP/BLIP support but is not installed: %s", error)
+        raise
+
+    logger.info("Loading SigLIP zero-shot pipeline: %s", model_name)
+    siglip_pipeline = hf_pipeline("zero-shot-image-classification", model=model_name)
+    classifier = SiglipClassifier(model_name=model_name, pipeline=siglip_pipeline)
+
+    logger.info(
+        "SigLIP zero-shot pipeline loaded",
+        extra={"model_name": model_name, "device": device},
+    )
+
+    blip_model_name = "Salesforce/blip-image-captioning-base"
+    logger.info("Loading BLIP captioning components: %s", blip_model_name)
+    blip_processor = BlipProcessor.from_pretrained(blip_model_name)
+    blip_model = BlipForConditionalGeneration.from_pretrained(blip_model_name)
+    captioner = BlipCaptioner(model_name=blip_model_name, processor=blip_processor, model=blip_model)
+
+    logger.info(
+        "BLIP captioning components loaded",
+        extra={"model_name": blip_model_name},
+    )
+
+    return SigLIPBLIPDetector(
+        model=model_name,
+        device=device,
+        classifier=classifier,
+        captioner=captioner,
+    )
+
+
 async def main() -> int:
     """Execute the dataset processing workflow."""
     config = load_config()
@@ -75,10 +125,7 @@ async def main() -> int:
         target.mkdir(parents=True, exist_ok=True)
 
     preprocessor = ImagePreprocessor(config["preprocessing"])
-    detector = SigLIPBLIPDetector(
-        model=config["detection"]["model"],
-        device=config["detection"].get("device", "auto"),
-    )
+    detector = _build_detector(config, logger)
     ocr_engine = PaddleOCREngine(config["ocr"]) if config.get("ocr", {}).get("enabled", True) else None
 
     init_db()

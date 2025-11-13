@@ -3,18 +3,28 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import Any
 
 from PIL import Image
 
 
 class BlipCaptioner:
-    """Generate captions for images using BLIP."""
+    """Generate captions for images using BLIP.
 
-    def __init__(self, model_name: str = "Salesforce/blip-image-captioning-base") -> None:
+    The captioner lazily imports and constructs BLIP components on first use. For
+    advanced scenarios (e.g. pre-loading models in an entrypoint), you can inject
+    a pre-built processor and model via the ``processor`` and ``model`` arguments.
+    """
+
+    def __init__(
+        self,
+        model_name: str = "Salesforce/blip-image-captioning-base",
+        processor: Any | None = None,
+        model: Any | None = None,
+    ) -> None:
         self.model_name = model_name
-        self._model = None
-        self._processor = None
+        self._processor = processor
+        self._model = model
 
     def _load_components(self):
         """Instantiate BLIP lazily to avoid blocking startup."""
@@ -24,7 +34,11 @@ class BlipCaptioner:
         try:
             from transformers import BlipForConditionalGeneration, BlipProcessor
         except ImportError as error:  # pragma: no cover - exercised only without deps
-            raise RuntimeError("transformers is required for BLIP captioning") from error
+            message = (
+                "transformers is required for BLIP captioning "
+                "(failed to import BlipForConditionalGeneration/BlipProcessor)"
+            )
+            raise RuntimeError(message) from error
 
         self._processor = BlipProcessor.from_pretrained(self.model_name)
         self._model = BlipForConditionalGeneration.from_pretrained(self.model_name)
