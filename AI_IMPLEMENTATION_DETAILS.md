@@ -30,7 +30,7 @@ version = "1.0.0"
 description = "AI-powered photo management system for content creators"
 readme = "README.md"
 requires-python = "==3.12.*"
-license = { text = "MIT" }
+license = { text = "AGPL-3.0-or-later" }
 authors = [{ name = "Vibe Photos Team", email = "team@vibephotos.ai" }]
 
 dependencies = [
