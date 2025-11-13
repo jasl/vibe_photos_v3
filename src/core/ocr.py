@@ -68,12 +68,13 @@ class PaddleOCREngine:
                 scores = item.get("rec_scores") or []
                 polys = item.get("rec_polys") or []
                 for text, score, bbox in zip(texts, scores, polys):
+                    bbox_value = bbox.tolist() if hasattr(bbox, "tolist") else bbox
                     ocr_text.append(
                         OCRText(
                             text=str(text),
                             confidence=float(score),
                             language=lang_value,
-                            bbox=bbox,
+                            bbox=bbox_value,
                         )
                     )
                 continue
@@ -82,12 +83,13 @@ class PaddleOCREngine:
             # nested lists of (bbox, (text, confidence)) tuples.
             for block in item or []:
                 for bbox, (text, confidence) in block:
+                    bbox_value = bbox.tolist() if hasattr(bbox, "tolist") else bbox
                     ocr_text.append(
                         OCRText(
                             text=text,
                             confidence=float(confidence),
                             language=lang_value,
-                            bbox=bbox,
+                            bbox=bbox_value,
                         )
                     )
 
