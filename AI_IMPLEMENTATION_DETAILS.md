@@ -31,7 +31,7 @@ description = "AI-powered photo management system for content creators"
 readme = "README.md"
 requires-python = "==3.12.*"
 license = { text = "AGPL-3.0-or-later" }
-authors = [{ name = "Vibe Photos Team", email = "team@vibephotos.ai" }]
+authors = [{ name = "Vibe Photos Team" }]
 
 dependencies = [
     "fastapi==0.121.1",
@@ -83,16 +83,28 @@ phase_final = [
     "prometheus-client==0.19.0",
 ]
 
+[tool.uv.sources]
+# Install PyTorch with CUDA support on Linux/Windows (CUDA doesn't exist for Mac).
+# NOTE: We must explicitly request them as `dependencies` above. These improved
+# versions will not be selected if they're only third-party dependencies.
+torch = [
+  { index = "pytorch-cuda", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+torchvision = [
+  { index = "pytorch-cuda", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cuda"
+# Use PyTorch built for NVIDIA Toolkit version 13.0.
+# Available versions: https://pytorch.org/get-started/locally/
+url = "https://download.pytorch.org/whl/cu130"
+# Only use this index when explicitly requested by `tool.uv.sources`.
+explicit = true
+
 [project.scripts]
 vibe = "src.cli:app"
 vibe-server = "src.api.main:run"
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.uv]
-dev-dependencies = []
 
 [tool.ruff]
 line-length = 150

@@ -5,7 +5,7 @@ description = "AI-powered photo management system for content creators"
 readme = "README.md"
 requires-python = "==3.12.*"
 license = { text = "AGPL-3.0-or-later" }
-authors = [{ name = "Vibe Photos Team", email = "jasl@9187@hotmail.com" }]
+authors = [{ name = "jasl" }]
 
 dependencies = [
     "fastapi==0.121.1",
@@ -75,17 +75,6 @@ name = "pytorch-cuda"
 url = "https://download.pytorch.org/whl/cu130"
 # Only use this index when explicitly requested by `tool.uv.sources`.
 explicit = true
-
-[project.scripts]
-vibe = "src.cli:app"
-vibe-server = "src.api.main:run"
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.uv]
-dev-dependencies = []
 
 [tool.ruff]
 target-version = "py312"
