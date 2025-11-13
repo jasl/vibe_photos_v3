@@ -22,7 +22,7 @@ torchvision==0.24.1        # PyTorch computer vision helpers
 transformers==4.57.1       # Hugging Face transformers for SigLIP/BLIP
 sentence-transformers==5.1.2  # Sentence embeddings for semantic search prep
 # Models download automatically:
-# - google/siglip-base-patch16-224-i18n (~400MB)
+# - google/siglip2-base-patch16-224 (~400MB)
 # - Salesforce/blip-image-captioning-base (~990MB)
 
 # ==================== OCR stack ====================

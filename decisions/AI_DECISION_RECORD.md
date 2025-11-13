@@ -18,7 +18,7 @@ Each entry captures a binding choice. Update the table when decisions evolve.
 ## Models & AI
 | ID | Priority | Status | Decision | Notes |
 |----|----------|--------|----------|-------|
-| MODEL-001 | 🔴 MUST | ✅ Active | SigLIP (`google/siglip-base-patch16-224-i18n`) + BLIP (`Salesforce/blip-image-captioning-base`) as primary perception stack. | Load once per process, share embeddings cache. |
+| MODEL-001 | 🔴 MUST | ✅ Active | SigLIP (`google/siglip2-base-patch16-224`) + BLIP (`Salesforce/blip-image-captioning-base`) as primary perception stack. | Load once per process, share embeddings cache. |
 | MODEL-002 | 🔴 MUST | ✅ Active | PaddleOCR (chinese + english) for text extraction. | Provide batching + caching. |
 | MODEL-003 | 🔴 MUST | ✅ Active | Avoid RTMDet due to conflicting deps; rely on SigLIP+BLIP combos until alternative vetted. | Document future experiments in blueprint research. |
 

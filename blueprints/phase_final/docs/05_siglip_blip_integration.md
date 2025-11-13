@@ -6,14 +6,14 @@
 - Combination covers both structured labels and narrative summaries, enabling richer search and annotation.
 
 ## Usage Pattern
-1. Load SigLIP (`google/siglip-base-patch16-224-i18n`) and BLIP (`Salesforce/blip-image-captioning-base`).
+1. Load SigLIP (`google/siglip2-base-patch16-224`) and BLIP (`Salesforce/blip-image-captioning-base`).
 2. For each image: compute candidate label scores via SigLIP, generate caption via BLIP.
 3. Persist outputs alongside OCR, embeddings, and metadata.
 
 ## Implementation Snippet
 ```python
-processor = AutoProcessor.from_pretrained("google/siglip-base-patch16-224-i18n")
-model = AutoModel.from_pretrained("google/siglip-base-patch16-224-i18n")
+processor = AutoProcessor.from_pretrained("google/siglip2-base-patch16-224")
+model = AutoModel.from_pretrained("google/siglip2-base-patch16-224")
 blip_proc = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
 blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
 

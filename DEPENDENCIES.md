@@ -45,7 +45,7 @@ uv pip install torch==2.9.1 torchvision==0.24.1 --index-url https://download.pyt
 ```
 
 ## 5. Model Artifacts
-- SigLIP: `google/siglip-base-patch16-224-i18n` (~400 MB)
+- SigLIP: `google/siglip2-base-patch16-224` (~400 MB)
 - BLIP: `Salesforce/blip-image-captioning-base` (~990 MB)
 - PaddleOCR Chinese package (~200 MB)
 

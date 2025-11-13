@@ -23,7 +23,7 @@ class DetectionResult:
 class SimpleDetector:
     """Lightweight multilingual zero-shot classifier built on SigLIP."""
 
-    def __init__(self, model_name: str = "google/siglip-base-patch16-224-i18n") -> None:
+    def __init__(self, model_name: str = "google/siglip2-base-patch16-224") -> None:
         print(f"Loading model: {model_name}")
         self.model = AutoModel.from_pretrained(model_name)
         self.processor = AutoProcessor.from_pretrained(model_name)
@@ -95,7 +95,7 @@ class SimpleDetector:
             "image_size": image.size,
             "threshold_met": main_confidence >= threshold,
             "needs_review": main_confidence < 0.5,
-            "model": "siglip-base-patch16-224-i18n",
+            "model": "siglip2-base-patch16-224",
         }
 
         return DetectionResult(

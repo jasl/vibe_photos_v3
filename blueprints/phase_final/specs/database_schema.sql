@@ -355,7 +355,7 @@ INSERT INTO config (key, value, description) VALUES
 ('enable_few_shot', 'true', 'Enable few-shot learning workflow'),
 ('batch_size', '16', 'Batch size for processing jobs'),
 ('thumbnail_size', '512', 'Generated thumbnail size'),
-('model_name', 'siglip-base-patch16-224-i18n', 'Default perception model');
+('model_name', 'siglip2-base-patch16-224', 'Default perception model');
 
 INSERT INTO collections (name, description, type) VALUES
 ('Recently Imported', 'Photos added within the last 7 days', 'smart'),

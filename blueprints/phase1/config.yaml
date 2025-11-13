@@ -61,7 +61,7 @@ batch_processing:
 
 # Detection engine configuration
 detection:
-  model: "siglip-base"  # Multi-lingual SigLIP backbone
+  model: "google/siglip2-base-patch16-224"  # Multi-lingual SigLIP backbone
   confidence_threshold: 0.3  # Minimum confidence for accepted detections
   device: "auto"        # auto/cpu/cuda:0
 

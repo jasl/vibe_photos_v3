@@ -22,7 +22,7 @@ class LabelScore:
 class SiglipClassifier:
     """Lazy-loading helper for SigLIP zero-shot image classification."""
 
-    def __init__(self, model_name: str = "google/siglip-base-patch16-224-i18n") -> None:
+    def __init__(self, model_name: str = "google/siglip2-base-patch16-224") -> None:
         self.model_name = model_name
         self._pipeline = None
 
