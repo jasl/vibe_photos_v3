@@ -31,6 +31,9 @@ dependencies = [
 vibe = "src.cli:app"
 vibe-server = "src.api.main:run"
 
+[tool.uv]
+package = true
+
 [project.optional-dependencies]
 dev = [
     "pytest==9.0.0",
