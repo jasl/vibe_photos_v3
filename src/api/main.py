@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
-from src.api.routes import health, ingest, search
+from src.api.routes import assets, health, ingest, search
 from src.api.services.dependencies import RuntimeResources
 from src.core.database import get_session_factory, init_db
 from src.core.detector import SigLIPBLIPDetector
@@ -41,6 +41,7 @@ def create_app() -> FastAPI:
     app.state.runtime = _bootstrap_runtime()
 
     app.include_router(health.router)
+    app.include_router(assets.router)
     app.include_router(ingest.router)
     app.include_router(search.router)
     return app

@@ -29,6 +29,52 @@ class SearchResponse(ResponseEnvelope):
     data: List[SearchHitModel]
 
 
+class AssetLabel(BaseModel):
+    """Label associated with an asset."""
+
+    label: str
+    confidence: float
+
+
+class AssetCaption(BaseModel):
+    """Caption text attached to an asset."""
+
+    text: str
+    source: str
+
+
+class AssetOCRBlock(BaseModel):
+    """OCR text block for an asset."""
+
+    text: str
+    language: Optional[str] = None
+
+
+class AssetModel(BaseModel):
+    """Serialized asset metadata."""
+
+    id: int
+    filename: str
+    original_path: str
+    processed_path: Optional[str] = None
+    thumbnail_path: Optional[str] = None
+    labels: List[AssetLabel] = []
+    captions: List[AssetCaption] = []
+    ocr: List[AssetOCRBlock] = []
+
+
+class AssetResponse(ResponseEnvelope):
+    """Envelope for a single asset."""
+
+    data: AssetModel
+
+
+class AssetListResponse(ResponseEnvelope):
+    """Envelope for a list of assets."""
+
+    data: List[AssetModel]
+
+
 class ImportResponse(ResponseEnvelope):
     """Response returned after /import uploads."""
 

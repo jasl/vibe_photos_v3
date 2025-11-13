@@ -173,6 +173,15 @@ class AssetRepository:
         stmt = select(Asset).where(Asset.phash == phash)
         return self.session.scalar(stmt)
 
+    def get_asset(self, asset_id: int) -> Asset | None:
+        """Return a single asset by primary key."""
+        return self.session.get(Asset, asset_id)
+
+    def list_assets(self, limit: int = 20, offset: int = 0) -> List[Asset]:
+        """Return a page of recently ingested assets."""
+        stmt = select(Asset).order_by(Asset.id.desc()).offset(offset).limit(limit)
+        return list(self.session.scalars(stmt))
+
     def create_asset(self, data: AssetData) -> Asset:
         """Persist a new asset and its associated metadata."""
         asset = Asset(

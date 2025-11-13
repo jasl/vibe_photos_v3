@@ -21,6 +21,7 @@ Use this manifest to validate that your environment matches the expected version
 | | pydantic | 2.11.10 | Validation/schemas |
 | | numpy | 2.3.4 | Numeric ops |
 | | pillow | 11.3.0 | Image handling |
+| CLI | typer | 0.12.5 | Command-line interface wrapper |
 
 ## 3. Phase Final Add-ons
 | Category | Package | Version | Usage |

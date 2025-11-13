@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, Iterator
 
 from fastapi import Depends, Request
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from src.core.detector import SigLIPBLIPDetector
 from src.core.ocr import PaddleOCREngine
@@ -48,3 +48,12 @@ def get_batch_processor(resources: RuntimeResources = Depends(get_runtime_resour
         ocr_engine=resources.ocr_engine,
         config=resources.config,
     )
+
+
+def get_db_session(resources: RuntimeResources = Depends(get_runtime_resources)) -> Iterator[Session]:
+    """Yield a database session tied to the shared engine."""
+    session = resources.session_factory()
+    try:
+        yield session
+    finally:
+        session.close()

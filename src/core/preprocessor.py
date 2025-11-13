@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Tuple
@@ -44,7 +45,8 @@ class ImagePreprocessor:
         original_size = image.size
         image = self._resize_if_needed(image)
 
-        processed_path = self.processed_dir / f"{image_path.stem}.jpeg"
+        output_basename = self._build_output_basename(image_path)
+        processed_path = self.processed_dir / f"{output_basename}.jpeg"
         image.save(processed_path, format="JPEG", quality=90, optimize=True)
 
         thumbnail_path = None
@@ -53,7 +55,7 @@ class ImagePreprocessor:
             thumbnail_size = tuple(thumbnail_config.get("size", [512, 512]))
             thumbnail_image = image.copy()
             thumbnail_image.thumbnail(thumbnail_size)
-            thumbnail_path = self.thumbnail_dir / f"{image_path.stem}_thumb.jpeg"
+            thumbnail_path = self.thumbnail_dir / f"{output_basename}_thumb.jpeg"
             thumbnail_image.save(
                 thumbnail_path,
                 format=thumbnail_config.get("format", "JPEG"),
@@ -95,3 +97,9 @@ class ImagePreprocessor:
         bits = "".join("1" if pixel > avg else "0" for pixel in pixels)
         width = 4
         return "".join(f"{int(bits[i : i + width], 2):x}" for i in range(0, len(bits), width))
+
+    def _build_output_basename(self, image_path: Path) -> str:
+        """Return a deterministic, collision-resistant basename for derived artifacts."""
+        resolved = image_path.resolve()
+        digest = hashlib.sha1(str(resolved).encode("utf-8")).hexdigest()[:12]
+        return f"{image_path.stem}_{digest}"
