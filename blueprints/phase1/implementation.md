@@ -12,7 +12,7 @@
 1. **Environment (ENV-001…ENV-005)**
    - Generate structure via `./init_project.sh` (wraps the quick-start checklist).
    - Pin dependencies in `pyproject.toml` and `uv.lock`.
-   - Sync models (`blueprints/phase1/download_models.py`) and config templates.
+   - Sync models (`download_models.py`; blueprint copy available for reference) and config templates.
 2. **Perception (DET-001…OCR-001)**
    - Build SigLIP + BLIP wrappers with caching and candidate labels.
    - Implement PaddleOCR batch service with GPU/CPU autodetect.
@@ -29,7 +29,7 @@
 ## Deliverables
 - `src/core/*.py` modules with tests.
 - `src/api/main.py` + route modules.
-- `src/cli.py`, `blueprints/phase1/app.py` (Streamlit).
+- `src/cli.py`, `app.py` (Streamlit UI mirrored from blueprint).
 - Updated docs (`AI_IMPLEMENTATION_DETAILS.md`, dataset guides, tracker entries).
 
 Use this checklist to track progress; update `AI_TASK_TRACKER.md` as each workstream completes.

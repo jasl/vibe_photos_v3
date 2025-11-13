@@ -10,7 +10,7 @@ Use this tracker as the single source of truth for what each coding AI should ex
 ## Phase 1 — MVP Delivery (Active)
 | Status | Priority | ID | Description | Dependencies | Expected Output | Notes |
 |--------|----------|----|-------------|--------------|-----------------|-------|
-| ✅ | 🔴 P0 | ENV-001 | Materialize repository structure & init script. | — | `init_project.sh`, directory tree | Script delegates to `blueprints/phase1/quick_start.py` for validation. |
+| ✅ | 🔴 P0 | ENV-001 | Materialize repository structure & init script. | — | `init_project.sh`, directory tree | Script delegates to `quick_start.py` for validation (legacy blueprint stub remains for reference). |
 | ⬜ | 🔴 P0 | ENV-002 | Finalize `pyproject.toml` + lockfile. | ENV-001 | Updated `pyproject.toml`, `uv.lock` | |
 | ⬜ | 🔴 P0 | ENV-003 | Bootstrap `uv` environment and core deps install. | ENV-002 | Reproducible venv instructions | |
 | ⬜ | 🟠 P1 | ENV-004 | Model cache bootstrap (SigLIP, BLIP, PaddleOCR). | ENV-003 | Cached models under `models/` | |
@@ -26,7 +26,7 @@ Use this tracker as the single source of truth for what each coding AI should ex
 | ✅ | 🔴 P0 | API-002 | `/import` ingestion endpoint (async upload). | API-001, DET-004 | `routes/ingest.py` | Upload route triggers processor. |
 | ✅ | 🔴 P0 | API-003 | `/search` endpoint returning ranked assets. | API-001, DB-002 | `routes/search.py` | Metadata search endpoint live. |
 | ✅ | 🟠 P1 | CLI-001 | Typer CLI commands (`ingest`, `search`). | DET-004, DB-002 | `src/cli.py` | `vibe` CLI exposes ingest/search. |
-| ✅ | 🟠 P1 | UI-001 | Streamlit MVP dashboard hooking core services. | DET-004, DB-002 | `blueprints/phase1/app.py` | Dashboard now shows stats + search. |
+| ✅ | 🟠 P1 | UI-001 | Streamlit MVP dashboard hooking core services. | DET-004, DB-002 | `app.py` | Dashboard now shows stats + search. |
 | 🟨 | 🟠 P1 | TEST-001 | Unit tests for detector/ocr/database/search. | DET-003, DB-002 | `tests/unit/...` | Added runtime/preprocessor/repository tests; detector/ocr coverage pending. |
 | ⬜ | 🟠 P1 | TEST-002 | API + CLI integration tests. | API-003, CLI-001 | `tests/integration/...` | |
 | ⬜ | 🟡 P2 | PERF-001 | Benchmark ingestion throughput (≥10 img/s). | DET-004 | `tests/perf/test_ingestion_speed.py` | |

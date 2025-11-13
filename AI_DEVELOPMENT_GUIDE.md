@@ -55,7 +55,7 @@ Tests live in `tests/` mirroring the module structure with fixtures under `tests
 ## 5. Phase 1 Task Grid
 | Track | Deliverable | Notes |
 |-------|-------------|-------|
-| Environment | `uv` environment with pinned dependencies, dataset download scripts, model cache bootstrap. | Scripts live in `blueprints/phase1`. |
+| Environment | `uv` environment with pinned dependencies, dataset download scripts, model cache bootstrap. | Scripts run from the repo root (blueprints contain reference copies only). |
 | Perception | Unified detector returning labels + captions + OCR text with confidence scores. | Ensure deterministic ordering for downstream search. |
 | Persistence | SQLite schema for assets, tags, OCR text, embeddings, and job history. | Provide migration utilities even if simple. |
 | Interfaces | FastAPI routes (`/import`, `/search`, `/assets/{id}`), Streamlit MVP dashboard, CLI commands for batch ingestion. | Document each command in CLI help strings. |
@@ -82,7 +82,7 @@ uv run pytest -q
 
 # Launch services for manual verification
 uv run uvicorn src.api.main:app --reload
-uv run streamlit run blueprints/phase1/app.py
+uv run streamlit run app.py
 ```
 
 ## 8. Performance & Reliability Targets

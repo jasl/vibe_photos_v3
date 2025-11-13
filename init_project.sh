@@ -13,4 +13,4 @@ fi
 
 cd "${REPO_ROOT}"
 
-"${PYTHON_BIN}" blueprints/phase1/quick_start.py
+"${PYTHON_BIN}" quick_start.py

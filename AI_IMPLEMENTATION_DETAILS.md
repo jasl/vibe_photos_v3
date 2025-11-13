@@ -164,7 +164,7 @@ For each module described below, pair this manual with `AI_DEVELOPMENT_GUIDE.md`
 - **FastAPI (`src/api/main.py`):** create app factory `create_app()`; mount routes from `routes/ingest.py`, `routes/search.py`, `routes/annotations.py`.
 - **Schemas:** All responses wrap payload inside `{ "status": "ok", "data": ... }` or `{ "status": "error", "message": ... }`.
 - **CLI (`src/cli.py`):** Typer commands `ingest`, `search`, `rebuild-index`. Document options via Typer help strings.
-- **Streamlit MVP:** Lives under `blueprints/phase1/app.py`; ensure CLI and API reuse core services rather than duplicating logic.
+- **Streamlit MVP:** Lives at the project root (`app.py`, with a blueprint stub for reference); ensure CLI and API reuse core services rather than duplicating logic.
 
 ## DATA — Storage & Assets
 - Respect directory contracts from `DIRECTORY_STRUCTURE.md`.

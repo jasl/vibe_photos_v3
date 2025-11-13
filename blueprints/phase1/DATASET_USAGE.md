@@ -9,7 +9,7 @@ dataset:
   incremental: true
   supported_formats: [.jpg, .jpeg, .png, .heic, .webp]
 ```
-3. Run ingestion via `uv run python blueprints/phase1/process_dataset.py`. The script handles dedupe, normalization, thumbnail creation, detection, OCR, and persistence.
+3. Run ingestion via `uv run python process_dataset.py` (legacy wrapper remains under `blueprints/phase1/` for reference). The script handles dedupe, normalization, thumbnail creation, detection, OCR, and persistence.
 
 ## Incremental Workflow
 - Add new images to `samples/` and rerun the script; processed files are tracked via perceptual hash.

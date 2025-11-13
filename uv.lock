@@ -2452,7 +2452,7 @@ wheels = [
 [[package]]
 name = "vibe-photos"
 version = "1.0.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "aiofiles" },
     { name = "fastapi" },

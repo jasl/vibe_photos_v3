@@ -43,7 +43,7 @@ Set caches so large downloads remain in `models/`:
 export TRANSFORMERS_CACHE="$(pwd)/models"
 export PADDLEOCR_HOME="$(pwd)/models/paddleocr"
 ```
-Run bootstrap scripts via `uv run python blueprints/phase1/download_models.py`.
+Run bootstrap scripts via `uv run python download_models.py`.
 
 ## 5. Prohibited Tools
 Do **not** use `pip`, `pip-tools`, `poetry`, `pipenv`, `conda`, or plain `venv`. All commands must go through `uv` to guarantee reproducibility.

@@ -1,16 +1,16 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-Phase 1 code, scripts, and specs live in `blueprints/phase1/` (Streamlit UI, processors, early FastAPI hooks, test plans). Long-term architecture stays in `blueprints/phase_final/`. Runtime settings sit in `config/` (`config/settings.yaml` lands via `./init_project.sh`). Treat `data/`, `cache/`, `log/`, and `tmp/` as disposable run outputs, keep heavy model weights inside `models/`, and source read-only evaluation assets from `samples/`. Consult root docs before shifting scope.
+Blueprint specs live in `blueprints/phase1/`, but the runnable Phase 1 scripts now live at the project root (duplicate stubs remain under `blueprints/` for reference). Long-term architecture stays in `blueprints/phase_final/`. Runtime settings sit in `config/` (`config/settings.yaml` lands via `./init_project.sh`). Treat `data/`, `cache/`, `log/`, and `tmp/` as disposable run outputs, keep heavy model weights inside `models/`, and source read-only evaluation assets from `samples/`. Consult root docs before shifting scope.
 
 ## Environment & Configuration
 Python 3.12 + `uv` is non-negotiable. Create the env (`uv venv --python 3.12`, `source .venv/bin/activate`), run `uv sync`, and execute every script via `uv run …` to keep extras aligned. Run `./init_project.sh` once to build `config/settings.yaml`, then keep dataset paths and incremental flags current there. Point `TRANSFORMERS_CACHE` and `PADDLEOCR_HOME` at `models/` to prevent redundant downloads.
 
 ## Build, Test, and Development Commands
-- `uv run python blueprints/phase1/process_dataset.py` — batch-ingest samples and refresh SQLite/cache outputs.
-- `uv run streamlit run blueprints/phase1/app.py` — launch the dashboard defined in `app.py` after processing completes.
-- `uv run python blueprints/phase1/quick_start.py` — same logic as the shell wrapper, useful when scripting.
-- `uv run python blueprints/phase1/download_models.py` — fetch SigLIP/BLIP/PaddleOCR weights into `models/`.
+- `uv run python process_dataset.py` — batch-ingest samples and refresh SQLite/cache outputs.
+- `uv run streamlit run app.py` — launch the dashboard after processing completes.
+- `uv run python quick_start.py` — same logic as the shell wrapper, useful when scripting.
+- `uv run python download_models.py` — fetch SigLIP/BLIP/PaddleOCR weights into `models/`.
 - `uv run pytest` — execute the whole suite with strict markers enabled; add `-k` filters for targeted runs.
 
 ## Coding Style & Naming Conventions
