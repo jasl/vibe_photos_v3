@@ -275,6 +275,30 @@ def render_asset_detail_panel() -> None:
         st.markdown(f"**Processed path:** `{asset.get('processed_path') or ''}`")
         st.markdown(f"**Thumbnail path:** `{asset.get('thumbnail_path') or ''}`")
 
+        if asset.get("width") or asset.get("height"):
+            st.markdown(
+                f"**Dimensions:** {asset.get('width') or '?'}×{asset.get('height') or '?'} px"
+            )
+
+        if asset.get("file_size") is not None:
+            st.markdown(f"**File size:** {asset['file_size']} bytes")
+
+        if asset.get("phash"):
+            st.markdown(f"**Perceptual hash:** `{asset['phash']}`")
+
+        st.markdown(f"**Status:** {asset.get('status') or 'unknown'}")
+        st.markdown(f"**Captured at:** {asset.get('captured_at') or 'N/A'}")
+        st.markdown(f"**Created at:** {asset.get('created_at') or 'N/A'}")
+        st.markdown(f"**Updated at:** {asset.get('updated_at') or 'N/A'}")
+
+        if asset.get("error_message"):
+            st.markdown("**Ingestion error**")
+            st.code(str(asset["error_message"]))
+
+        if asset.get("embedding_json"):
+            st.markdown("**Embedding JSON**")
+            st.code(str(asset["embedding_json"]))
+
         if asset.get("captions"):
             st.markdown("**Captions**")
             for caption in asset["captions"]:

@@ -241,13 +241,33 @@ class AssetRepository:
 
 def serialize_asset(asset: Asset) -> dict:
     """Convert an asset ORM object into a JSON-friendly dict."""
+    def _serialize_datetime(value: Optional[datetime]) -> Optional[str]:
+        return value.isoformat() if isinstance(value, datetime) else None
+
     return {
         "id": asset.id,
         "filename": asset.filename,
         "original_path": asset.original_path,
         "processed_path": asset.processed_path,
         "thumbnail_path": asset.thumbnail_path,
+        "phash": asset.phash,
+        "file_size": asset.file_size,
+        "width": asset.width,
+        "height": asset.height,
+        "captured_at": _serialize_datetime(asset.captured_at),
+        "status": asset.status,
+        "error_message": asset.error_message,
+        "embedding_json": asset.embedding_json,
+        "created_at": _serialize_datetime(asset.created_at),
+        "updated_at": _serialize_datetime(asset.updated_at),
         "labels": [{"label": lbl.label, "confidence": lbl.confidence} for lbl in asset.labels],
         "captions": [{"text": cap.text, "source": cap.source} for cap in asset.captions],
-        "ocr": [{"text": blk.text, "language": blk.language} for blk in asset.text_blocks],
+        "ocr": [
+            {
+                "text": blk.text,
+                "language": blk.language,
+                "bbox": json.loads(blk.bbox) if blk.bbox else None,
+            }
+            for blk in asset.text_blocks
+        ],
     }
