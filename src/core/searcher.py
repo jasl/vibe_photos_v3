@@ -30,21 +30,23 @@ class AssetSearchService:
         if not query:
             return []
 
+        hits: List[SearchHit] = []
         session = self.session_factory()
         try:
             repository = database.AssetRepository(session)
             assets = repository.search_assets(query=query, limit=limit)
+
+            lowered = query.lower()
+            for asset in assets:
+                matches_caption = any(lowered in cap.text.lower() for cap in asset.captions)
+                matches_label = any(lowered in label.label.lower() for label in asset.labels)
+                matches_ocr = any(lowered in block.text.lower() for block in asset.text_blocks)
+                score = sum([matches_caption, matches_label, matches_ocr])
+                hits.append(
+                    SearchHit(asset_id=asset.id, score=float(score), data=database.serialize_asset(asset))
+                )
         finally:
             session.close()
-
-        hits: List[SearchHit] = []
-        lowered = query.lower()
-        for asset in assets:
-            matches_caption = any(lowered in cap.text.lower() for cap in asset.captions)
-            matches_label = any(lowered in label.label.lower() for label in asset.labels)
-            matches_ocr = any(lowered in block.text.lower() for block in asset.text_blocks)
-            score = sum([matches_caption, matches_label, matches_ocr])
-            hits.append(SearchHit(asset_id=asset.id, score=float(score), data=database.serialize_asset(asset)))
 
         hits.sort(key=lambda hit: hit.score, reverse=True)
         return hits
