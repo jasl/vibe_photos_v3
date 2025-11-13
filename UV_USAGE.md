@@ -10,7 +10,15 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 brew install uv
 # Windows PowerShell
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+# Fallback when installers are unavailable
+python -m pip install uv
 ```
+
+> **Note**  
+> Using `pip` is acceptable **only** for installing the `uv` tool itself. All
+> project dependency operations—including syncing, adding, or removing
+> packages—must still be performed through `uv` to preserve the reproducible
+> environment contract.
 
 ## 2. Core Workflow
 ```bash

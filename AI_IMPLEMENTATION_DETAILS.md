@@ -5,6 +5,8 @@ This manual extends the development playbook with executable details. Each secti
 ## ENV — Environment & Scaffolding
 ### ENV-001: Repository Skeleton Generator
 Use the following script to (re)hydrate the canonical directory structure. Run it only when bootstrapping a clean checkout.
+
+> **Scope clarification**: the `src/` tree referenced throughout this manual is not yet checked into the repository. Creating it is explicitly deferred to the ENV track (e.g. when you execute `ENV-001`). Treat the script below as the authoritative source of truth, and only materialize the skeleton when a backlog item instructs you to do so.
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
