@@ -3,6 +3,7 @@
 
 import asyncio
 import logging
+import os
 import sys
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
@@ -16,6 +17,9 @@ from src.core.database import get_session_factory, init_db
 from src.models.blip import BlipCaptioner
 from src.models.siglip import SiglipClassifier
 from src.utils.runtime import load_phase1_config
+
+
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
 
 def setup_logging(config: dict) -> logging.Logger:
@@ -172,5 +176,5 @@ async def main() -> int:
 
 
 if __name__ == "__main__":
-    Path("logs").mkdir(exist_ok=True)
+    Path("log").mkdir(exist_ok=True)
     sys.exit(asyncio.run(main()))

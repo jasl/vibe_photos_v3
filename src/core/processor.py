@@ -32,6 +32,7 @@ class BatchProcessor:
         self.preprocessor = preprocessor
         self.config = config
         self.logger = get_logger(__name__)
+        self.total_images: int | None = None
 
         self.stats = {
             "total_processed": 0,
@@ -49,9 +50,17 @@ class BatchProcessor:
         dataset_dir = Path(self.config["dataset"]["directory"]).resolve()
         dataset_dir.mkdir(parents=True, exist_ok=True)
         self.logger.info("Starting dataset scan", extra={"dataset_dir": str(dataset_dir)})
+
+        image_paths = list(self._iter_images(dataset_dir))
+        self.total_images = len(image_paths)
+
+        if self.total_images == 0:
+            self.logger.warning("No image files found during scan", extra={"dataset_dir": str(dataset_dir)})
+            return
+
         semaphore = asyncio.Semaphore(self.max_workers)
         pending: List[asyncio.Task] = []
-        for image_path in self._iter_images(dataset_dir):
+        for image_path in image_paths:
             pending.append(asyncio.create_task(self._process_with_semaphore(image_path, incremental, semaphore)))
             if len(pending) >= self.batch_size:
                 await asyncio.gather(*pending)
@@ -59,6 +68,8 @@ class BatchProcessor:
 
         if pending:
             await asyncio.gather(*pending)
+
+        self.total_images = None
 
     async def process_file(self, image_path: Path, incremental: bool = True) -> None:
         """Process a single image file (used by API uploads)."""
@@ -114,7 +125,17 @@ class BatchProcessor:
             )
 
             await asyncio.to_thread(self._persist_asset, asset_data)
-            await self._increment_stat("successful")
+            successful_index = await self._increment_stat("successful")
+
+            if self.total_images:
+                self.logger.info(
+                    "[%d/%d] %s",
+                    successful_index,
+                    self.total_images,
+                    image_path.name,
+                    extra={"path": str(image_path)},
+                )
+
             self.logger.info(
                 "Processed image",
                 extra={"path": str(image_path), "caption": detection.caption or ""},
@@ -134,10 +155,11 @@ class BatchProcessor:
         async with semaphore:
             await self._process_path(image_path, incremental=incremental)
 
-    async def _increment_stat(self, key: str, value: int = 1) -> None:
+    async def _increment_stat(self, key: str, value: int = 1) -> int:
         """Thread-safe counter updates."""
         async with self._stats_lock:
             self.stats[key] += value
+            return self.stats[key]
 
     async def _is_duplicate(self, phash: str) -> bool:
         """Check whether the perceptual hash already exists."""

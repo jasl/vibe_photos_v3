@@ -14,5 +14,5 @@ from process_dataset import main as root_main
 
 
 if __name__ == "__main__":
-    Path("logs").mkdir(exist_ok=True)
+    Path("log").mkdir(exist_ok=True)
     sys.exit(asyncio.run(root_main()))
