@@ -1,212 +1,60 @@
-# 📁 目录结构说明
+# Directory Protocol — Vibe Photos Coding AI
 
-## ⚠️ POC阶段特别说明
-- **可破坏性变更**: POC阶段可随时调整目录结构
-- **无需数据迁移**: 每个版本可以完全重建data和cache
-- **快速重置**: `rm -rf data/* cache/*` 即可重新开始
-- **灵活调整**: 根据实际需要调整缓存策略
+This document explains where every artifact lives and how coding AIs should interact with the filesystem during development and testing.
 
-## 核心目录
+## 1. Operational Principles
+- Phase 1 is disposable: you may wipe `data/`, `cache/`, `log/`, and `tmp/` whenever you need a clean run.
+- Do not modify anything inside `samples/` or blueprint folders; they are treated as read-only specs.
+- Model assets are large; download once into `models/` and reuse across runs.
 
-### `samples/` (只读)
-- **用途**: 存放原始测试数据集
-- **权限**: 只读，不修改原始文件
-- **内容**: 用户的测试图片（JPG、PNG、HEIC等）
-- **示例**:
-```
-samples/
-├── November 1, 2025/
-├── Beijing, October 29, 2025/
-└── ...（其他测试图片）
-```
+## 2. Directory Breakdown
+| Path | Access | Purpose | Notes |
+|------|--------|---------|-------|
+| `samples/` | Read-only | Canonical evaluation photos provided by stakeholders. | Never edit or commit changes. |
+| `data/` | Read/Write | Runtime SQLite DB (`vibe_photos.db`) and incremental state snapshots. | Git-ignored. Safe to delete between runs. |
+| `cache/` | Read/Write | Reusable artifacts: normalized images, thumbnails, detection JSON, OCR results, embeddings, perceptual hashes. | Share across phases to skip recomputation. |
+| `log/` | Read/Write | Rotating logs (`*.log`, `*.log.*`). | Configure rotation (10 MB, keep 5). |
+| `tmp/` | Read/Write | Short-lived temp files. | Clean freely. |
+| `models/` | Read/Write | Downloaded model weights (SigLIP, BLIP, PaddleOCR, etc.). | Git-ignored; ensure `.gitkeep` if needed. |
+| `blueprints/` | Read-only | Design documentation for all phases. | Update only when explicitly refining docs. |
 
-### `data/` (读写)
-- **用途**: 存放处理结果和数据库
-- **权限**: 读写
-- **内容**:
-  - `vibe_photos.db` - SQLite数据库
-  - `processing_state.json` - 处理状态（增量处理用）
-- **注意**: 该目录被git忽略，不会提交到版本控制
-
-### `cache/` (读写，可复用)
-- **用途**: 存放可跨版本复用的处理结果
-- **权限**: 读写
-- **优势**: Phase 2、Phase 3可以直接复用这些缓存，避免重复计算
-- **内容**:
+## 3. Cache Keys & Structure
 ```
 cache/
 ├── images/
-│   ├── processed/      # 归一化后的图片（JPEG格式）
-│   └── thumbnails/     # 缩略图（512x512）
-├── detections/         # SigLIP分类结果（JSON）
-├── captions/          # BLIP描述结果（JSON）
-├── ocr/               # OCR提取结果（JSON）
-├── embeddings/        # 向量嵌入（PoC2准备）
-└── hashes/            # 感知哈希缓存
-    └── phash_cache.json
+│   ├── processed/      # Normalized JPEG assets
+│   └── thumbnails/     # 512x512 previews
+├── detections/         # SigLIP classification results (.json)
+├── captions/           # BLIP caption outputs (.json)
+├── ocr/                # OCR text blocks (.json)
+├── embeddings/         # Vector stores / FAISS indexes
+└── hashes/             # Perceptual hash lookups
 ```
+- Use perceptual hash (`phash`) as the cache key to deduplicate identical content.
+- Store metadata in JSON with ISO timestamps and version info.
 
-### `log/` (读写)
-- **用途**: 存放程序运行日志
-- **权限**: 读写
-- **内容**:
-  - `phase1.log` - Phase 1主程序日志
-  - `process_dataset.log` - 数据处理日志
-  - `*.log.*` - 轮转的历史日志文件
-- **特性**:
-  - 自动轮转（单文件最大10MB）
-  - 保留最近5个备份
-  - 支持多级别日志（DEBUG/INFO/WARNING/ERROR）
-- **注意**: 该目录被git忽略
-
-### `tmp/` (读写)
-- **用途**: 存放运行期间的临时文件
-- **权限**: 读写
-- **内容**:
-  - 处理中的临时图片
-  - 中间计算结果
-  - 临时脚本或帮助文件
-- **特性**:
-  - 随时可清理
-  - 不需要保留
-  - 程序结束后可删除
-- **注意**: 该目录被git忽略
-
-### `models/` (读写，重要)
-- **用途**: 存放预训练模型文件
-- **权限**: 读写
-- **内容**:
-  - SigLIP模型权重（~400MB）
-  - BLIP模型权重（~990MB）
-  - PaddleOCR模型（~100MB）
-  - 其他预训练模型
-- **特性**:
-  - 首次下载后可复用
-  - 跨版本共享
-  - 避免重复下载
-- **注意**: 该目录被git忽略（文件太大）
-
-## 缓存策略
-
-### 缓存键设计
-- 使用**感知哈希（phash）**作为缓存键
-- 优势：内容相同的图片共享缓存，即使文件名不同
-- 示例：`cache/detections/a1b2c3d4e5f6.json`
-
-### 缓存复用流程
-```python
-1. 计算图片的感知哈希
-2. 检查缓存是否存在
-   - 存在：直接读取缓存结果
-   - 不存在：计算并保存到缓存
-3. 返回结果
-```
-
-### 跨版本复用
-- **Phase 1 → Phase 2**: 
-  - 复用：processed图片、thumbnails、detections、ocr
-  - 新增：embeddings（语义向量）
-  
-- **Phase 2 → Phase 3**:
-  - 复用：所有缓存
-  - 可能迁移到PostgreSQL，但缓存仍可用
-
-## 目录权限说明
-
-| 目录 | 读写权限 | Git状态 | 说明 |
-|-----|---------|---------|------|
-| `samples/` | 只读 | 忽略 | 原始数据，不修改 |
-| `data/` | 读写 | 忽略 | 版本特定数据 |
-| `cache/` | 读写 | 忽略 | 可复用缓存 |
-| `log/` | 读写 | 忽略 | 运行日志 |
-| `tmp/` | 读写 | 忽略 | 临时文件 |
-| `models/` | 读写 | 忽略 | 预训练模型（重要） |
-| `blueprints/` | 只读 | 跟踪 | 所有设计文档 |
-| `blueprints/phase1/` | 只读 | 跟踪 | Phase 1设计 |
-| `blueprints/phase_final/` | 只读 | 跟踪 | Phase Final设计 |
-
-## 清理策略
-
-### 完全重置（删除所有处理结果和日志）
+## 4. Reset Recipes
 ```bash
-rm -rf data/*
-rm -rf cache/*
-rm -rf log/*
-rm -rf tmp/*
-```
+# Full reset (wipe runtime artifacts)
+rm -rf data/* cache/* log/* tmp/*
 
-### 保留缓存重置（保留可复用部分）
-```bash
-rm -rf data/*
-rm -rf log/*
-rm -rf tmp/*
-# cache目录保留，下次处理会复用
-```
+# Preserve expensive caches (keep processed assets & embeddings)
+rm -rf data/* log/* tmp/*
 
-### 清理特定缓存
-```bash
-# 清理检测结果缓存
-rm -rf cache/detections/*
-
-# 清理OCR缓存
-rm -rf cache/ocr/*
-
-# 清理处理后的图片
+# Targeted cleanup
+rm -rf cache/detections/*      # Remove classification cache
+rm -rf cache/ocr/*             # Remove OCR cache
 rm -rf cache/images/processed/*
-
-# 清理日志文件
-rm -rf log/*.log*
-
-# 清理临时文件
-rm -rf tmp/*
 ```
 
-## 存储空间估算
+## 5. Model Storage Guidance
+- Download weights into `models/` with transformers/paddle cache pointing to this directory (`TRANSFORMERS_CACHE`, `PADDLEOCR_HOME`).
+- Keep a README in `models/` describing which checkpoints are present and their source URLs.
+- Do not commit model binaries; ensure `.gitignore` rules remain intact.
 
-基于30,000张图片的测试数据集：
+## 6. Logging Expectations
+- All services write to `log/phase1.log` by default using the logging utility.
+- Benchmark scripts append to `log/perf.log` with CSV-friendly rows.
+- Rotate logs using size-based handlers; old files should be suffixed `.log.1`, `.log.2`, etc.
 
-| 内容 | 大小估算 | 说明 |
-|------|----------|------|
-| 原始图片 | 400GB | samples目录（只读） |
-| 预训练模型 | ~430MB | models目录（首次下载） |
-| 处理后图片 | ~100GB | JPEG压缩，较小尺寸 |
-| 缩略图 | ~5GB | 512x512 JPEG |
-| 检测结果 | ~500MB | JSON格式 |
-| OCR结果 | ~200MB | JSON格式 |
-| 数据库 | ~100MB | SQLite |
-| **总计** | ~107GB | 额外需要的空间 |
-
-## 性能优化
-
-### 缓存命中率
-- 首次处理：0%（需要计算所有内容）
-- 增量处理：90%+（只处理新图片）
-- 重新运行：100%（全部使用缓存）
-
-### 处理速度提升
-- 无缓存：10-15张/分钟
-- 有缓存：100+张/分钟（仅需要数据库操作）
-
-## 维护建议
-
-1. **定期备份缓存**
-   ```bash
-   tar -czf cache_backup_$(date +%Y%m%d).tar.gz cache/
-   ```
-
-2. **监控缓存大小**
-   ```bash
-   du -sh cache/*
-   ```
-
-3. **清理过期缓存**
-   - 可以定期清理长期未使用的缓存文件
-   - 建议保留至少最近30天的缓存
-
----
-
-这种目录结构设计确保了：
-- ✅ 原始数据安全（只读）
-- ✅ 缓存可复用（跨版本）
-- ✅ 清晰的职责分离
-- ✅ 灵活的清理策略
+Treat this structure as part of the contract. Deviations must be reflected here and echoed in `AI_IMPLEMENTATION_DETAILS.md` so downstream coding AIs stay synchronized.
