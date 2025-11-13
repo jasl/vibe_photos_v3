@@ -6,6 +6,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List
 
+import threading
+
+from src.utils.logging import get_logger
+
+_ENGINE_CACHE: Dict[str, Any] = {}
+_ENGINE_LOCK = threading.Lock()
+_ENGINE_CALL_LOCKS: Dict[str, threading.Lock] = {}
+
 
 @dataclass(slots=True)
 class OCRText:
@@ -24,6 +32,13 @@ class PaddleOCREngine:
         self.config = config
         self.enabled = config.get("enabled", True)
         self._ocr = None
+        self.logger = get_logger(__name__)
+
+    def _engine_key(self) -> str:
+        languages = self.config.get("languages", ["ch"])
+        if isinstance(languages, list):
+            return ",".join(str(lang) for lang in languages)
+        return str(languages)
 
     def _load_engine(self):
         if not self.enabled:
@@ -32,19 +47,34 @@ class PaddleOCREngine:
         if self._ocr is not None:
             return self._ocr
 
-        try:
-            from paddleocr import PaddleOCR
-        except ImportError as error:  # pragma: no cover - executed only without deps
-            raise RuntimeError("paddleocr is required for OCR support") from error
+        with _ENGINE_LOCK:
+            if self._ocr is not None:
+                return self._ocr
 
-        use_angle_cls = self.config.get("use_angle_cls", True)
-        languages = self.config.get("languages", ["ch"])
-        lang = languages[0] if isinstance(languages, list) else languages
-        # PaddleOCR>=3.3 dropped the legacy `show_log` and `use_angle_cls` constructor
-        # arguments in favor of `use_textline_orientation`. We keep the configuration
-        # key name for backwards compatibility and map it to the new flag here.
-        self._ocr = PaddleOCR(lang=lang, use_textline_orientation=use_angle_cls)
-        return self._ocr
+            cached = _ENGINE_CACHE.get(self._engine_key())
+            if cached is not None:
+                self._ocr = cached
+                return cached
+
+            try:
+                from paddleocr import PaddleOCR
+            except ImportError as error:  # pragma: no cover - executed only without deps
+                raise RuntimeError("paddleocr is required for OCR support") from error
+
+            use_angle_cls = self.config.get("use_angle_cls", True)
+            languages = self.config.get("languages", ["ch"])
+            lang = languages[0] if isinstance(languages, list) else languages
+            # PaddleOCR>=3.3 dropped the legacy `show_log` and `use_angle_cls` constructor
+            # arguments in favor of `use_textline_orientation`. We keep the configuration
+            # key name for backwards compatibility and map it to the new flag here.
+            engine = PaddleOCR(lang=lang, use_textline_orientation=use_angle_cls)
+
+            key = self._engine_key()
+            _ENGINE_CACHE[self._engine_key()] = engine
+            if key not in _ENGINE_CALL_LOCKS:
+                _ENGINE_CALL_LOCKS[key] = threading.Lock()
+            self._ocr = engine
+            return engine
 
     def extract_text(self, image_path: Path) -> List[OCRText]:
         """Run OCR on the given image."""
@@ -54,10 +84,32 @@ class PaddleOCREngine:
 
         languages = self.config.get("languages", ["ch"])
         lang_value = ",".join(languages) if isinstance(languages, list) else str(languages)
-        # The `cls`/`use_angle_cls` parameter used in older PaddleOCR versions has been
-        # replaced by `use_textline_orientation` on the engine itself, so we no longer
-        # pass it per-call and instead rely on the engine configuration.
-        result = engine.ocr(str(image_path))
+
+        # Serialize calls to the shared PaddleOCR engine as it is not
+        # thread-safe under heavy concurrent usage.
+        key = self._engine_key()
+        call_lock = _ENGINE_CALL_LOCKS.get(key)
+        if call_lock is None:
+            call_lock = threading.Lock()
+            _ENGINE_CALL_LOCKS[key] = call_lock
+
+        try:
+            # The `cls`/`use_angle_cls` parameter used in older PaddleOCR versions has
+            # been replaced by `use_textline_orientation` on the engine itself, so we
+            # no longer pass it per-call and instead rely on the engine configuration.
+            with call_lock:
+                result = engine.ocr(str(image_path))
+        except Exception as error:  # noqa: BLE001
+            # Hardening: treat OCR failures as non-fatal and surface them via logging
+            # instead of aborting the ingestion pipeline.
+            self.logger.exception(
+                "OCR failed for image %s: %s",
+                str(image_path),
+                error,
+                extra={"path": str(image_path), "error": str(error)},
+            )
+            return []
+
         ocr_text: List[OCRText] = []
 
         for item in result or []:

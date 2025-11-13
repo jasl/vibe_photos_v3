@@ -5,7 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import threading
 from PIL import Image
+
+_BLIP_CACHE: dict[str, tuple[Any, Any]] = {}
+_BLIP_LOCK = threading.Lock()
 
 
 class BlipCaptioner:
@@ -31,18 +35,32 @@ class BlipCaptioner:
         if self._model is not None and self._processor is not None:
             return self._processor, self._model
 
-        try:
-            from transformers import BlipForConditionalGeneration, BlipProcessor
-        except ImportError as error:  # pragma: no cover - exercised only without deps
-            message = (
-                "transformers is required for BLIP captioning "
-                "(failed to import BlipForConditionalGeneration/BlipProcessor)"
-            )
-            raise RuntimeError(message) from error
+        with _BLIP_LOCK:
+            if self._model is not None and self._processor is not None:
+                return self._processor, self._model
 
-        self._processor = BlipProcessor.from_pretrained(self.model_name, use_fast=True)
-        self._model = BlipForConditionalGeneration.from_pretrained(self.model_name)
-        return self._processor, self._model
+            cached = _BLIP_CACHE.get(self.model_name)
+            if cached is not None:
+                self._processor, self._model = cached
+                return cached
+
+            try:
+                from transformers import BlipForConditionalGeneration, BlipProcessor
+            except ImportError as error:  # pragma: no cover - exercised only without deps
+                message = (
+                    "transformers is required for BLIP captioning "
+                    "(failed to import BlipForConditionalGeneration/BlipProcessor)"
+                )
+                raise RuntimeError(message) from error
+
+            processor = BlipProcessor.from_pretrained(self.model_name, use_fast=True)
+            model = BlipForConditionalGeneration.from_pretrained(self.model_name)
+
+            cached = (processor, model)
+            _BLIP_CACHE[self.model_name] = cached
+
+            self._processor, self._model = cached
+            return cached
 
     def generate_caption(self, image_path: Path, max_length: int = 32) -> str:
         """Generate a caption for a single image."""

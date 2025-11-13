@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, List, Sequence
+from typing import Any, Dict, Iterable, List, Sequence
 
+import threading
 from PIL import Image
 
 LabelScores = List["LabelScore"]
@@ -19,6 +20,10 @@ class LabelScore:
     confidence: float
 
 
+_PIPELINE_CACHE: Dict[str, Any] = {}
+_PIPELINE_LOCK = threading.Lock()
+
+
 class SiglipClassifier:
     """Lazy-loading helper for SigLIP zero-shot image classification.
 
@@ -27,11 +32,7 @@ class SiglipClassifier:
     you can inject a pre-built pipeline instance via the ``pipeline`` argument.
     """
 
-    def __init__(
-        self,
-        model_name: str = "google/siglip2-base-patch16-224",
-        pipeline: Any | None = None,
-    ) -> None:
+    def __init__(self, model_name: str = "google/siglip2-base-patch16-224", pipeline: Any | None = None) -> None:
         self.model_name = model_name
         self._pipeline = pipeline
 
@@ -40,14 +41,25 @@ class SiglipClassifier:
         if self._pipeline is not None:
             return self._pipeline
 
-        try:
-            from transformers import pipeline as hf_pipeline
-        except ImportError as error:  # pragma: no cover - exercised only without deps
-            message = "transformers is required for SigLIP support (failed to import transformers.pipeline)"
-            raise RuntimeError(message) from error
+        with _PIPELINE_LOCK:
+            if self._pipeline is not None:
+                return self._pipeline
 
-        self._pipeline = hf_pipeline("zero-shot-image-classification", model=self.model_name, use_fast=True)
-        return self._pipeline
+            cached = _PIPELINE_CACHE.get(self.model_name)
+            if cached is not None:
+                self._pipeline = cached
+                return cached
+
+            try:
+                from transformers import pipeline as hf_pipeline
+            except ImportError as error:  # pragma: no cover - exercised only without deps
+                message = "transformers is required for SigLIP support (failed to import transformers.pipeline)"
+                raise RuntimeError(message) from error
+
+            pipeline = hf_pipeline("zero-shot-image-classification", model=self.model_name, use_fast=True)
+            _PIPELINE_CACHE[self.model_name] = pipeline
+            self._pipeline = pipeline
+            return pipeline
 
     def classify(
         self,
