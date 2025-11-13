@@ -40,7 +40,10 @@ class PaddleOCREngine:
         use_angle_cls = self.config.get("use_angle_cls", True)
         languages = self.config.get("languages", ["ch"])
         lang = languages[0] if isinstance(languages, list) else languages
-        self._ocr = PaddleOCR(use_angle_cls=use_angle_cls, lang=lang, show_log=False)
+        # PaddleOCR>=3.3 dropped the legacy `show_log` and `use_angle_cls` constructor
+        # arguments in favor of `use_textline_orientation`. We keep the configuration
+        # key name for backwards compatibility and map it to the new flag here.
+        self._ocr = PaddleOCR(lang=lang, use_textline_orientation=use_angle_cls)
         return self._ocr
 
     def extract_text(self, image_path: Path) -> List[OCRText]:
@@ -51,7 +54,10 @@ class PaddleOCREngine:
 
         lang = self.config.get("languages", ["ch"])
         lang_value = ",".join(lang) if isinstance(lang, list) else str(lang)
-        result = engine.ocr(str(image_path), cls=self.config.get("use_angle_cls", True))
+        # The `cls`/`use_angle_cls` parameter used in older PaddleOCR versions has been
+        # replaced by `use_textline_orientation` on the engine itself, so we no longer
+        # pass it per-call and instead rely on the engine configuration.
+        result = engine.ocr(str(image_path))
         ocr_text: List[OCRText] = []
 
         for block in result or []:
