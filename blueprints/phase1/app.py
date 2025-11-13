@@ -9,7 +9,7 @@ from typing import Any, Dict, List
 import streamlit as st
 import yaml
 
-from src.core.database import AssetRepository, get_db_session
+from src.core.database import AssetRepository, get_session_factory
 from src.core.searcher import AssetSearchService
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -86,10 +86,13 @@ def get_search_service() -> AssetSearchService:
 @st.cache_data(ttl=15, show_spinner=False)
 def load_ingestion_stats() -> Dict[str, Any]:
     """Return ingestion stats pulled from SQLite."""
-    session = get_db_session()
-    repo = AssetRepository(session)
-    total_assets = repo.total_assets()
-    session.close()
+    session_factory = get_session_factory()
+    session = session_factory()
+    try:
+        repo = AssetRepository(session)
+        total_assets = repo.total_assets()
+    finally:
+        session.close()
     return {"total_assets": total_assets, "refreshed_at": st.session_state.get("last_refresh", "now")}
 
 

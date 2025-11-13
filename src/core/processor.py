@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
-from typing import Any, Dict, Iterable, List
+from typing import Any, Callable, Dict, Iterable, List
+
+from sqlalchemy.orm import Session
 
 from src.core.database import AssetData, AssetRepository
 from src.core.detector import SigLIPBLIPDetector
@@ -18,18 +20,17 @@ class BatchProcessor:
 
     def __init__(
         self,
-        db_session,
+        session_factory: Callable[[], Session],
         detector: SigLIPBLIPDetector,
         preprocessor: ImagePreprocessor,
         config: Dict[str, Any],
         ocr_engine: PaddleOCREngine | None = None,
     ) -> None:
-        self.session = db_session
+        self.session_factory = session_factory
         self.detector = detector
         self.ocr_engine = ocr_engine
         self.preprocessor = preprocessor
         self.config = config
-        self.repository = AssetRepository(db_session)
         self.logger = get_logger(__name__)
 
         self.stats = {
@@ -38,14 +39,26 @@ class BatchProcessor:
             "duplicates": 0,
             "failed": 0,
         }
+        batching = config.get("batch_processing", {})
+        self.max_workers = max(1, int(batching.get("max_workers", 1)))
+        self.batch_size = max(1, int(batching.get("batch_size", self.max_workers)))
+        self._stats_lock = asyncio.Lock()
 
     async def process_dataset(self, incremental: bool = True) -> None:
         """Process every supported image in the dataset directory."""
         dataset_dir = Path(self.config["dataset"]["directory"]).resolve()
         dataset_dir.mkdir(parents=True, exist_ok=True)
         self.logger.info("Starting dataset scan", extra={"dataset_dir": str(dataset_dir)})
+        semaphore = asyncio.Semaphore(self.max_workers)
+        pending: List[asyncio.Task] = []
         for image_path in self._iter_images(dataset_dir):
-            await self._process_path(image_path, incremental=incremental)
+            pending.append(asyncio.create_task(self._process_with_semaphore(image_path, incremental, semaphore)))
+            if len(pending) >= self.batch_size:
+                await asyncio.gather(*pending)
+                pending.clear()
+
+        if pending:
+            await asyncio.gather(*pending)
 
     async def process_file(self, image_path: Path, incremental: bool = True) -> None:
         """Process a single image file (used by API uploads)."""
@@ -64,16 +77,16 @@ class BatchProcessor:
 
     async def _process_path(self, image_path: Path, incremental: bool) -> None:
         """Process a single file with preprocessing + detector."""
-        self.stats["total_processed"] += 1
+        await self._increment_stat("total_processed")
 
         try:
             result = await asyncio.to_thread(self.preprocessor.preprocess, image_path)
-            if incremental and result.phash and self.repository.find_by_phash(result.phash):
+            if incremental and result.phash and await self._is_duplicate(result.phash):
                 self.logger.info(
                     "Skipping duplicate",
                     extra={"path": str(image_path), "phash": result.phash},
                 )
-                self.stats["duplicates"] += 1
+                await self._increment_stat("duplicates")
                 return
 
             detection = await asyncio.to_thread(self.detector.analyze, result.processed_path)
@@ -100,15 +113,46 @@ class BatchProcessor:
                 ocr_blocks=ocr_blocks,
             )
 
-            await asyncio.to_thread(self.repository.create_asset, asset_data)
-            self.stats["successful"] += 1
+            await asyncio.to_thread(self._persist_asset, asset_data)
+            await self._increment_stat("successful")
             self.logger.info(
                 "Processed image",
                 extra={"path": str(image_path), "caption": detection.caption or ""},
             )
         except Exception as error:  # noqa: BLE001
-            self.stats["failed"] += 1
+            await self._increment_stat("failed")
             self.logger.error(
                 "Failed to process image",
                 extra={"path": str(image_path), "error": str(error)},
             )
+
+    async def _process_with_semaphore(self, image_path: Path, incremental: bool, semaphore: asyncio.Semaphore) -> None:
+        """Execute a single processing task while respecting the max_workers limit."""
+        async with semaphore:
+            await self._process_path(image_path, incremental=incremental)
+
+    async def _increment_stat(self, key: str, value: int = 1) -> None:
+        """Thread-safe counter updates."""
+        async with self._stats_lock:
+            self.stats[key] += value
+
+    async def _is_duplicate(self, phash: str) -> bool:
+        """Check whether the perceptual hash already exists."""
+        def lookup() -> bool:
+            session = self.session_factory()
+            try:
+                repository = AssetRepository(session)
+                return repository.find_by_phash(phash) is not None
+            finally:
+                session.close()
+
+        return await asyncio.to_thread(lookup)
+
+    def _persist_asset(self, asset_data: AssetData) -> None:
+        """Persist asset metadata inside a dedicated session."""
+        session = self.session_factory()
+        try:
+            repository = AssetRepository(session)
+            repository.create_asset(asset_data)
+        finally:
+            session.close()

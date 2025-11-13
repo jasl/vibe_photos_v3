@@ -6,9 +6,9 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, List, Optional
+from typing import List, Optional
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text, create_engine, select
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, create_engine, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
 from sqlalchemy.sql import func
@@ -131,11 +131,17 @@ def init_db() -> None:
 
 def get_db_session():
     """Return a SQLAlchemy session bound to the engine."""
+    factory = get_session_factory()
+    return factory()
+
+
+def get_session_factory():
+    """Expose the configured session factory, initializing it if needed."""
     if SessionFactory is None:
         _ensure_engine()
 
-    assert SessionFactory is not None  # for mypy
-    return SessionFactory()
+    assert SessionFactory is not None
+    return SessionFactory
 
 
 @dataclass(slots=True)

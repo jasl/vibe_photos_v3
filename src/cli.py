@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import asyncio
-from pathlib import Path
 
 import typer
 
-from src.core.database import get_db_session, init_db
+from src.core.database import get_session_factory, init_db
 from src.core.detector import SigLIPBLIPDetector
 from src.core.ocr import PaddleOCREngine
 from src.core.preprocessor import ImagePreprocessor
@@ -20,7 +19,7 @@ cli = typer.Typer(help="Vibe Photos command-line interface")
 
 def _build_processor(config: dict) -> BatchProcessor:
     init_db()
-    session = get_db_session()
+    session_factory = get_session_factory()
     preprocessor = ImagePreprocessor(config["preprocessing"])
     detector = SigLIPBLIPDetector(
         model=config["detection"]["model"],
@@ -29,7 +28,7 @@ def _build_processor(config: dict) -> BatchProcessor:
     ocr_engine = PaddleOCREngine(config["ocr"]) if config.get("ocr", {}).get("enabled", True) else None
 
     return BatchProcessor(
-        db_session=session,
+        session_factory=session_factory,
         detector=detector,
         preprocessor=preprocessor,
         ocr_engine=ocr_engine,

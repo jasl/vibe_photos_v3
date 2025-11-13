@@ -12,7 +12,7 @@ from src.core.detector import SigLIPBLIPDetector
 from src.core.ocr import PaddleOCREngine
 from src.core.preprocessor import ImagePreprocessor
 from src.core.processor import BatchProcessor
-from src.core.database import get_db_session, init_db
+from src.core.database import get_session_factory, init_db
 from src.utils.runtime import load_phase1_config
 
 
@@ -82,10 +82,10 @@ async def main() -> int:
     ocr_engine = PaddleOCREngine(config["ocr"]) if config.get("ocr", {}).get("enabled", True) else None
 
     init_db()
-    db_session = get_db_session()
+    session_factory = get_session_factory()
 
     batch_processor = BatchProcessor(
-        db_session=db_session,
+        session_factory=session_factory,
         detector=detector,
         ocr_engine=ocr_engine,
         preprocessor=preprocessor,
@@ -113,16 +113,14 @@ async def main() -> int:
 
     except Exception as error:  # noqa: BLE001
         logger.error("Error while processing dataset: %s", error, exc_info=True)
-        db_session.close()
         return 1
 
     logger.info("✅ Dataset processing finished.")
     logger.info("Next steps:")
-    logger.info("  1. Start the API: uvicorn app.main:app --reload")
+    logger.info("  1. Start the API: uv run uvicorn src.api.main:app --reload")
     logger.info("  2. Start the UI: streamlit run blueprints/phase1/app.py")
     logger.info("  3. Open http://localhost:8501 to explore the gallery")
 
-    db_session.close()
     return 0
 
 

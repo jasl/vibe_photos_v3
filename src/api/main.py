@@ -5,21 +5,19 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from src.api.routes import health, ingest, search
-from src.api.services.dependencies import RuntimeState
-from src.core.database import get_db_session, init_db
+from src.api.services.dependencies import RuntimeResources
+from src.core.database import get_session_factory, init_db
 from src.core.detector import SigLIPBLIPDetector
 from src.core.ocr import PaddleOCREngine
 from src.core.preprocessor import ImagePreprocessor
-from src.core.processor import BatchProcessor
-from src.core.searcher import AssetSearchService
 from src.utils.runtime import load_phase1_config
 
 
-def _bootstrap_runtime() -> RuntimeState:
+def _bootstrap_runtime() -> RuntimeResources:
     """Instantiate shared services for the API process."""
     config = load_phase1_config()
     init_db()
-    session = get_db_session()
+    session_factory = get_session_factory()
 
     preprocessor = ImagePreprocessor(config["preprocessing"])
     detector = SigLIPBLIPDetector(
@@ -28,16 +26,13 @@ def _bootstrap_runtime() -> RuntimeState:
     )
     ocr_engine = PaddleOCREngine(config["ocr"]) if config.get("ocr", {}).get("enabled", True) else None
 
-    processor = BatchProcessor(
-        db_session=session,
+    return RuntimeResources(
+        config=config,
         detector=detector,
         preprocessor=preprocessor,
         ocr_engine=ocr_engine,
-        config=config,
+        session_factory=session_factory,
     )
-
-    search_service = AssetSearchService()
-    return RuntimeState(processor=processor, search_service=search_service)
 
 
 def create_app() -> FastAPI:

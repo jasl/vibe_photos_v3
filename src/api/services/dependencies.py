@@ -3,22 +3,30 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any, Dict
 
 from fastapi import Depends, Request
+from sqlalchemy.orm import sessionmaker
 
+from src.core.detector import SigLIPBLIPDetector
+from src.core.ocr import PaddleOCREngine
+from src.core.preprocessor import ImagePreprocessor
 from src.core.processor import BatchProcessor
 from src.core.searcher import AssetSearchService
 
 
 @dataclass
-class RuntimeState:
+class RuntimeResources:
     """Shared state stored on the FastAPI app."""
 
-    processor: BatchProcessor
-    search_service: AssetSearchService
+    config: Dict[str, Any]
+    detector: SigLIPBLIPDetector
+    preprocessor: ImagePreprocessor
+    ocr_engine: PaddleOCREngine | None
+    session_factory: sessionmaker
 
 
-def get_runtime_state(request: Request) -> RuntimeState:
+def get_runtime_resources(request: Request) -> RuntimeResources:
     """Return the runtime state stored on the FastAPI app."""
     state = getattr(request.app.state, "runtime", None)
     if state is None:
@@ -26,11 +34,17 @@ def get_runtime_state(request: Request) -> RuntimeState:
     return state
 
 
-def get_search_service(state: RuntimeState = Depends(get_runtime_state)) -> AssetSearchService:
+def get_search_service(resources: RuntimeResources = Depends(get_runtime_resources)) -> AssetSearchService:
     """Provide the shared search service."""
-    return state.search_service
+    return AssetSearchService(session_factory=resources.session_factory)
 
 
-def get_batch_processor(state: RuntimeState = Depends(get_runtime_state)) -> BatchProcessor:
+def get_batch_processor(resources: RuntimeResources = Depends(get_runtime_resources)) -> BatchProcessor:
     """Provide the shared batch processor."""
-    return state.processor
+    return BatchProcessor(
+        session_factory=resources.session_factory,
+        detector=resources.detector,
+        preprocessor=resources.preprocessor,
+        ocr_engine=resources.ocr_engine,
+        config=resources.config,
+    )
