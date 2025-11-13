@@ -22,7 +22,8 @@
 
 ## Phase Final Add-ons (optional)
 - `psycopg2-binary` 2.9.9 + `pgvector` 0.2.5 — PostgreSQL vector stack.
-- `gradio` 5.49.1 — production UI alternative.
 - `loguru` 0.7.3 + `prometheus-client` 0.23.1 — logging/metrics.
+
+> UI Note: Streamlit remains the sole frontend framework; no alternate production UI dependencies are planned.
 
 All dependencies are managed via `uv`; update `pyproject.toml` and `uv.lock` when versions change.

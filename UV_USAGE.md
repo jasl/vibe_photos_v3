@@ -16,16 +16,18 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```bash
 uv venv --python 3.12         # create virtual environment at .venv/
 source .venv/bin/activate     # (Windows: .venv\Scripts\activate)
-uv pip sync requirements.txt  # install dependencies from lock file
+uv sync                       # install dependencies from lock file
 uv run python script.py       # execute Python scripts within the managed env
 uv run pytest                 # run tests
 ```
+
+`uv sync` is the canonical shortcut that reads `pyproject.toml` and `uv.lock` in one step—no extra arguments are required compared to the older `uv pip sync uv.lock` pattern.
 
 ## 3. Dependency Management Rules
 - Declare direct dependencies in `pyproject.toml`; regenerate `uv.lock` after changes.
 - Use `uv add PACKAGE==VERSION` to introduce new packages.
 - Remove packages with `uv remove PACKAGE` and re-lock.
-- Keep development extras under `[project.optional-dependencies].dev` and install with `uv pip sync requirements-dev.txt` if needed.
+- Keep development extras under `[project.optional-dependencies].dev`; syncing `uv.lock` brings them in for local development.
 
 ## 4. Model Downloads
 Set caches so large downloads remain in `models/`:

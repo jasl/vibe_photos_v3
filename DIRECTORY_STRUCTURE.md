@@ -27,7 +27,7 @@ cache/
 ├── detections/         # SigLIP classification results (.json)
 ├── captions/           # BLIP caption outputs (.json)
 ├── ocr/                # OCR text blocks (.json)
-├── embeddings/         # Vector stores / FAISS indexes
+├── embeddings/         # Vector cache exports (SQLite dumps today, pgvector exports later)
 └── hashes/             # Perceptual hash lookups
 ```
 - Use perceptual hash (`phash`) as the cache key to deduplicate identical content.

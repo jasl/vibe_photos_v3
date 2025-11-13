@@ -9,7 +9,7 @@ dataset:
   incremental: true
   supported_formats: [.jpg, .jpeg, .png, .heic, .webp]
 ```
-3. Run ingestion via `uv run python process_dataset.py`. The script handles dedupe, normalization, thumbnail creation, detection, OCR, and persistence.
+3. Run ingestion via `uv run python blueprints/phase1/process_dataset.py`. The script handles dedupe, normalization, thumbnail creation, detection, OCR, and persistence.
 
 ## Incremental Workflow
 - Add new images to `samples/` and rerun the script; processed files are tracked via perceptual hash.
@@ -28,6 +28,7 @@ cache/
 
 ## Configuration Tips
 - Adjust dedupe sensitivity in `preprocessing.deduplication.threshold` (lower = stricter).
+- Keep the perceptual hash index at `preprocessing.paths.hash_cache`; delete the file to force a full rebuild.
 - Control batch size and worker count under `batch_processing` to match hardware.
 - Export `TRANSFORMERS_CACHE` and `PADDLEOCR_HOME` to point at `models/` for faster runs.
 

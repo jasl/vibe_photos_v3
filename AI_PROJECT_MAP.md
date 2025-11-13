@@ -29,6 +29,7 @@ Treat this file as the directory of directories. Every maintained artifact is li
 |---------|----------|
 | Release planning | [`ROADMAP.md`](ROADMAP.md) |
 | Dependency governance | [`DEPENDENCIES.md`](DEPENDENCIES.md), [`UV_USAGE.md`](UV_USAGE.md) |
+| Configuration contracts | [`config/CONFIG_CONTRACT.md`](config/CONFIG_CONTRACT.md) |
 | Quality gates | [`FINAL_CHECKLIST.md`](FINAL_CHECKLIST.md), [`AI_AUDIT_REPORT.md`](AI_AUDIT_REPORT.md) |
 | Phase transition notices | [`POC_PHASE_NOTICE.md`](POC_PHASE_NOTICE.md) |
 

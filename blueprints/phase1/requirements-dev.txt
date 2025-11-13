@@ -1,31 +1,31 @@
-# 开发依赖
-# 安装方式：uv pip install -r requirements.txt -r requirements-dev.txt
+# Development dependencies
+# Mirrors the root `pyproject.toml` dev extra; prefer `uv sync` over manual installs.
 
-# ==================== 测试工具 ====================
-pytest==9.0.0              # 测试框架
-pytest-asyncio==1.3.0      # 异步测试支持
-pytest-cov==7.0.0          # 测试覆盖率
-pytest-mock==3.15.1        # Mock支持
-httpx==0.28.1              # HTTP客户端测试
+# ==================== Testing ====================
+pytest==9.0.0              # Test runner
+pytest-asyncio==1.3.0      # Async test helpers
+pytest-cov==7.0.0          # Coverage reports
+pytest-mock==3.15.1        # Mocking utilities
+httpx==0.28.1              # HTTP client for integration tests
 
-# ==================== 代码质量 ====================
-black==25.11.0             # 代码格式化
-ruff==0.14.4               # 快速Python linter
-mypy==1.18.2               # 静态类型检查
-isort==5.13.2              # import排序
+# ==================== Code quality ====================
+black==25.11.0             # Code formatter
+ruff==0.14.4               # Fast Python linter
+mypy==1.18.2               # Static type checking
+isort==5.13.2              # Import ordering
 
-# ==================== 开发工具 ====================
-ipython==9.7.0             # 增强的Python shell
-ipdb==0.13.13              # IPython调试器
-rich==14.2.0               # 美化终端输出
-python-dotenv==1.2.1       # 环境变量管理
+# ==================== Developer experience ====================
+ipython==9.7.0             # Enhanced Python shell
+ipdb==0.13.13              # Interactive debugger
+rich==14.2.0               # Rich terminal output
+python-dotenv==1.2.1       # Environment variable loader
 
-# ==================== 文档工具 ====================
-mkdocs==1.6.1              # 文档生成
-mkdocs-material==9.7.0     # Material主题
-pdoc==16.0.0               # API文档生成
+# ==================== Documentation ====================
+mkdocs==1.6.1              # Static documentation site
+mkdocs-material==9.7.0     # Material theme
+pdoc==16.0.0               # API doc generation
 
-# ==================== 性能分析 ====================
-memory-profiler==0.61.0    # 内存分析
-line-profiler==5.0.0       # 行级性能分析
-py-spy==0.4.1              # 采样分析器
+# ==================== Performance analysis ====================
+memory-profiler==0.61.0    # Memory profiling
+line-profiler==5.0.0       # Line-level profiling
+py-spy==0.4.1              # Sampling profiler

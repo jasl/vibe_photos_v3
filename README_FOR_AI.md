@@ -17,7 +17,7 @@ Use this manual whenever you (a coding AI) enter the repository. It compresses t
 | Report | Update the task board (⬜→🟨→✅) and document any blockers. | `AI_TASK_TRACKER.md` |
 
 ## 3. Guardrails You Must Honor
-- **Language policy:** All source code, comments, and commit messages in English. Documentation may be bilingual when it improves clarity.
+- **Language policy:** Use English for source code, comments, configuration, UI strings, and documentation snippets. Narrative documentation should default to English, with Chinese translations added only when they unlock stakeholder alignment.
 - **Tooling policy:** Only `uv` for environment + dependency management; no `pip`, `conda`, or `poetry`.
 - **Design policy:** Prefer functional composition, guard-clause error handling, explicit typing, and deterministic logging.
 - **Scope policy:** Implement only what is authorized in the roadmaps and decision logs. Escalate uncertainties via notes in `AI_TASK_TRACKER.md`.

@@ -17,7 +17,7 @@ mkdir -p src/utils/{logger,config,metrics}
 mkdir -p src/cli
 mkdir -p tests/{unit,integration,fixtures/images}
 mkdir -p tests/fixtures/{electronic,food,document,landscape,person}
-mkdir -p config data cache/{images/{thumbnails,processed},detections,ocr,embeddings} models logs tmp
+mkdir -p config data cache/{images/{thumbnails,processed},detections,ocr,embeddings,hashes} models log tmp
 find src tests -type d -exec touch {}/__init__.py \;
 ```
 
@@ -29,49 +29,55 @@ name = "vibe-photos"
 version = "1.0.0"
 description = "AI-powered photo management system for content creators"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = "==3.12.*"
 license = { text = "MIT" }
 authors = [{ name = "Vibe Photos Team", email = "team@vibephotos.ai" }]
 
 dependencies = [
+    "fastapi==0.121.1",
+    "uvicorn==0.38.0",
+    "streamlit==1.51.0",
+    "sqlalchemy==2.0.44",
+    "pillow==11.3.0",
+    "python-multipart==0.0.20",
+    "aiofiles==24.1.0",
+    "pydantic==2.11.10",
+    "requests==2.32.3",
+    "pyyaml==6.0.2",
     "torch==2.9.1",
     "torchvision==0.24.1",
     "transformers==4.57.1",
-    "pillow==11.3.0",
-    "fastapi==0.121.1",
-    "uvicorn[standard]==0.38.0",
-    "python-multipart==0.0.6",
-    "sqlalchemy==2.0.44",
-    "alembic==1.13.1",
-    "pydantic==2.11.10",
-    "pydantic-settings==2.2.1",
-    "paddlepaddle==2.6.0",
-    "paddleocr==2.7.3",
-    "typer==0.20.0",
-    "rich==14.2.0",
+    "sentence-transformers==5.1.2",
+    "paddlepaddle==3.2.1",
+    "paddleocr==3.3.1",
     "numpy==2.3.4",
-    "python-dotenv==1.0.0",
-    "aiofiles==23.2.1",
-    "httpx==0.25.2",
-    "tqdm==4.66.1",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest==8.0.0",
-    "pytest-asyncio==0.23.2",
-    "pytest-cov==4.1.0",
-    "ruff==0.6.0",
-    "mypy==1.8.0",
-    "ipython==8.18.1",
-    "notebook==7.0.6",
+    "pytest==9.0.0",
+    "pytest-asyncio==1.3.0",
+    "pytest-cov==7.0.0",
+    "pytest-mock==3.15.1",
+    "httpx==0.28.1",
+    "black==25.11.0",
+    "ruff==0.14.4",
+    "mypy==1.18.2",
+    "isort==5.13.2",
+    "ipython==9.7.0",
+    "ipdb==0.13.13",
+    "rich==14.2.0",
+    "python-dotenv==1.2.1",
+    "mkdocs==1.6.1",
+    "mkdocs-material==9.7.0",
+    "pdoc==16.0.0",
+    "memory-profiler==0.61.0",
+    "line-profiler==5.0.0",
+    "py-spy==0.4.1",
 ]
-phase2 = [
-    "sentence-transformers==2.5.1",
-    "faiss-cpu==1.7.4",
-]
-phase3 = [
+phase_final = [
     "psycopg2-binary==2.9.9",
+    "pgvector==0.2.5",
     "redis==5.0.1",
     "celery==5.3.4",
     "prometheus-client==0.19.0",
@@ -88,30 +94,15 @@ build-backend = "hatchling.build"
 [tool.uv]
 dev-dependencies = []
 
-[tool.uv.sources]
-torch = [{ index = "pytorch-cuda", marker = "sys_platform == 'linux' or sys_platform == 'win32'" }]
-torchvision = [{ index = "pytorch-cuda", marker = "sys_platform == 'linux' or sys_platform == 'win32'" }]
-
-[[tool.uv.index]]
-name = "pytorch-cuda"
-url = "https://download.pytorch.org/whl/cu121"
-explicit = true
-
 [tool.ruff]
-line-length = 100
+line-length = 150
 target-version = "py312"
 
-[tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM", "ARG", "ERA"]
-ignore = ["E501"]
-
 [tool.pytest.ini_options]
-minversion = "8.0"
+minversion = "9.0"
 testpaths = ["tests"]
-python_files = "test_*.py"
-python_classes = "Test*"
-python_functions = "test_*"
-addopts = "-ra -q --strict-markers --cov=src --cov-report=term-missing"
+python_files = ["test_*.py"]
+addopts = "-ra -q --strict-markers"
 
 [tool.mypy]
 python_version = "3.12"
@@ -124,7 +115,7 @@ For each module described below, pair this manual with `AI_DEVELOPMENT_GUIDE.md`
 
 ### CORE-DET: `src/core/detector.py`
 - Compose SigLIP (classification) and BLIP (captioning) inference.
-- Accept optional `candidate_labels: list[str]` for targeted scoring; default to canonical label set stored in `config/candidates.yaml` (create if missing).
+- Accept optional `candidate_labels: list[str]` for targeted scoring; default to canonical label set stored in `config/candidates.yaml` (see `config/CONFIG_CONTRACT.md`).
 - Return structured payload:
   ```python
   DetectedImage(
@@ -147,7 +138,8 @@ For each module described below, pair this manual with `AI_DEVELOPMENT_GUIDE.md`
 - Persist results through `database.AssetRepository`.
 
 ### CORE-SRCH: `src/core/searcher.py`
-- Manage embedding index (FAISS for Phase 1) with fallback to cosine search over SQLite.
+- Maintain an embedding cache stored alongside asset metadata in SQLite; run cosine similarity locally for Phase 1.
+- Structure adapters so migrating to PostgreSQL + pgvector in Phase Final only swaps out the storage implementation.
 - Provide `search(query: str, limit: int = 20)` returning ranked assets, matched text, and explanation metadata.
 
 ### CORE-DB: `src/core/database.py`
@@ -172,7 +164,7 @@ For each module described below, pair this manual with `AI_DEVELOPMENT_GUIDE.md`
 - Emit structured logs with correlation IDs: adopt helper `get_correlation_id()` with contextvar fallback.
 
 ## Integration Notes
-- When introducing new dependencies, extend `DEPENDENCIES.md` and run `uv lock` to update `uv.lock`.
+- When introducing new dependencies, extend `DEPENDENCIES.md` and run `uv lock` so the root `uv.lock` stays the single source of truth.
 - Document any deviations or experimental findings in `blueprints/phase_final/research/`.
 - Sync acceptance criteria back to `AI_TASK_TRACKER.md` upon completion.
 

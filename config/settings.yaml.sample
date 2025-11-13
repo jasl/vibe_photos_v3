@@ -1,0 +1,33 @@
+# Phase 1 runtime settings template
+# Copy this file to config/settings.yaml and adjust paths before running scripts.
+
+dataset:
+  directory: "samples"  # Location of raw images
+  incremental: true      # Skip files that were already processed
+  supported_formats:
+    - .jpg
+    - .jpeg
+    - .png
+    - .heic
+    - .webp
+
+preprocessing:
+  deduplication:
+    threshold: 5  # Lower values make duplicate detection stricter
+  paths:
+    processed: "cache/images/processed"
+    thumbnails: "cache/images/thumbnails"
+    embeddings: "cache/embeddings"
+    detections: "cache/detections"
+    ocr_results: "cache/ocr"
+    hash_cache: "cache/hashes/phash_cache.json"
+    database: "data/vibe_photos.db"
+    state: "data/processing_state.json"
+
+database:
+  url: "sqlite:///data/vibe_photos.db"
+
+logging:
+  directory: "log"
+  level: "INFO"
+  file: "phase1.log"

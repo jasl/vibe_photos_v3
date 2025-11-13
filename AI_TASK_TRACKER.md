@@ -10,11 +10,11 @@ Use this tracker as the single source of truth for what each coding AI should ex
 ## Phase 1 — MVP Delivery (Active)
 | Status | Priority | ID | Description | Dependencies | Expected Output | Notes |
 |--------|----------|----|-------------|--------------|-----------------|-------|
-| ⬜ | 🔴 P0 | ENV-001 | Materialize repository structure & init script. | — | `init_project.sh`, directory tree | |
+| ✅ | 🔴 P0 | ENV-001 | Materialize repository structure & init script. | — | `init_project.sh`, directory tree | Script delegates to `blueprints/phase1/quick_start.py` for validation. |
 | ⬜ | 🔴 P0 | ENV-002 | Finalize `pyproject.toml` + lockfile. | ENV-001 | Updated `pyproject.toml`, `uv.lock` | |
 | ⬜ | 🔴 P0 | ENV-003 | Bootstrap `uv` environment and core deps install. | ENV-002 | Reproducible venv instructions | |
 | ⬜ | 🟠 P1 | ENV-004 | Model cache bootstrap (SigLIP, BLIP, PaddleOCR). | ENV-003 | Cached models under `models/` | |
-| ⬜ | 🟠 P1 | ENV-005 | Configuration templates (`config/settings.yaml`). | ENV-001 | Template + documentation | |
+| ✅ | 🟠 P1 | ENV-005 | Configuration templates (`config/settings.yaml`). | ENV-001 | Template + documentation | Template lives at `config/settings.yaml.sample`; quick-start + init script scaffold the runtime copy. |
 | ⬜ | 🔴 P0 | DET-001 | Implement SigLIP loader abstraction. | ENV-004 | `src/models/siglip.py` | |
 | ⬜ | 🔴 P0 | DET-002 | Implement BLIP loader abstraction. | ENV-004 | `src/models/blip.py` | |
 | ⬜ | 🔴 P0 | DET-003 | Compose unified detector (labels + captions). | DET-001, DET-002 | `src/core/detector.py` | |
@@ -37,9 +37,9 @@ Use this tracker as the single source of truth for what each coding AI should ex
 |--------|----------|----|-------------|--------------|--------|
 | ⬜ | 🔴 P0 | EMB-001 | Image embedding pipeline (SigLIP features). | Phase 1 complete | `src/models/embedder.py` |
 | ⬜ | 🔴 P0 | EMB-002 | Text embedding pipeline for captions/OCR. | EMB-001 | Unified embedding interface |
-| ⬜ | 🟠 P1 | SRCH-001 | Vector index management (FAISS/pgvector). | EMB-001 | Vector store adapter |
+| ⬜ | 🟠 P1 | SRCH-001 | Vector index management (SQLite cosine → pgvector). | EMB-001 | Vector store adapter |
 | ⬜ | 🟠 P1 | SRCH-002 | Hybrid search ranking (vector + metadata). | SRCH-001 | Ranking module |
-| ⬜ | 🟡 P2 | UI-002 | Advanced filtering UI for semantic search. | SRCH-002 | Updated Streamlit/Gradio views |
+| ⬜ | 🟡 P2 | UI-002 | Advanced filtering UI for semantic search. | SRCH-002 | Updated Streamlit views |
 
 ## Phase Final — Production Platform (Planned)
 | Status | Priority | ID | Description | Dependencies | Output |

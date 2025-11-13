@@ -1,7 +1,7 @@
 # Phase Final Solution Design — Coding AI Summary
 
 ## Architecture Overview
-- **Presentation:** Gradio web app + FastAPI + CLI/automation hooks.
+- **Presentation:** Streamlit web app + FastAPI + CLI/automation hooks.
 - **Services:** Detection (SigLIP/BLIP), OCR (PaddleOCR), Search (hybrid metadata + embeddings), Annotation/Learning, Task orchestration (Celery workers).
 - **Persistence:** PostgreSQL + pgvector, object storage (local or S3-compatible), Redis cache, versioned model registry.
 

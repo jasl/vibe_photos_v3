@@ -17,7 +17,7 @@ This document aggregates the active decisions from `AI_DECISION_RECORD.md` for q
 | Domain | Decision | Trigger |
 |--------|----------|---------|
 | Embeddings | Introduce SigLIP-based embedding services and hybrid ranking. | After Phase 1 validation |
-| Vector Index | Evaluate FAISS vs pgvector; prepare migration path. | Dataset >10k assets |
+| Vector Index | Standardize on PostgreSQL + pgvector; maintain SQLite cosine fallback until migration. | Dataset >10k assets |
 | UI | Enhance filters & semantic search UX. | When embedding accuracy validated |
 
 ## Phase Final (Planned)
@@ -26,7 +26,7 @@ This document aggregates the active decisions from `AI_DECISION_RECORD.md` for q
 | Database | Migrate to PostgreSQL + pgvector. | Production readiness |
 | Task Queue | Adopt Celery + Redis for ingestion/offline jobs. | Sustained workload >100 jobs/day |
 | Monitoring | Deploy Prometheus/Grafana dashboards. | Prior to public release |
-| UI | Transition to Gradio-based production interface. | When backend stabilizes |
+| UI | Keep Streamlit as the production interface (shared with MVP). | When backend stabilizes |
 
 ## Maintenance Notes
 - Update this summary whenever the status of a decision changes.

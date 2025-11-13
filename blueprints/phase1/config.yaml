@@ -1,128 +1,129 @@
-# Phase 1 配置文件
-# 用于配置测试数据集和处理参数
+# Phase 1 configuration file
+# Provides dataset and processing parameters for local experiments
 
-# 数据集配置
+# Dataset configuration
 dataset:
-  # 测试数据集目录（只读原始数据）
+  # Read-only sample dataset directory
   directory: "samples"
-  readonly: true  # 标记为只读，不修改原始文件
-  
-  # 支持的图片格式
+  readonly: true  # Never mutate original assets
+
+  # Supported file formats
   supported_formats:
     - .jpg
     - .jpeg
     - .png
     - .heic
     - .webp
-  
-  # 增量处理
-  incremental: true  # 跳过已处理的文件
+
+  # Incremental ingestion settings
+  incremental: true  # Skip files that already have metadata cached
   state_file: "data/processing_state.json"
 
-# 图像预处理配置
+# Image preprocessing
 preprocessing:
-  # 图像归一化
-  target_format: "JPEG"  # 统一转换为JPEG格式
-  max_dimension: 4096    # 最大边长限制（像素）
-  
-  # 缩略图生成
+  # Normalize images
+  target_format: "JPEG"  # Convert every asset to JPEG for downstream tasks
+  max_dimension: 4096    # Maximum dimension in pixels
+
+  # Thumbnail generation
   thumbnail:
     enabled: true
-    size: [512, 512]     # 缩略图尺寸
-    quality: 85          # JPEG质量（1-100）
+    size: [512, 512]     # Output thumbnail size (width, height)
+    quality: 85          # JPEG quality (1-100)
     format: "JPEG"
-  
-  # 去重配置
+
+  # Deduplication settings
   deduplication:
     enabled: true
-    algorithm: "phash"   # 感知哈希算法
-    hash_size: 8        # 哈希大小（越大越精确）
-    threshold: 5        # 相似度阈值（汉明距离）
-  
-  # 存储路径（分离缓存和数据）
+    algorithm: "phash"   # Perceptual hash algorithm
+    hash_size: 8        # Larger size increases precision
+    threshold: 5        # Hamming distance threshold for duplicates
+
+  # Storage layout (separate cache and persisted data)
   paths:
-    # 可复用的缓存（跨版本共享）
-    processed: "cache/images/processed"    # 归一化后的图片（可复用）
-    thumbnails: "cache/images/thumbnails"  # 缩略图（可复用）
-    embeddings: "cache/embeddings"         # 模型嵌入（Phase 2准备）
-    detections: "cache/detections"         # 检测结果缓存
-    ocr_results: "cache/ocr"              # OCR结果缓存
-    
-    # 版本特定的数据
-    database: "data/vibe_photos.db"       # SQLite数据库
-    state: "data/processing_state.json"   # 处理状态
+    # Reusable caches (safe across code versions)
+    processed: "cache/images/processed"    # Normalized images
+    thumbnails: "cache/images/thumbnails"  # Generated thumbnails
+    embeddings: "cache/embeddings"         # Model embeddings for future phases
+    detections: "cache/detections"         # Detection outputs
+    ocr_results: "cache/ocr"              # OCR results cache
+    hash_cache: "cache/hashes/phash_cache.json"  # Stores perceptual hash index
 
-# 批处理配置
+    # Version-specific data
+    database: "data/vibe_photos.db"       # SQLite database file
+    state: "data/processing_state.json"   # Processing progress
+
+# Batch processing
 batch_processing:
-  batch_size: 10         # 每批处理的图片数量
-  max_workers: 8        # 最大并行处理数
-  checkpoint_interval: 50  # 每处理多少张图片保存一次状态
+  batch_size: 10         # Number of images per worker batch
+  max_workers: 8        # Maximum parallel workers
+  checkpoint_interval: 50  # Persist state after this many images
 
-# 检测引擎配置
+# Detection engine configuration
 detection:
-  model: "siglip-base"  # 使用SigLIP多语言模型
-  confidence_threshold: 0.3  # 最低置信度阈值
+  model: "siglip-base"  # Multi-lingual SigLIP backbone
+  confidence_threshold: 0.3  # Minimum confidence for accepted detections
   device: "auto"        # auto/cpu/cuda:0
-  
-  # COCO类别过滤（可选）
+
+  # Optional COCO class filters
   # filter_classes:
   #   - person
   #   - laptop
   #   - cell phone
 
-# OCR配置
+# OCR configuration
 ocr:
   enabled: true
-  languages: ["ch", "en"]  # 支持中英文
-  use_angle_cls: true      # 文字方向检测
+  languages: ["ch", "en"]  # Supported languages
+  use_angle_cls: true      # Detect text rotation
 
-# 数据库配置
+# Database configuration
 database:
   type: "sqlite"
   path: "data/vibe_photos.db"
-  
-  # 搜索索引
-  search:
-    engine: "fts5"        # SQLite全文搜索引擎
-    tokenizer: "porter unicode61"  # 分词器
 
-# API服务配置
+  # Search index settings
+  search:
+    engine: "fts5"        # SQLite full-text search engine
+    tokenizer: "porter unicode61"  # Tokenizer configuration
+
+# API service configuration
 api:
   host: "127.0.0.1"
   port: 8000
-  reload: true  # 开发模式自动重载
-  
-# UI配置
+  reload: true  # Enable auto-reload during development
+
+# UI configuration
 ui:
   framework: "streamlit"
   port: 8501
-  
-  # UI功能开关
-  features:
-    upload: false        # PoC阶段禁用上传
-    batch_import: false  # PoC阶段禁用批量导入
-    search: true        # 启用搜索
-    browse: true        # 启用浏览
-    stats: true         # 启用统计
 
-# 临时文件配置
+  # UI feature switches
+  features:
+    upload: false        # Disable uploads for the MVP
+    batch_import: false  # Disable bulk import for the MVP
+    search: true        # Enable semantic search
+    browse: true        # Enable gallery browsing
+    stats: true         # Enable statistics panel
+
+# Temporary file handling
 temporary:
-  directory: "tmp"      # 临时文件目录
-  cleanup: true         # 程序结束后自动清理
-  
-# 日志配置
+  directory: "tmp"      # Scratch space for intermediate outputs
+  cleanup: true         # Remove temporary files on exit
+
+# Logging configuration
 logging:
   level: "INFO"         # DEBUG/INFO/WARNING/ERROR
   format: "[%(asctime)s] %(levelname)s - %(message)s"
-  directory: "log"      # 日志目录
-  file: "phase1.log"      # 日志文件名
-  # 日志文件轮转
+  directory: "log"      # Log directory
+  file: "phase1.log"      # Log file name
+  # Log rotation policy
   rotation:
     max_bytes: 10485760  # 10MB
-    backup_count: 5      # 保留5个备份
+    backup_count: 5      # Keep five backups
 
-# 开发配置
+# Development overrides
 development:
   debug: true
-  test_mode: true       # 测试模式，使用测试数据集
-  mock_detection: false  # 是否使用模拟检测结果
+  test_mode: true       # Use the bundled sample dataset
+  mock_detection: false  # Toggle mock detection responses
