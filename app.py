@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -327,7 +327,7 @@ def main() -> None:
         render_missing_settings_error(error)
         return
 
-    st.session_state["last_refresh"] = datetime.utcnow().isoformat()
+    st.session_state["last_refresh"] = datetime.now(UTC).isoformat()
     render_sidebar(settings)
     render_header()
     view = st.sidebar.radio("View", ["Overview", "Gallery"], index=0)
