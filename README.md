@@ -1,4 +1,7 @@
-# Vibe Photos - 项目根目录
+# Vibe Photos - AI智能照片管理系统
+
+## 🤖 For Coding AI
+快速导航：[AI_PROJECT_MAP.md](./AI_PROJECT_MAP.md) - 完整的AI开发文档导航地图
 
 ## 📁 项目结构
 

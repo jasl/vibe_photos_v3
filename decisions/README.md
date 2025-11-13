@@ -1,6 +1,9 @@
-# 决策文档中心
+# 📋 Decisions - 技术决策中心
 
 > 集中管理项目所有技术决策，避免干扰需求理解
+
+## 🤖 For Coding AI
+**主要文档**: [AI_DECISION_RECORD.md](./AI_DECISION_RECORD.md) - 结构化的技术决策记录，包含所有必须遵循的技术约束和实现规则
 
 ## 📋 文档导航
 

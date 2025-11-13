@@ -1,6 +1,9 @@
-# Vibe Photos 项目蓝图
+# 📁 Blueprints - 项目蓝图目录
 
 > 📋 本目录包含项目各个阶段的设计文档和技术蓝图
+
+## 🤖 For Coding AI
+**主要文档**: [AI_BLUEPRINT_GUIDE.md](./AI_BLUEPRINT_GUIDE.md) - 结构化的技术实施方案，包含架构设计、模块定义和实现细节
 
 ## 📁 目录结构
 
@@ -15,23 +18,18 @@ blueprints/
 
 ### Phase 1 - 基础验证 ✅
 **目标**：验证核心技术可行性
-
 - **重点**：SigLIP多语言分类、BLIP图像理解
 - **规模**：1,000张测试照片
-- **时间**：2周
 - **文档**：[phase1/README.md](./phase1/README.md)
 
 ### Phase 2 - 功能增强 🚧
 **目标**：完善核心功能
-
-- **重点**：向量搜索、Few-shot学习
+- **重点**：向量搜索、语义理解
 - **规模**：5,000张照片
-- **时间**：2-3周
 - **状态**：待实施
 
 ### Phase Final - 完整系统 📋
 **目标**：生产级系统
-
 - **重点**：完整功能、性能优化、可扩展架构
 - **规模**：30,000+张照片
 - **技术栈**：PostgreSQL + pgvector、Celery + Redis、FastAPI
@@ -51,17 +49,19 @@ blueprints/
 
 ```mermaid
 graph LR
-    A[Phase 1<br/>基础验证] -->|2周| B[Phase 2<br/>功能增强]
-    B -->|3周| C[Phase Final<br/>完整系统]
+    A[Phase 1<br/>基础验证] --> B[Phase 2<br/>功能增强]
+    B --> C[Phase Final<br/>完整系统]
     
     A --> A1[SigLIP分类]
-    A --> A2[基础分类]
+    A --> A2[BLIP理解]
+    A --> A3[SQLite存储]
     
     B --> B1[向量搜索]
-    B --> B2[Few-shot学习]
+    B --> B2[混合搜索]
+    B --> B3[性能优化]
     
-    C --> C1[分布式架构]
-    C --> C2[性能优化]
+    C --> C1[PostgreSQL]
+    C --> C2[分布式架构]
     C --> C3[生产部署]
 ```
 
