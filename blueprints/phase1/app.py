@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
 
 import streamlit as st
 import yaml
+
+from src.core.database import AssetRepository, get_db_session
+from src.core.searcher import AssetSearchService
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SETTINGS_PATH = REPO_ROOT / "config" / "settings.yaml"
@@ -60,24 +64,62 @@ def render_header() -> None:
 
 
 def render_status_panels(settings: Dict[str, Any]) -> None:
-    """Render placeholder sections for the MVP features."""
+    """Render ingestion metrics, search, and gallery previews."""
+    stats = load_ingestion_stats()
     st.subheader("Ingestion Status")
-    st.info(
-        "Connect the batch processing telemetry here. Write processed counts to a lightweight status JSON and load it for this view."
-    )
+    st.metric("Indexed assets", stats["total_assets"])
+    st.metric("Last refresh", stats["refreshed_at"])
 
     st.subheader("Search Preview")
-    st.warning(
-        "Hook the FastAPI search endpoint once it is available. Display ranked results with thumbnails and metadata snippets."
-    )
-
-    st.subheader("Gallery Browser")
-    st.info(
-        "Render paginated thumbnails from cache/images/thumbnails after dataset processing."
-    )
+    render_search_panel()
 
     st.subheader("Configuration Snapshot")
     st.json(settings)
+
+
+@st.cache_resource(show_spinner=False)
+def get_search_service() -> AssetSearchService:
+    """Instantiate the shared search service."""
+    return AssetSearchService()
+
+
+@st.cache_data(ttl=15, show_spinner=False)
+def load_ingestion_stats() -> Dict[str, Any]:
+    """Return ingestion stats pulled from SQLite."""
+    session = get_db_session()
+    repo = AssetRepository(session)
+    total_assets = repo.total_assets()
+    session.close()
+    return {"total_assets": total_assets, "refreshed_at": st.session_state.get("last_refresh", "now")}
+
+
+def render_search_panel() -> None:
+    """Render a lightweight search UI backed by the SQLite metadata store."""
+    query = st.text_input("Query", placeholder="e.g. recipe cards from 2024")
+    if not query:
+        st.info("Enter a query to preview ranked results.")
+        return
+
+    search_service = get_search_service()
+    hits = search_service.search(query)
+    if not hits:
+        st.warning("No matches found.")
+        return
+
+    for hit in hits:
+        asset = hit.data
+        thumbnail_path = asset.get("thumbnail_path")
+        cols = st.columns([1, 3])
+        with cols[0]:
+            if thumbnail_path and Path(thumbnail_path).exists():
+                st.image(thumbnail_path, use_column_width=True)
+        with cols[1]:
+            st.markdown(f"**{asset['filename']}** — score {hit.score:.2f}")
+            if asset["captions"]:
+                st.caption(asset["captions"][0]["text"])
+            labels = ", ".join(label["label"] for label in asset["labels"])
+            if labels:
+                st.write("Labels:", labels)
 
 
 def render_missing_settings_error(error: FileNotFoundError) -> None:
@@ -96,6 +138,7 @@ def main() -> None:
         render_missing_settings_error(error)
         return
 
+    st.session_state["last_refresh"] = datetime.utcnow().isoformat()
     render_sidebar(settings)
     render_header()
     render_status_panels(settings)

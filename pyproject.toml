@@ -27,6 +27,10 @@ dependencies = [
     "numpy==2.3.4",
 ]
 
+[project.scripts]
+vibe = "src.cli:app"
+vibe-server = "src.api.main:run"
+
 [project.optional-dependencies]
 dev = [
     "pytest==9.0.0",

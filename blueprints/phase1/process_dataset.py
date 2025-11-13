@@ -8,7 +8,12 @@ from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-import yaml
+from src.core.detector import SigLIPBLIPDetector
+from src.core.ocr import PaddleOCREngine
+from src.core.preprocessor import ImagePreprocessor
+from src.core.processor import BatchProcessor
+from src.core.database import get_db_session, init_db
+from src.utils.runtime import load_phase1_config
 
 
 def setup_logging(config: dict) -> logging.Logger:
@@ -35,10 +40,9 @@ def setup_logging(config: dict) -> logging.Logger:
     return logging.getLogger(__name__)
 
 
-def load_config(config_path: str = "config.yaml") -> dict:
-    """Load YAML configuration."""
-    with open(config_path, encoding="utf-8") as handle:
-        return yaml.safe_load(handle)
+def load_config() -> dict:
+    """Load merged blueprint + runtime configuration."""
+    return load_phase1_config()
 
 
 async def main() -> int:
@@ -65,12 +69,6 @@ async def main() -> int:
         logger.warning("No image files detected. Aborting run.")
         return 1
 
-    from processors.batch import BatchProcessor
-    from processors.detector import SigLIPBLIPDetector
-    from processors.ocr import PaddleOCREngine
-    from processors.preprocessor import ImagePreprocessor
-    from app.database import get_db_session
-
     for path_value in config["preprocessing"]["paths"].values():
         resolved_path = Path(path_value)
         target = resolved_path if resolved_path.suffix == "" else resolved_path.parent
@@ -79,10 +77,11 @@ async def main() -> int:
     preprocessor = ImagePreprocessor(config["preprocessing"])
     detector = SigLIPBLIPDetector(
         model=config["detection"]["model"],
-        device=config["detection"]["device"],
+        device=config["detection"].get("device", "auto"),
     )
-    ocr_engine = PaddleOCREngine(config["ocr"]) if config["ocr"]["enabled"] else None
+    ocr_engine = PaddleOCREngine(config["ocr"]) if config.get("ocr", {}).get("enabled", True) else None
 
+    init_db()
     db_session = get_db_session()
 
     batch_processor = BatchProcessor(
