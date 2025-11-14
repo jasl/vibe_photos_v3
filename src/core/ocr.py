@@ -146,3 +146,10 @@ class PaddleOCREngine:
                     )
 
         return ocr_text
+
+    def warmup(self) -> None:
+        """Eagerly initialize the underlying PaddleOCR engine."""
+
+        if not self.enabled:
+            return
+        self._load_engine()

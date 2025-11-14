@@ -24,5 +24,12 @@ Follow `AI_CODING_STANDARDS.md`: `black` + `ruff` enforce the 150-char line cap,
 ## Testing Guidelines
 Tests live under `tests/` with files named `test_*.py` (see `pyproject.toml`). Follow `blueprints/phase1/testing.md`: unit coverage for detectors/OCR/repos, integration smoke for CLI/API/Streamlit flows, and performance batches that log to `log/perf.log`. Maintain ≥80 % coverage across `src/core` + `src/api`, tag slow suites with `@pytest.mark.integration` or `@pytest.mark.performance`, and keep fixtures in `tests/fixtures/`.
 
+### Manual Pre-Commit Checklist
+Until CI lands, run these commands locally before every commit to surface dependency and deprecation regressions:
+
+- `uv run python -m pip check`
+- `uv run python -W error::DeprecationWarning process_dataset.py --dry-run`
+- `uv run pytest`
+
 ## Commit & Pull Request Guidelines
 Commits follow `type(scope): summary` (e.g., `feat(detector): add confidence calibration`). Bundle code, tests, and doc updates together, and avoid mixing refactors with feature work unless called out. PRs must reference roadmap items or decision logs, summarize behavior + tests, attach `uv run pytest` results (plus perf logs when applicable), and include screenshots for UI/CLI updates. Update `AI_TASK_TRACKER.md` and relevant blueprints whenever behavior or interfaces shift so downstream agents inherit an accurate state.

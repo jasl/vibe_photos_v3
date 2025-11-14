@@ -181,6 +181,11 @@ class AssetRepository:
         stmt = select(Asset).where(Asset.phash == phash)
         return self.session.scalar(stmt)
 
+    def find_by_original_path(self, original_path: str) -> Asset | None:
+        """Return the asset associated with the provided original path."""
+        stmt = select(Asset).where(Asset.original_path == original_path)
+        return self.session.scalar(stmt)
+
     def get_asset(self, asset_id: int) -> Asset | None:
         """Return a single asset by primary key."""
         return self.session.get(Asset, asset_id)
