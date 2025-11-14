@@ -125,15 +125,15 @@ def _ensure_engine(settings: Settings | None = None) -> Engine:
 
 
 def init_db() -> None:
-    """Create tables if they do not exist."""
+    """Create tables if they do not exist and backfill legacy migrations."""
     engine = _ensure_engine()
+    Base.metadata.create_all(bind=engine)
     if engine.dialect.name == "sqlite":
         with engine.connect() as connection:
             existing = connection.execute(text("PRAGMA table_info(assets)")).fetchall()
-            if not any(column[1] == "duplicate_count" for column in existing):
+            if existing and not any(column[1] == "duplicate_count" for column in existing):
                 connection.execute(text("ALTER TABLE assets ADD COLUMN duplicate_count INTEGER DEFAULT 0"))
                 connection.commit()
-    Base.metadata.create_all(bind=engine)
 
 
 def get_db_session():

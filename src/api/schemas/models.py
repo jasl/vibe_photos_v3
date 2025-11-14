@@ -48,6 +48,7 @@ class AssetOCRBlock(BaseModel):
 
     text: str
     language: Optional[str] = None
+    bbox: Optional[List[List[float]]] = None
 
 
 class AssetModel(BaseModel):

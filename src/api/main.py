@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from src.api.routes import assets, health, ingest, search
@@ -37,10 +39,16 @@ def _bootstrap_runtime() -> RuntimeResources:
     )
 
 
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
+    """Initialize shared runtime resources on startup."""
+    app.state.runtime = _bootstrap_runtime()
+    yield
+
+
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
-    app = FastAPI(title="Vibe Photos API", version="0.1.0")
-    app.state.runtime = _bootstrap_runtime()
+    app = FastAPI(title="Vibe Photos API", version="0.1.0", lifespan=_lifespan)
 
     app.include_router(health.router)
     app.include_router(assets.router)
