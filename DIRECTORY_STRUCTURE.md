@@ -12,7 +12,7 @@ This document explains where every artifact lives and how coding AIs should inte
 |------|--------|---------|-------|
 | `samples/` | Read-only | Canonical evaluation photos provided by stakeholders. | Never edit or commit changes. |
 | `data/` | Read/Write | Runtime SQLite DB (`vibe_photos.db`) and incremental state snapshots. | Git-ignored. Safe to delete between runs. |
-| `cache/` | Read/Write | Reusable artifacts: normalized images, thumbnails, detection JSON, OCR results, embeddings, perceptual hashes. | Share across phases to skip recomputation. |
+| `cache/` | Read/Write | Reusable artifacts: normalized images, thumbnails, detection JSON, OCR results, embeddings, perceptual hashes, ingestion queue files. | Share across phases to skip recomputation. |
 | `log/` | Read/Write | Rotating logs (`*.log`, `*.log.*`). | Configure rotation (10 MB, keep 5). |
 | `tmp/` | Read/Write | Short-lived temp files. | Clean freely. |
 | `models/` | Read/Write | Downloaded model weights (SigLIP, BLIP, PaddleOCR, etc.). | Git-ignored; ensure `.gitkeep` if needed. |
@@ -28,6 +28,7 @@ cache/
 ├── captions/           # BLIP caption outputs (.json)
 ├── ocr/                # OCR text blocks (.json)
 ├── embeddings/         # Vector cache exports (SQLite dumps today, pgvector exports later)
+├── ingestion_queue/    # Filesystem-backed task queue segments for the long-lived worker
 └── hashes/             # Perceptual hash lookups
 ```
 - Use perceptual hash (`phash`) as the cache key to deduplicate identical content.

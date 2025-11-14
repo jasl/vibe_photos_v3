@@ -6,14 +6,14 @@
 - Use SQLite + local file system; design schema to transition smoothly to PostgreSQL later.
 
 ## Layers
-1. **Interfaces** — Streamlit dashboard (read-only), Typer CLI (`process_dataset`, `search`), FastAPI endpoints (`/import`, `/search`, `/assets`).
-2. **Core Services** — Detector (SigLIP+BLIP), OCR (PaddleOCR), Processor (batch orchestration), Searcher (SQLite FTS + metadata filters).
-3. **Persistence** — SQLite database (`images`, `labels`, `captions`, `ocr_blocks`, `embeddings`, `jobs`) plus cached artifacts under `cache/`.
+1. **Interfaces** — Streamlit dashboard (read-only), Typer CLI (`process_dataset`, `search`), long-lived ingestion service, FastAPI endpoints (`/import`, `/search`, `/assets`).
+2. **Core Services** — File-backed task queue, Detector (SigLIP+BLIP), OCR (PaddleOCR), Processor (batch orchestration), Searcher (SQLite FTS + metadata filters).
+3. **Persistence** — SQLite database (`images`, `labels`, `captions`, `ocr_blocks`, `embeddings`, `jobs`) plus cached artifacts and queue files under `cache/`.
 4. **Storage** — Raw assets in `samples/`, normalized copies + thumbnails in `cache/images/`, model weights in `models/`.
 
 ## Data Flow
 ```
-CLI ingest → Processor → Detector/OCR → Cache artifacts → SQLite persist
+CLI/file discovery → FileTaskQueue (cache/ingestion_queue) → Ingestion service (warm BatchProcessor) → Cache artifacts → SQLite persist (optional)
 FastAPI `/search` → Searcher → SQLite FTS + metadata → Response
 Streamlit UI → FastAPI → same search pipeline
 ```

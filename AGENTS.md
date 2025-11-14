@@ -7,7 +7,9 @@ Blueprint specs live in `blueprints/phase1/`, but the runnable Phase 1 scripts
 Python 3.12 + `uv` is non-negotiable. Create the env (`uv venv --python 3.12`, `source .venv/bin/activate`), run `uv sync`, and execute every script via `uv run …` to keep extras aligned. Run `./init_project.sh` once to build `config/settings.yaml`, then keep dataset paths and incremental flags current there. Point `TRANSFORMERS_CACHE` and `PADDLEOCR_HOME` at `models/` to prevent redundant downloads.
 
 ## Build, Test, and Development Commands
-- `uv run python process_dataset.py` — batch-ingest samples and refresh SQLite/cache outputs.
+- `uv run python process_dataset.py --enqueue-only` — stage ingestion jobs into the filesystem queue.
+- `uv run python process_dataset.py --service` — run the long-lived worker that drains the queue using warm models.
+- `uv run python process_dataset.py` — execute a one-off batch (enqueue + worker in a single process).
 - `uv run streamlit run app.py` — launch the dashboard after processing completes.
 - `uv run python quick_start.py` — same logic as the shell wrapper, useful when scripting.
 - `uv run python download_models.py` — fetch SigLIP/BLIP/PaddleOCR weights into `models/`.
