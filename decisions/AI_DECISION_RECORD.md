@@ -18,7 +18,7 @@ Each entry captures a binding choice. Update the table when decisions evolve.
 ## Models & AI
 | ID | Priority | Status | Decision | Notes |
 |----|----------|--------|----------|-------|
-| MODEL-001 | 🔴 MUST | ✅ Active | SigLIP (`google/siglip-base-patch16-224-i18n`) + BLIP (`Salesforce/blip-image-captioning-base`) as primary perception stack. | Load once per process, share embeddings cache. |
+| MODEL-001 | 🔴 MUST | ✅ Active | SigLIP (`google/siglip2-base-patch16-224`) + BLIP (`Salesforce/blip-image-captioning-base`) as primary perception stack. | Load once per process, share embeddings cache. |
 | MODEL-002 | 🔴 MUST | ✅ Active | PaddleOCR (chinese + english) for text extraction. | Provide batching + caching. |
 | MODEL-003 | 🔴 MUST | ✅ Active | Avoid RTMDet due to conflicting deps; rely on SigLIP+BLIP combos until alternative vetted. | Document future experiments in blueprint research. |
 
@@ -26,6 +26,7 @@ Each entry captures a binding choice. Update the table when decisions evolve.
 | ID | Priority | Status | Decision | Notes |
 |----|----------|--------|----------|-------|
 | DATA-001 | 🔴 MUST | ✅ Active | Store assets + metadata in SQLite with FTS5; keep schema upgrade path to PostgreSQL. | Ensure migrations scriptable. |
+| DATA-002 | 🟡 SHOULD | ✅ Active | For Phase 1 PoC runtime, rely on simple metadata search without FTS5. | Maintain LIKE-based search for now; revisit FTS and indexing when performance becomes a priority. |
 | SEARCH-001 | 🟡 SHOULD | ✅ Active | Implement hybrid search (metadata + embedding) by Phase 2. | Document scoring function; allow fallback to metadata-only search. |
 
 ## Process
@@ -33,5 +34,6 @@ Each entry captures a binding choice. Update the table when decisions evolve.
 |----|----------|--------|----------|-------|
 | PROC-001 | 🔴 MUST | ✅ Active | TDD/coverage ≥80% for `src/core` and `src/api`. | CI gate once pipelines exist. |
 | PROC-002 | 🔴 MUST | ✅ Active | All docs updated alongside code; tracker statuses maintained. | Enforced via `FINAL_CHECKLIST.md`. |
+| PROC-003 | 🟡 SHOULD | ✅ Active | Defer ingestion performance benchmarks and perf test harness until after the Phase 1 PoC. | Record current behavior and perf notes in docs rather than enforcing throughput targets in tests. |
 
 Append new rows instead of editing history; mark superseded entries and move detailed write-ups to `archives/` as needed.

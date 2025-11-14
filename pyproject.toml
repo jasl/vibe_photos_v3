@@ -12,6 +12,7 @@ dependencies = [
     "uvicorn==0.38.0",
     "streamlit==1.51.0",
     "sqlalchemy==2.0.44",
+    "typer==0.12.5",
     "pillow==11.3.0",
     "python-multipart==0.0.20",
     "aiofiles==24.1.0",
@@ -22,14 +23,23 @@ dependencies = [
     "torchvision==0.24.1",
     "transformers==4.57.1",
     "sentence-transformers==5.1.2",
+    "datasets==4.4.1",
     "paddlepaddle==3.2.1",
     "paddleocr==3.3.1",
     "numpy==2.3.4",
+    "accelerate==1.11.0",
 ]
+
+[project.scripts]
+vibe = "src.cli:cli"
+vibe-server = "src.api.main:run"
+
+[tool.uv]
+package = true
 
 [project.optional-dependencies]
 dev = [
-    "pytest==9.0.0",
+    "pytest==8.4.2",
     "pytest-asyncio==1.3.0",
     "pytest-cov==7.0.0",
     "pytest-mock==3.15.1",
@@ -103,7 +113,7 @@ warn_unused_configs = true
 disallow_untyped_defs = true
 
 [tool.pytest.ini_options]
-minversion = "9.0"
+minversion = "8.4.2"
 addopts = "-ra -q --strict-markers"
 testpaths = ["tests"]
 python_files = ["test_*.py"]

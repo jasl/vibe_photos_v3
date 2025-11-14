@@ -45,8 +45,8 @@ Consult [`DIRECTORY_STRUCTURE.md`](DIRECTORY_STRUCTURE.md) for operational detai
     ```
 4. **Prime the models** – Run the provided download script once, then process the sample dataset.
     ```bash
-    uv run python blueprints/phase1/download_models.py
-    uv run python blueprints/phase1/process_dataset.py
+    uv run python download_models.py
+    uv run python process_dataset.py
     ```
 5. **Stay within scope** – every deviation must be justified against the decision logs in `decisions/` before implementation.
 

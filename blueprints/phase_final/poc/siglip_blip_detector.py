@@ -37,7 +37,7 @@ class SigLIPBLIPDetector:
     def __init__(
         self,
         device: str = "cpu",
-        siglip_model: str = "google/siglip-base-patch16-224-i18n",
+        siglip_model: str = "google/siglip2-base-patch16-224",
         blip_model: str = "Salesforce/blip-image-captioning-base",
     ) -> None:
         self.device = device
