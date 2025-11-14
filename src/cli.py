@@ -19,7 +19,7 @@ def _parse_bool(value: str) -> bool:
     raise typer.BadParameter("Expected a boolean value such as 'true', 'false', 'yes', or 'no'.")
 
 from src.core.database import get_session_factory, init_db
-from src.core.detector import SigLIPBLIPDetector
+from src.core.detector import build_detector
 from src.core.ocr import PaddleOCREngine
 from src.core.preprocessor import ImagePreprocessor
 from src.core.processor import BatchProcessor
@@ -33,10 +33,7 @@ def _build_processor(config: dict) -> BatchProcessor:
     init_db()
     session_factory = get_session_factory()
     preprocessor = ImagePreprocessor(config["preprocessing"])
-    detector = SigLIPBLIPDetector(
-        model=config["detection"]["model"],
-        device=config["detection"].get("device", "auto"),
-    )
+    detector = build_detector(config)
     ocr_engine = PaddleOCREngine(config["ocr"]) if config.get("ocr", {}).get("enabled", True) else None
 
     return BatchProcessor(

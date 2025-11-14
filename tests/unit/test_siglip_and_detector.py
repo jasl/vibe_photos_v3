@@ -1,8 +1,10 @@
+import sys
 from pathlib import Path
+from types import ModuleType, SimpleNamespace
 
 from PIL import Image
 
-from src.core.detector import SigLIPBLIPDetector
+from src.core.detector import SigLIPBLIPDetector, build_detector
 from src.models.siglip import LabelScore, SiglipClassifier
 
 
@@ -133,3 +135,90 @@ def test_detector_uses_injected_classifier_and_captioner(monkeypatch, tmp_path):
     assert dummy_captioner.last_call["image_path"] == image_path
     assert result.caption == "dummy-caption"
     assert result.labels[0].label == "dummy-label"
+
+
+def test_build_detector_respects_explicit_device(monkeypatch):
+    captured = {}
+
+    def fake_pipeline(task, model, device=None, model_kwargs=None, torch_dtype=None):
+        captured["task"] = task
+        captured["model"] = model
+        captured["device"] = device
+        captured["model_kwargs"] = model_kwargs
+        captured["torch_dtype"] = torch_dtype
+        return object()
+
+    _install_transformer_stubs(monkeypatch, fake_pipeline, captured)
+
+    fake_torch = SimpleNamespace(float16="fake-float16")
+    monkeypatch.setattr("src.core.detector.siglip_module.torch", fake_torch, raising=False)
+
+    config = {
+        "detection": {
+            "model": "siglip-test",
+            "device": "cuda:0",
+            "device_map": None,
+            "precision": "float16",
+            "warmup": False,
+        }
+    }
+
+    detector = build_detector(config)
+
+    assert captured["task"] == "zero-shot-image-classification"
+    assert captured["device"] == "cuda:0"
+    assert captured["model_kwargs"]["use_safetensors"] is True
+    assert "device_map" not in captured["model_kwargs"]
+    assert captured["torch_dtype"] == fake_torch.float16
+    assert detector.device == "cuda:0"
+
+
+def test_build_detector_handles_device_map_auto(monkeypatch):
+    captured = {}
+
+    def fake_pipeline(task, model, device=None, model_kwargs=None, torch_dtype=None):
+        captured["device"] = device
+        captured["model_kwargs"] = model_kwargs
+        captured["torch_dtype"] = torch_dtype
+        return object()
+
+    _install_transformer_stubs(monkeypatch, fake_pipeline, captured)
+
+    config = {
+        "detection": {
+            "model": "siglip-test",
+            "device": "cuda:0",
+            "device_map": "auto",
+            "precision": "auto",
+            "warmup": False,
+        }
+    }
+
+    build_detector(config)
+
+    assert captured["device"] is None
+    assert captured["model_kwargs"]["device_map"] == "auto"
+    assert captured["torch_dtype"] is None
+
+
+def _install_transformer_stubs(monkeypatch, pipeline_impl, captured):
+    class DummyBlipProcessor:
+        @classmethod
+        def from_pretrained(cls, model_name):
+            captured["blip_processor_model"] = model_name
+            return cls()
+
+    class DummyBlipModel:
+        @classmethod
+        def from_pretrained(cls, model_name, **kwargs):
+            captured["blip_model_kwargs"] = kwargs
+            instance = cls()
+            instance.model_name = model_name
+            instance.kwargs = kwargs
+            return instance
+
+    fake_module = ModuleType("transformers")
+    fake_module.pipeline = pipeline_impl
+    fake_module.BlipProcessor = DummyBlipProcessor
+    fake_module.BlipForConditionalGeneration = DummyBlipModel
+    monkeypatch.setitem(sys.modules, "transformers", fake_module)

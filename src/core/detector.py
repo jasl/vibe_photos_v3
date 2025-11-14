@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import inspect
+import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Sequence
+from typing import Any, Dict, Iterable, List, Sequence
 
 import yaml
 
 from PIL import Image
 
+import src.models.siglip as siglip_module
 from src.models.blip import BlipCaptioner
 from src.models.siglip import LabelScore, SiglipClassifier
 from src.utils.config import REPO_ROOT
@@ -98,3 +100,112 @@ class SigLIPBLIPDetector:
             results.append(DetectionResult(labels=label_scores, caption=caption))
 
         return results
+
+
+def build_detector(config: Dict[str, Any], *, logger: logging.Logger | None = None) -> SigLIPBLIPDetector:
+    """Construct a detector that respects device placement hints."""
+    log = logger or logging.getLogger(__name__)
+    detection_config = config.get("detection", {})
+    model_name = detection_config.get("model", "google/siglip2-base-patch16-224")
+    device = detection_config.get("device", "auto")
+    device_map = detection_config.get("device_map", "auto")
+    precision = detection_config.get("precision", "auto")
+
+    def _normalize_device(value: str | int | None) -> str | int | None:
+        if value is None:
+            return None
+        if isinstance(value, int):
+            return value
+        lowered = value.lower()
+        if lowered in {"auto", "default"}:
+            return None
+        return value
+
+    device_arg = _normalize_device(device)
+    device_map_arg = None if not device_map else device_map
+    torch_dtype_hint = precision if isinstance(precision, str) and precision.lower() not in {"auto", "default"} else None
+
+    torch_module = getattr(siglip_module, "torch", None)
+    dtype_obj = getattr(torch_module, torch_dtype_hint, None) if torch_module is not None and torch_dtype_hint else None
+
+    try:
+        from transformers import (
+            BlipForConditionalGeneration,
+            BlipProcessor,
+            pipeline as hf_pipeline,
+        )
+    except ImportError as error:  # pragma: no cover
+        log.error(
+            "transformers is required for SigLIP/BLIP support but is not installed",
+            extra={"error": str(error)},
+        )
+        raise
+
+    log.info(
+        "Loading SigLIP zero-shot pipeline",
+        extra={"model_name": model_name, "device": device_arg, "device_map": device_map_arg},
+    )
+    siglip_model_kwargs: Dict[str, Any] = {"use_safetensors": True}
+    if device_map_arg:
+        siglip_model_kwargs["device_map"] = device_map_arg
+    if dtype_obj is not None:
+        siglip_model_kwargs["torch_dtype"] = dtype_obj
+
+    pipeline_device = None if device_map_arg else device_arg
+    siglip_pipeline = hf_pipeline(
+        "zero-shot-image-classification",
+        model=model_name,
+        device=pipeline_device,
+        model_kwargs=siglip_model_kwargs,
+        torch_dtype=dtype_obj,
+    )
+    classifier = SiglipClassifier(
+        model_name=model_name,
+        pipeline=siglip_pipeline,
+        device=pipeline_device,
+        device_map=device_map_arg,
+        torch_dtype=torch_dtype_hint,
+    )
+
+    log.info(
+        "SigLIP zero-shot pipeline loaded",
+        extra={"model_name": model_name, "device": device},
+    )
+
+    blip_model_name = "Salesforce/blip-image-captioning-base"
+    log.info(
+        "Loading BLIP captioning components",
+        extra={"model_name": blip_model_name, "device_map": device_map_arg},
+    )
+    blip_processor = BlipProcessor.from_pretrained(blip_model_name)
+    blip_model_kwargs: Dict[str, Any] = {"use_safetensors": True}
+    if device_map_arg:
+        blip_model_kwargs["device_map"] = device_map_arg
+    if dtype_obj is not None:
+        blip_model_kwargs["torch_dtype"] = dtype_obj
+
+    blip_model = BlipForConditionalGeneration.from_pretrained(blip_model_name, **blip_model_kwargs)
+    captioner = BlipCaptioner(
+        model_name=blip_model_name,
+        processor=blip_processor,
+        model=blip_model,
+        device_map=device_map_arg,
+        torch_dtype=torch_dtype_hint,
+    )
+
+    log.info(
+        "BLIP captioning components loaded",
+        extra={"model_name": blip_model_name},
+    )
+
+    detector = SigLIPBLIPDetector(
+        model=model_name,
+        device=device,
+        classifier=classifier,
+        captioner=captioner,
+    )
+
+    if detection_config.get("warmup", True):
+        classifier.ensure_loaded()
+
+    return detector
