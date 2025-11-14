@@ -33,6 +33,62 @@ def test_siglip_classifier_uses_injected_pipeline(tmp_path):
     assert results[0].confidence == 0.9
 
 
+def test_siglip_classifier_classify_batch_supports_image_keyword():
+    class DummyPipeline:
+        def __init__(self):
+            self.last_kwargs = {}
+
+        def __call__(self, image, candidate_labels, top_k=5):
+            self.last_kwargs = {
+                "image": image,
+                "candidate_labels": list(candidate_labels),
+                "top_k": top_k,
+            }
+            return [{"label": candidate_labels[0], "score": 0.6}]
+
+    pipeline = DummyPipeline()
+    classifier = SiglipClassifier(model_name="dummy-model", pipeline=pipeline)
+    images = [Image.new("RGB", (8, 8), color=(0, 0, 0))]
+    labels = ["city"]
+
+    results = classifier.classify_batch(images=images, candidate_labels=labels, top_k=1)
+
+    assert pipeline.last_kwargs["candidate_labels"] == labels
+    assert pipeline.last_kwargs["top_k"] == 1
+    assert isinstance(pipeline.last_kwargs["image"], list)
+    assert len(pipeline.last_kwargs["image"]) == len(images)
+    assert results[0][0].label == "city"
+    assert results[0][0].confidence == 0.6
+
+
+def test_siglip_classifier_classify_batch_supports_images_keyword():
+    class DummyPipeline:
+        def __init__(self):
+            self.last_kwargs = {}
+
+        def __call__(self, *, images, candidate_labels, top_k=5):
+            self.last_kwargs = {
+                "images": images,
+                "candidate_labels": list(candidate_labels),
+                "top_k": top_k,
+            }
+            return [{"label": candidate_labels[0], "score": 0.7}]
+
+    pipeline = DummyPipeline()
+    classifier = SiglipClassifier(model_name="dummy-model", pipeline=pipeline)
+    images = [Image.new("RGB", (10, 10), color=(255, 255, 255))]
+    labels = ["landmark"]
+
+    results = classifier.classify_batch(images=images, candidate_labels=labels, top_k=3)
+
+    assert pipeline.last_kwargs["candidate_labels"] == labels
+    assert pipeline.last_kwargs["top_k"] == 3
+    assert isinstance(pipeline.last_kwargs["images"], list)
+    assert len(pipeline.last_kwargs["images"]) == len(images)
+    assert results[0][0].label == "landmark"
+    assert results[0][0].confidence == 0.7
+
+
 def test_detector_uses_injected_classifier_and_captioner(monkeypatch, tmp_path):
     image_path = tmp_path / "photo.jpg"
     Image.new("RGB", (16, 16), color=(0, 255, 0)).save(image_path)

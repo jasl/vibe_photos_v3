@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import inspect
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Sequence
 
-import threading
 from PIL import Image
 
 try:  # pragma: no cover - optional torch dependency
@@ -224,6 +225,20 @@ class SiglipClassifier:
             for label, score in zip(labels, scores)
         ]
 
+    def _build_pipeline_image_kwargs(
+        self,
+        pipeline: Any,
+        images: Sequence[Image.Image],
+    ) -> Dict[str, List[Image.Image]]:
+        """Return kwargs for pipeline batch calls supporting both image/images."""
+        try:
+            parameters = inspect.signature(pipeline.__call__).parameters
+        except (TypeError, ValueError):
+            parameters = {}
+
+        key = "images" if "images" in parameters else "image"
+        return {key: list(images)}
+
     def classify_batch(
         self,
         images: Sequence[Image.Image],
@@ -235,7 +250,8 @@ class SiglipClassifier:
             return []
 
         pipeline = self._load_pipeline()
-        outputs = pipeline(images=list(images), candidate_labels=list(candidate_labels), top_k=top_k)
+        image_kwargs = self._build_pipeline_image_kwargs(pipeline=pipeline, images=images)
+        outputs = pipeline(**image_kwargs, candidate_labels=list(candidate_labels), top_k=top_k)
         if isinstance(outputs, dict):
             outputs = [outputs]
 
