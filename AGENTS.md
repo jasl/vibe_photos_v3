@@ -16,6 +16,11 @@ Python 3.12 + `uv` is non-negotiable. Create the env (`uv venv --python 3.12`,
 ## Coding Style & Naming Conventions
 Follow `AI_CODING_STANDARDS.md`: `black` + `ruff` enforce the 150-char line cap, import grouping (stdlib → third-party → local), and lint suites (`E/W/F/I/B/UP`). Public APIs require type hints + docstrings, dataclasses/TypedDicts trump loose dicts, and everything (code, comments, logs) stays in English. Use the shared logger with structured `extra={}` metadata, avoid prints, and rely on guard clauses to keep functions short.
 
+## AI Assistant Library Usage Rules
+- If you are not clearly familiar with a library or dependency API, inspect local usages and pinned versions (including `pyproject.toml` and `DEPENDENCIES.md`) before writing or modifying code.
+- Consult the official documentation and/or changelog for the specific version in use to confirm signatures and behaviors, and prefer documented patterns over memory.
+- When you cannot confidently verify an API (for example, ambiguous or missing docs), state this explicitly and avoid guessing or relying on potentially obsolete patterns.
+
 ## Testing Guidelines
 Tests live under `tests/` with files named `test_*.py` (see `pyproject.toml`). Follow `blueprints/phase1/testing.md`: unit coverage for detectors/OCR/repos, integration smoke for CLI/API/Streamlit flows, and performance batches that log to `log/perf.log`. Maintain ≥80 % coverage across `src/core` + `src/api`, tag slow suites with `@pytest.mark.integration` or `@pytest.mark.performance`, and keep fixtures in `tests/fixtures/`.
 
