@@ -105,7 +105,7 @@ url = "https://download.pytorch.org/whl/cu130"
 explicit = true
 
 [project.scripts]
-vibe = "src.cli:app"
+vibe = "src.cli:cli"
 vibe-server = "src.api.main:run"
 
 [tool.ruff]

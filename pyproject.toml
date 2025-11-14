@@ -31,7 +31,7 @@ dependencies = [
 ]
 
 [project.scripts]
-vibe = "src.cli:app"
+vibe = "src.cli:cli"
 vibe-server = "src.api.main:run"
 
 [tool.uv]

@@ -6,6 +6,18 @@ import asyncio
 
 import typer
 
+TRUE_VALUES = {"1", "true", "t", "yes", "y", "on"}
+FALSE_VALUES = {"0", "false", "f", "no", "n", "off"}
+
+
+def _parse_bool(value: str) -> bool:
+    normalized = value.strip().lower()
+    if normalized in TRUE_VALUES:
+        return True
+    if normalized in FALSE_VALUES:
+        return False
+    raise typer.BadParameter("Expected a boolean value such as 'true', 'false', 'yes', or 'no'.")
+
 from src.core.database import get_session_factory, init_db
 from src.core.detector import SigLIPBLIPDetector
 from src.core.ocr import PaddleOCREngine
@@ -37,7 +49,15 @@ def _build_processor(config: dict) -> BatchProcessor:
 
 
 @cli.command()
-def ingest(incremental: bool = typer.Option(True, help="Skip files already processed via perceptual hash.")) -> None:
+def ingest(
+    incremental: bool = typer.Option(
+        True,
+        "--incremental",
+        parser=_parse_bool,
+        help="Skip files already processed via perceptual hash (pass '--incremental false' to reprocess everything).",
+        show_default=True,
+    ),
+) -> None:
     """Process the dataset defined in config/settings.yaml."""
     config = load_phase1_config()
     processor = _build_processor(config)
