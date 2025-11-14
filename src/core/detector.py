@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import inspect
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, List, Sequence
 
 import yaml
+
+from PIL import Image
 
 from src.models.blip import BlipCaptioner
 from src.models.siglip import LabelScore, SiglipClassifier
@@ -35,6 +38,7 @@ def load_candidate_labels(path: Path | None = None) -> List[str]:
 
     labels = data.get("labels", [])
     return [entry["name"] if isinstance(entry, dict) else str(entry) for entry in labels]
+
 class SigLIPBLIPDetector:
     """High-level detector that returns labels and captions for an image."""
 
@@ -50,10 +54,47 @@ class SigLIPBLIPDetector:
         self.captioner = captioner or BlipCaptioner()
         self.device = device
         self.default_labels = load_candidate_labels(candidate_labels_path)
+        classify_signature = inspect.signature(self.classifier.classify)
+        self._classifier_accepts_image = "image" in classify_signature.parameters
 
-    def analyze(self, image_path: Path, candidate_labels: Sequence[str] | None = None) -> DetectionResult:
+    def analyze(
+        self,
+        image_path: Path,
+        *,
+        processed_image: Image.Image | None = None,
+        candidate_labels: Sequence[str] | None = None,
+    ) -> DetectionResult:
         """Run SigLIP + BLIP over the provided image path."""
         labels = candidate_labels or self.default_labels
-        label_scores = self.classifier.classify(image_path=image_path, candidate_labels=labels, top_k=5)
-        caption = self.captioner.generate_caption(image_path)
+        classify_kwargs = {
+            "image_path": image_path,
+            "candidate_labels": labels,
+            "top_k": 5,
+        }
+        if processed_image is not None and self._classifier_accepts_image:
+            classify_kwargs["image"] = processed_image
+        label_scores = self.classifier.classify(**classify_kwargs)
+        caption_input = processed_image or image_path
+        caption = self.captioner.generate_caption(caption_input)
         return DetectionResult(labels=label_scores, caption=caption)
+
+    def analyze_batch(
+        self,
+        batch: Sequence[tuple[Path, Image.Image]],
+        *,
+        candidate_labels: Sequence[str] | None = None,
+    ) -> List[DetectionResult]:
+        """Run SigLIP + BLIP over an in-memory batch of images."""
+        if not batch:
+            return []
+
+        labels = candidate_labels or self.default_labels
+        images = [item[1] for item in batch]
+        label_batches = self.classifier.classify_batch(images=images, candidate_labels=labels, top_k=5)
+
+        results: List[DetectionResult] = []
+        for (image_path, processed_image), label_scores in zip(batch, label_batches):
+            caption = self.captioner.generate_caption(processed_image)
+            results.append(DetectionResult(labels=label_scores, caption=caption))
+
+        return results

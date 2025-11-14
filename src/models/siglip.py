@@ -9,6 +9,11 @@ from typing import Any, Dict, Iterable, List, Sequence
 import threading
 from PIL import Image
 
+try:  # pragma: no cover - optional torch dependency
+    import torch
+except Exception:  # noqa: BLE001 - torch might be absent in CPU-only tests
+    torch = None  # type: ignore[assignment]
+
 LabelScores = List["LabelScore"]
 
 
@@ -32,9 +37,20 @@ class SiglipClassifier:
     you can inject a pre-built pipeline instance via the ``pipeline`` argument.
     """
 
-    def __init__(self, model_name: str = "google/siglip2-base-patch16-224", pipeline: Any | None = None) -> None:
+    def __init__(
+        self,
+        model_name: str = "google/siglip2-base-patch16-224",
+        pipeline: Any | None = None,
+        *,
+        device: str | int | None = None,
+        device_map: str | None = None,
+        torch_dtype: str | None = None,
+    ) -> None:
         self.model_name = model_name
         self._pipeline = pipeline
+        self.device = device
+        self.device_map = device_map
+        self.torch_dtype = torch_dtype
 
     def _load_pipeline(self):
         """Instantiate the huggingface pipeline on demand."""
@@ -45,7 +61,8 @@ class SiglipClassifier:
             if self._pipeline is not None:
                 return self._pipeline
 
-            cached = _PIPELINE_CACHE.get(self.model_name)
+            cache_key = self._cache_key
+            cached = _PIPELINE_CACHE.get(cache_key)
             if cached is not None:
                 self._pipeline = cached
                 return cached
@@ -56,20 +73,76 @@ class SiglipClassifier:
                 message = "transformers is required for SigLIP support (failed to import transformers.pipeline)"
                 raise RuntimeError(message) from error
 
-            pipeline = hf_pipeline("zero-shot-image-classification", model=self.model_name, use_fast=True)
-            _PIPELINE_CACHE[self.model_name] = pipeline
+            model_kwargs: Dict[str, Any] = {"use_safetensors": True}
+            if self.device_map:
+                model_kwargs["device_map"] = self.device_map
+            dtype = self._resolve_dtype()
+            if dtype is not None:
+                model_kwargs.setdefault("torch_dtype", dtype)
+
+            pipeline = hf_pipeline(
+                "zero-shot-image-classification",
+                model=self.model_name,
+                use_fast=True,
+                device=self._resolve_device_argument(),
+                model_kwargs=model_kwargs,
+                torch_dtype=dtype,
+            )
+            _PIPELINE_CACHE[cache_key] = pipeline
             self._pipeline = pipeline
             return pipeline
 
+    @property
+    def _cache_key(self) -> str:
+        """Return a cache key that includes device placement hints."""
+        return ":".join(
+            [
+                self.model_name,
+                str(self.device_map or "none"),
+                str(self.device or "auto"),
+                str(self.torch_dtype or "auto"),
+            ]
+        )
+
+    def _resolve_device_argument(self) -> int | str | None:
+        """Determine the pipeline ``device`` argument."""
+        if self.device_map:
+            # device_map takes priority and mutually excludes explicit device indices.
+            return None
+        return self.device
+
+    def _resolve_dtype(self) -> Any | None:  # type: ignore[override]
+        """Resolve the torch dtype object from a string hint."""
+        if isinstance(self.torch_dtype, str) and self.torch_dtype.lower() in {"auto", "default"}:
+            dtype_hint = None
+        else:
+            dtype_hint = self.torch_dtype
+
+        if dtype_hint and torch is not None:
+            return getattr(torch, str(dtype_hint), None)
+        if self.torch_dtype is None and torch is not None and self._is_cuda_available():
+            return torch.float16
+        return None
+
+    @staticmethod
+    def _is_cuda_available() -> bool:
+        return bool(torch and torch.cuda.is_available())
+
     def _classify_single(
         self,
-        image_path: Path,
+        image_path: Path | None,
+        image: Image.Image | None,
         candidate_labels: Sequence[str],
         top_k: int,
     ) -> LabelScores:
         """Fallback single-image classification without Hugging Face Datasets."""
         pipeline = self._load_pipeline()
-        image = Image.open(image_path).convert("RGB")
+        if image is None:
+            if image_path is None:
+                message = "Either image_path or image must be provided"
+                raise ValueError(message)
+            image = Image.open(image_path).convert("RGB")
+
         result = pipeline(image=image, candidate_labels=list(candidate_labels), top_k=top_k)
 
         if isinstance(result, dict):
@@ -87,6 +160,8 @@ class SiglipClassifier:
         image_path: Path,
         candidate_labels: Sequence[str],
         top_k: int = 5,
+        *,
+        image: Image.Image | None = None,
     ) -> LabelScores:
         """Run zero-shot classification for the provided labels.
 
@@ -103,14 +178,25 @@ class SiglipClassifier:
             from datasets import Dataset, Image as HFImage  # type: ignore[import]
         except Exception:
             # Datasets is not installed; fall back to the original single-image path.
-            return self._classify_single(image_path=image_path, candidate_labels=candidate_labels, top_k=top_k)
+            return self._classify_single(
+                image_path=image_path,
+                image=image,
+                candidate_labels=candidate_labels,
+                top_k=top_k,
+            )
 
         pipeline = self._load_pipeline()
 
         # Build a minimal dataset with a single image entry and use `map` in batched
         # mode. Even with one item, this keeps the code ready for future batch
         # extensions while matching the existing classifier semantics.
-        dataset = Dataset.from_dict({"image": [str(image_path)]})
+        image_column: List[Any]
+        if image is not None:
+            image_column = [image]
+        else:
+            image_column = [str(image_path)]
+
+        dataset = Dataset.from_dict({"image": image_column})
         dataset = dataset.cast_column("image", HFImage())
 
         def _apply(batch: Dict[str, Any]) -> Dict[str, Any]:
@@ -137,3 +223,33 @@ class SiglipClassifier:
             LabelScore(label=str(label), confidence=float(score))
             for label, score in zip(labels, scores)
         ]
+
+    def classify_batch(
+        self,
+        images: Sequence[Image.Image],
+        candidate_labels: Sequence[str],
+        top_k: int = 5,
+    ) -> List[LabelScores]:
+        """Run zero-shot classification for a batch of in-memory images."""
+        if not images:
+            return []
+
+        pipeline = self._load_pipeline()
+        outputs = pipeline(images=list(images), candidate_labels=list(candidate_labels), top_k=top_k)
+        if isinstance(outputs, dict):
+            outputs = [outputs]
+
+        batched: List[LabelScores] = []
+        for entry in outputs:
+            if isinstance(entry, list):
+                iterable = entry
+            else:
+                iterable = [entry]
+            batched.append(
+                [LabelScore(label=str(item["label"]), confidence=float(item["score"])) for item in iterable]
+            )
+        return batched
+
+    def ensure_loaded(self) -> None:
+        """Ensure the underlying pipeline is instantiated (for warmup)."""
+        self._load_pipeline()

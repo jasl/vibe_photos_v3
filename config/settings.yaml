@@ -34,3 +34,9 @@ logging:
   directory: "log"
   level: "INFO"
   file: "phase1.log"
+
+detection:
+  device: "auto"
+  device_map: "auto"
+  precision: "auto"
+  warmup: true
