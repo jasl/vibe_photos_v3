@@ -1,4 +1,9 @@
-from typer.testing import CliRunner
+import pytest
+
+try:
+    from typer.testing import CliRunner
+except ModuleNotFoundError as error:  # pragma: no cover - optional dependency guard
+    pytest.skip(f"typer not installed: {error}", allow_module_level=True)
 
 from src import cli
 

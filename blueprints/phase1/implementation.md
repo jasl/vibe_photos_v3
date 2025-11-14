@@ -17,11 +17,13 @@
    - Build SigLIP + BLIP wrappers with caching and candidate labels.
    - Implement PaddleOCR batch service with GPU/CPU autodetect.
 3. **Processing & Persistence (DET-004, DB-001/002)**
-   - Batch orchestrator merging perception results, dedupe via `phash`.
+   - Batch orchestrator merging perception results, dedupe via `phash`, writing cache artifacts before optional DB persist.
+   - Filesystem-backed ingestion queue + worker service (keep models warm between jobs).
    - SQLite repositories with Alembic migrations.
 4. **Interfaces (API-001…CLI-001, UI-001)**
    - FastAPI `/import`, `/search`, `/assets/{id}` endpoints.
    - Typer CLI commands mirroring API functionality.
+   - `process_dataset.py` CLI for enqueue-only, service, dry-run, and cache-import workflows.
    - Streamlit dashboard for browsing/searching results.
 5. **Quality (TEST-001+, PERF-001)**
    - Unit/integration tests, ingestion benchmark harness, logging verification.

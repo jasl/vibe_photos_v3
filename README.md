@@ -43,10 +43,18 @@ Consult [`DIRECTORY_STRUCTURE.md`](DIRECTORY_STRUCTURE.md) for operational detai
     source .venv/bin/activate
     uv sync  # run from repository root
     ```
-4. **Prime the models** – Run the provided download script once, then process the sample dataset.
+4. **Prime the models** – Run the provided download script once, then choose how to process the sample dataset.
     ```bash
     uv run python download_models.py
+    # Option A: enqueue files for the long-lived worker
+    uv run python process_dataset.py --enqueue-only
+    uv run python process_dataset.py --service  # keep running to drain the queue
+
+    # Option B: run a one-off batch (combines enqueue + worker in-process)
     uv run python process_dataset.py
+
+    # Optional: import cached artifacts into SQLite without re-running inference
+    uv run python process_dataset.py --import-cache
     ```
 5. **Stay within scope** – every deviation must be justified against the decision logs in `decisions/` before implementation.
 

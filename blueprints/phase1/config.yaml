@@ -18,6 +18,7 @@ dataset:
   # Incremental ingestion settings
   incremental: true  # Skip files that already have metadata cached
   state_file: "data/processing_state.json"
+  persist_to_db: true  # Whether to write ingestion results directly into SQLite
 
 # Image preprocessing
 preprocessing:
@@ -48,6 +49,7 @@ preprocessing:
     detections: "cache/detections"         # Detection outputs
     ocr_results: "cache/ocr"              # OCR results cache
     hash_cache: "cache/hashes/phash_cache.json"  # Stores perceptual hash index
+    ingestion_queue: "cache/ingestion_queue"     # Filesystem-backed ingestion queue
 
     # Version-specific data
     database: "data/vibe_photos.db"       # SQLite database file

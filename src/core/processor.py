@@ -17,6 +17,7 @@ from src.core.ocr import PaddleOCREngine
 from src.core.preprocessor import ImagePreprocessor, PreprocessedImage
 from src.utils.logging import get_logger
 from src.models.siglip import LabelScore
+from src.services.cache import CacheWriter, CachedArtifact
 
 
 @dataclass(slots=True)
@@ -48,6 +49,9 @@ class BatchProcessor:
         preprocessor: ImagePreprocessor,
         config: Dict[str, Any],
         ocr_engine: PaddleOCREngine | None = None,
+        *,
+        cache_writer: CacheWriter | None = None,
+        persist_to_db: bool = True,
     ) -> None:
         self.session_factory = session_factory
         self.detector = detector
@@ -55,6 +59,8 @@ class BatchProcessor:
         self.preprocessor = preprocessor
         self.config = config
         self.logger = get_logger(__name__)
+        self.cache_writer = cache_writer
+        self.persist_to_db = persist_to_db
         self.total_images: int | None = None
 
         self.stats = {
@@ -82,8 +88,7 @@ class BatchProcessor:
             self.logger.warning("No image files found during scan", extra={"dataset_dir": str(dataset_dir)})
             return
 
-        await self._initialize_executor()
-        await self._load_duplicate_index()
+        await self.startup()
 
         batch: List[Path] = []
         try:
@@ -96,21 +101,33 @@ class BatchProcessor:
             if batch:
                 await self._process_batch(list(batch), incremental)
         finally:
-            await self._shutdown_executor()
+            await self.shutdown()
             self.total_images = None
 
-    async def process_file(self, image_path: Path, incremental: bool = True) -> None:
+    async def process_file(
+        self, image_path: Path, *, incremental: bool = True, shutdown_executor: bool = True
+    ) -> None:
         """Process a single image file (used by API uploads)."""
         await self._initialize_executor()
         await self._load_duplicate_index()
         try:
             await self._process_batch([image_path], incremental=incremental)
         finally:
-            await self._shutdown_executor()
+            if shutdown_executor:
+                await self._shutdown_executor()
 
     def get_statistics(self) -> Dict[str, int]:
         """Return a copy of the current stats."""
         return dict(self.stats)
+
+    async def startup(self) -> None:
+        """Prepare executor resources for long-running workloads."""
+        await self._initialize_executor()
+        await self._load_duplicate_index()
+
+    async def shutdown(self) -> None:
+        """Release executor resources after processing."""
+        await self._shutdown_executor()
 
     def _iter_images(self, dataset_dir: Path) -> Iterable[Path]:
         """Yield image files matching the supported extensions."""
@@ -262,21 +279,28 @@ class BatchProcessor:
                 ocr_blocks=ocr_blocks,
             )
 
-            try:
-                asset_id = await self._run_in_executor(self._persist_asset, asset_data)
-            except Exception as error:  # noqa: BLE001
+            cache_error = await self._write_cache(asset_data, stage_timings, prepared.image_path)
+            if cache_error:
                 await self._increment_stat("failed")
-                self.logger.exception(
-                    "Failed to persist %s: %s: %s",
-                    str(prepared.image_path),
-                    type(error).__name__,
-                    error,
-                    extra={"path": str(prepared.image_path), "error": str(error)},
-                )
                 continue
 
+            asset_id: int | None = None
+            if self.persist_to_db:
+                try:
+                    asset_id = await self._run_in_executor(self._persist_asset, asset_data)
+                except Exception as error:  # noqa: BLE001
+                    await self._increment_stat("failed")
+                    self.logger.exception(
+                        "Failed to persist %s: %s: %s",
+                        str(prepared.image_path),
+                        type(error).__name__,
+                        error,
+                        extra={"path": str(prepared.image_path), "error": str(error)},
+                    )
+                    continue
+
             duplicate_key = prepared.preprocessed.phash
-            if duplicate_key:
+            if duplicate_key and asset_id is not None:
                 self._phash_index[duplicate_key] = {
                     "asset_id": asset_id,
                     "duplicate_count": 0,
@@ -313,6 +337,27 @@ class BatchProcessor:
         async with self._stats_lock:
             self.stats[key] += value
             return self.stats[key]
+
+    async def _write_cache(
+        self, asset_data: AssetData, stage_timings: Dict[str, float], image_path: Path
+    ) -> bool:
+        """Write cache artifacts when configured. Returns True if an error occurred."""
+        if self.cache_writer is None:
+            return False
+
+        try:
+            artifact = CachedArtifact(
+                asset=asset_data,
+                timings=stage_timings,
+                source_path=str(image_path),
+            )
+            await self._run_in_executor(self.cache_writer.write, artifact)
+            return False
+        except Exception as error:  # noqa: BLE001
+            self.logger.exception(
+                "Failed to write cache", extra={"path": str(image_path), "error": str(error)}
+            )
+            return True
 
     def _count_images(self, dataset_dir: Path) -> int:
         return sum(1 for _ in self._iter_images(dataset_dir))

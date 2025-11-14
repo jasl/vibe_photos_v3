@@ -149,7 +149,8 @@ For each module described below, pair this manual with `AI_DEVELOPMENT_GUIDE.md`
 ### CORE-PROC: `src/core/processor.py`
 - Orchestrate detection + OCR + metadata extraction.
 - Deduplicate using file checksum + perceptual hash.
-- Persist results through `database.AssetRepository`.
+- Emit artifacts through `CacheWriter` before optionally persisting to SQLite (respect `persist_to_db`).
+- Expose statistics and enqueue helpers consumed by the ingestion service.
 
 ### CORE-SRCH: `src/core/searcher.py`
 - Maintain an embedding cache stored alongside asset metadata in SQLite; run cosine similarity locally for Phase 1.
@@ -164,7 +165,13 @@ For each module described below, pair this manual with `AI_DEVELOPMENT_GUIDE.md`
 - **FastAPI (`src/api/main.py`):** create app factory `create_app()`; mount routes from `routes/ingest.py`, `routes/search.py`, `routes/annotations.py`.
 - **Schemas:** All responses wrap payload inside `{ "status": "ok", "data": ... }` or `{ "status": "error", "message": ... }`.
 - **CLI (`src/cli.py`):** Typer commands `ingest`, `search`, `rebuild-index`. Document options via Typer help strings.
+- **Ingestion script (`process_dataset.py`):** argparse CLI exposing `--enqueue-only`, `--service`, `--import-cache`, `--skip-db`, and `--dry-run --stub-models` flags. It must bootstrap logging/config, preload models once, and pass the warm components to the worker/processor.
 - **Streamlit MVP:** Lives at the project root (`app.py`, with a blueprint stub for reference); ensure CLI and API reuse core services rather than duplicating logic.
+
+## SERVICES — Queue, Worker, and Cache
+- **Task queue (`src/services/task_queue.py`):** Filesystem-backed queue that appends JSONL job files, supports ack/retry semantics, and exposes `enqueue`, `dequeue`, `ack`, and `pending` helpers. Concurrency must be safe on a single host.
+- **Ingestion service (`src/services/ingestion_service.py`):** Async worker that drains the queue, batches jobs, keeps detector/OCR warm, and calls `BatchProcessor.process_paths`. Handle graceful shutdown and backoff.
+- **Cache utilities (`src/services/cache.py`):** `CacheWriter` serializes detections/ocr/captions per asset, while `CacheImporter` hydrates SQLite from cached JSON for schema rebuilds. Include version stamps for compatibility.
 
 ## DATA — Storage & Assets
 - Respect directory contracts from `DIRECTORY_STRUCTURE.md`.

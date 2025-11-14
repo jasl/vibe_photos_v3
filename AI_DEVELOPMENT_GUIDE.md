@@ -40,6 +40,10 @@ src/
 │   ├── siglip.py
 │   ├── blip.py
 │   └── paddleocr.py
+├── services/
+│   ├── task_queue.py       # Filesystem-backed ingestion queue
+│   ├── ingestion_service.py# Long-lived worker consuming queued jobs
+│   └── cache.py            # Cache writer/importer utilities
 ├── api/
 │   ├── main.py            # FastAPI app factory
 │   ├── routes/            # Import/search/annotation endpoints
@@ -48,7 +52,8 @@ src/
 │   ├── image_ops.py
 │   ├── cache.py
 │   └── logging.py
-└── cli.py                 # Typer-based command surface
+├── cli.py                 # Typer-based command surface
+└── ../process_dataset.py  # Phase 1 ingestion CLI (enqueue-only, service mode, or one-off batches)
 ```
 Tests live in `tests/` mirroring the module structure with fixtures under `tests/fixtures/`.
 
@@ -58,7 +63,7 @@ Tests live in `tests/` mirroring the module structure with fixtures under `tests
 | Environment | `uv` environment with pinned dependencies, dataset download scripts, model cache bootstrap. | Scripts run from the repo root (blueprints contain reference copies only). |
 | Perception | Unified detector returning labels + captions + OCR text with confidence scores. | Ensure deterministic ordering for downstream search. |
 | Persistence | SQLite schema for assets, tags, OCR text, embeddings, and job history. | Provide migration utilities even if simple. |
-| Interfaces | FastAPI routes (`/import`, `/search`, `/assets/{id}`), Streamlit MVP dashboard, CLI commands for batch ingestion. | Document each command in CLI help strings. |
+| Interfaces | FastAPI routes (`/import`, `/search`, `/assets/{id}`), Streamlit MVP dashboard, CLI commands for batch ingestion, plus `process_dataset.py` queue/service modes. | Document each command in CLI help strings and CLI help text. |
 | Quality | Unit tests ≥80% coverage on core logic, smoke tests for API, benchmark harness for ingestion throughput. | Capture metrics in `log/`. |
 
 ## 6. Execution Sequence for Each Module
