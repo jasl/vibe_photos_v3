@@ -60,6 +60,32 @@ def _build_detector(config: dict, logger: logging.Logger) -> SigLIPBLIPDetector:
     detection_config = config.get("detection", {})
     model_name = detection_config.get("model", "google/siglip2-base-patch16-224")
     device = detection_config.get("device", "auto")
+    device_map = detection_config.get("device_map", "auto")
+    precision = detection_config.get("precision", "auto")
+
+    def _normalize_device(value: str | int | None) -> str | int | None:
+        if value is None:
+            return None
+        if isinstance(value, int):
+            return value
+        lowered = value.lower()
+        if lowered in {"auto", "default"}:
+            return None
+        return value
+
+    device_arg = _normalize_device(device)
+    device_map_arg = None if not device_map else device_map
+    if isinstance(precision, str) and precision.lower() not in {"auto", "default"}:
+        torch_dtype = precision
+    else:
+        torch_dtype = None
+
+    try:
+        import torch  # noqa: WPS433 - optional dependency resolved lazily
+    except Exception:  # noqa: BLE001 - torch may be missing in lightweight environments
+        torch = None  # type: ignore[assignment]
+
+    dtype_obj = getattr(torch, torch_dtype, None) if torch is not None and torch_dtype else None
 
     try:
         from transformers import (
@@ -72,8 +98,28 @@ def _build_detector(config: dict, logger: logging.Logger) -> SigLIPBLIPDetector:
         raise
 
     logger.info("Loading SigLIP zero-shot pipeline: %s", model_name)
-    siglip_pipeline = hf_pipeline("zero-shot-image-classification", model=model_name)
-    classifier = SiglipClassifier(model_name=model_name, pipeline=siglip_pipeline)
+    siglip_model_kwargs: dict[str, object] = {"use_safetensors": True}
+    if device_map_arg:
+        siglip_model_kwargs["device_map"] = device_map_arg
+    if dtype_obj is not None:
+        siglip_model_kwargs["torch_dtype"] = dtype_obj
+
+    pipeline_device = None if device_map_arg else device_arg
+
+    siglip_pipeline = hf_pipeline(
+        "zero-shot-image-classification",
+        model=model_name,
+        device=pipeline_device,
+        model_kwargs=siglip_model_kwargs,
+        torch_dtype=dtype_obj,
+    )
+    classifier = SiglipClassifier(
+        model_name=model_name,
+        pipeline=siglip_pipeline,
+        device=pipeline_device,
+        device_map=device_map_arg,
+        torch_dtype=torch_dtype,
+    )
 
     logger.info(
         "SigLIP zero-shot pipeline loaded",
@@ -83,20 +129,40 @@ def _build_detector(config: dict, logger: logging.Logger) -> SigLIPBLIPDetector:
     blip_model_name = "Salesforce/blip-image-captioning-base"
     logger.info("Loading BLIP captioning components: %s", blip_model_name)
     blip_processor = BlipProcessor.from_pretrained(blip_model_name)
-    blip_model = BlipForConditionalGeneration.from_pretrained(blip_model_name)
-    captioner = BlipCaptioner(model_name=blip_model_name, processor=blip_processor, model=blip_model)
+    blip_model_kwargs: dict[str, object] = {"use_safetensors": True}
+    if device_map_arg:
+        blip_model_kwargs["device_map"] = device_map_arg
+    if dtype_obj is not None:
+        blip_model_kwargs["torch_dtype"] = dtype_obj
+
+    blip_model = BlipForConditionalGeneration.from_pretrained(
+        blip_model_name,
+        **blip_model_kwargs,
+    )
+    captioner = BlipCaptioner(
+        model_name=blip_model_name,
+        processor=blip_processor,
+        model=blip_model,
+        device_map=device_map_arg,
+        torch_dtype=torch_dtype,
+    )
 
     logger.info(
         "BLIP captioning components loaded",
         extra={"model_name": blip_model_name},
     )
 
-    return SigLIPBLIPDetector(
+    detector = SigLIPBLIPDetector(
         model=model_name,
         device=device,
         classifier=classifier,
         captioner=captioner,
     )
+
+    if detection_config.get("warmup", True):
+        classifier.ensure_loaded()
+
+    return detector
 
 
 async def main() -> int:

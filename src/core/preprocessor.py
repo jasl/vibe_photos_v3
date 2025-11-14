@@ -21,6 +21,7 @@ class PreprocessedImage:
     file_size: int
     width: int
     height: int
+    processed_image: Image.Image
 
 
 class ImagePreprocessor:
@@ -74,6 +75,7 @@ class ImagePreprocessor:
             file_size=stat.st_size,
             width=original_size[0],
             height=original_size[1],
+            processed_image=image,
         )
 
     def _resize_if_needed(self, image: Image.Image) -> Image.Image:

@@ -6,9 +6,9 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, create_engine, select
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, create_engine, select, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
 from sqlalchemy.sql import func
@@ -41,6 +41,7 @@ class Asset(Base):
     status: Mapped[str] = mapped_column(String(32), default="processed")
     error_message: Mapped[Optional[str]] = mapped_column(Text)
     embedding_json: Mapped[Optional[str]] = mapped_column(Text)
+    duplicate_count: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
@@ -126,6 +127,12 @@ def _ensure_engine(settings: Settings | None = None) -> Engine:
 def init_db() -> None:
     """Create tables if they do not exist."""
     engine = _ensure_engine()
+    if engine.dialect.name == "sqlite":
+        with engine.connect() as connection:
+            existing = connection.execute(text("PRAGMA table_info(assets)")).fetchall()
+            if not any(column[1] == "duplicate_count" for column in existing):
+                connection.execute(text("ALTER TABLE assets ADD COLUMN duplicate_count INTEGER DEFAULT 0"))
+                connection.commit()
     Base.metadata.create_all(bind=engine)
 
 
@@ -160,6 +167,7 @@ class AssetData:
     caption_source: str = "blip"
     labels: List[tuple[str, float]] | None = None
     ocr_blocks: List[dict] | None = None
+    duplicate_count: int = 0
 
 
 class AssetRepository:
@@ -193,6 +201,7 @@ class AssetRepository:
             file_size=data.file_size,
             width=data.width,
             height=data.height,
+            duplicate_count=data.duplicate_count,
         )
 
         if data.caption:
@@ -238,6 +247,29 @@ class AssetRepository:
         stmt = select(func.count(Asset.id))
         return int(self.session.scalar(stmt) or 0)
 
+    def phash_index(self) -> Dict[str, Dict[str, int]]:
+        """Return mapping of phash to asset metadata for deduplication."""
+        stmt = select(Asset.phash, Asset.id, Asset.duplicate_count).where(Asset.phash.is_not(None))
+        result: Dict[str, Dict[str, int]] = {}
+        for phash, asset_id, duplicate_count in self.session.execute(stmt):
+            if phash is None:
+                continue
+            result[str(phash)] = {
+                "asset_id": int(asset_id),
+                "duplicate_count": int(duplicate_count or 0),
+            }
+        return result
+
+    def increment_duplicate_count(self, asset_id: int, amount: int = 1) -> None:
+        """Increment duplicate count for an existing asset."""
+        asset = self.session.get(Asset, asset_id)
+        if asset is None:
+            return
+
+        asset.duplicate_count = (asset.duplicate_count or 0) + amount
+        self.session.add(asset)
+        self.session.commit()
+
 
 def serialize_asset(asset: Asset) -> dict:
     """Convert an asset ORM object into a JSON-friendly dict."""
@@ -258,6 +290,7 @@ def serialize_asset(asset: Asset) -> dict:
         "status": asset.status,
         "error_message": asset.error_message,
         "embedding_json": asset.embedding_json,
+        "duplicate_count": asset.duplicate_count,
         "created_at": _serialize_datetime(asset.created_at),
         "updated_at": _serialize_datetime(asset.updated_at),
         "labels": [{"label": lbl.label, "confidence": lbl.confidence} for lbl in asset.labels],

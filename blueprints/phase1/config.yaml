@@ -64,6 +64,9 @@ detection:
   model: "google/siglip2-base-patch16-224"  # Multi-lingual SigLIP backbone
   confidence_threshold: 0.3  # Minimum confidence for accepted detections
   device: "auto"        # auto/cpu/cuda:0
+  device_map: "auto"    # Allow Accelerate to shard weights across devices
+  precision: "auto"     # auto/float32/float16/bfloat16
+  warmup: true          # Instantiate pipelines during startup
 
   # Optional COCO class filters
   # filter_classes:
